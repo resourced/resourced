@@ -100,6 +100,24 @@ func (a *Agent) HttpRouter() *httprouter.Router {
 	return router
 }
 
+func (a *Agent) ListenAndServe(addr string) error {
+	if addr == "" {
+		addr = ":55555"
+	}
+
+	router := a.HttpRouter()
+	return http.ListenAndServe(addr, router)
+}
+
+func (a *Agent) ListenAndServeTLS(addr string, certFile string, keyFile string) error {
+	if addr == "" {
+		addr = ":55555"
+	}
+
+	router := a.HttpRouter()
+	return http.ListenAndServeTLS(addr, certFile, keyFile, router)
+}
+
 func (a *Agent) Run(config resourced_config.Config) ([]byte, error) {
 	output, err := config.Run()
 	if err != nil {
