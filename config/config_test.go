@@ -11,8 +11,8 @@ func TestConstructor(t *testing.T) {
 		t.Fatalf("Initializing ConfigStorage should work. Error: %v", err)
 	}
 
-	if len(config.Readers) != 1 {
-		t.Errorf("Length of reader config should == 1. config.Readers: %v", config.Readers)
+	if len(config.Readers) <= 0 {
+		t.Errorf("Length of reader config should > 0. config.Readers: %v", config.Readers)
 	}
 	if len(config.Writers) != 1 {
 		t.Errorf("Length of reader config should == 1. config.Writers: %v", config.Writers)
