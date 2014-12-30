@@ -2,7 +2,6 @@ package config
 
 import (
 	"github.com/BurntSushi/toml"
-	"github.com/resourced/resourced/libprocess"
 	"github.com/resourced/resourced/libstring"
 	"io/ioutil"
 	"path"
@@ -14,6 +13,10 @@ func NewConfig(fullpath string) (Config, error) {
 
 	if config.Command != "" {
 		config.Command = libstring.ExpandTilde(config.Command)
+	}
+
+	if config.Interval == "" {
+		config.Interval = "1m"
 	}
 
 	return config, err
@@ -64,11 +67,6 @@ type Config struct {
 	Command  string
 	Path     string
 	Interval string
-}
-
-func (c *Config) Run() ([]byte, error) {
-	processWrapper := libprocess.NewProcessWrapper(c.Command)
-	return processWrapper.NewCmd().Output()
 }
 
 type ConfigStorage struct {
