@@ -4,11 +4,36 @@ import (
 	"fmt"
 	"github.com/julienschmidt/httprouter"
 	"net/http"
+	"strings"
 )
 
 func (a *Agent) HttpRouter() *httprouter.Router {
 	router := httprouter.New()
 
+	// Root Path
+	router.GET("/", func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+		jsonObjects := make([]string, 0)
+
+		for _, config := range a.ConfigStorage.Readers {
+			jsonData, err := a.GetRunByPath(config.Path)
+			if err == nil && jsonData != nil {
+				jsonObjects = append(jsonObjects, string(jsonData))
+			}
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+
+		if len(jsonObjects) > 0 {
+			w.WriteHeader(200)
+			arrayOfJsonObjects := "[" + strings.Join(jsonObjects, ",") + "]"
+			w.Write([]byte(arrayOfJsonObjects))
+		} else {
+			w.WriteHeader(404)
+			w.Write([]byte(fmt.Sprintf(`{"Error": "Run data does not exist."}`)))
+		}
+	})
+
+	// Readers' Path
 	for _, config := range a.ConfigStorage.Readers {
 		path := config.Path
 		router.GET(path, func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
