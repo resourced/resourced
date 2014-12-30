@@ -96,8 +96,14 @@ func (a *Agent) SaveRun(config resourced_config.Config, output []byte) error {
 	record["Path"] = config.Path
 	record["Interval"] = config.Interval
 
+	hostname, err := os.Hostname()
+	if err != nil {
+		return err
+	}
+	record["Hostname"] = hostname
+
 	runData := make(map[string]interface{})
-	err := json.Unmarshal(output, &runData)
+	err = json.Unmarshal(output, &runData)
 	if err != nil {
 		return err
 	}
