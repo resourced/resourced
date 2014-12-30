@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	resourced_agent "github.com/resourced/resourced/agent"
 	"os"
 )
