@@ -90,11 +90,11 @@ func (a *Agent) Run(config resourced_config.Config) ([]byte, error) {
 }
 
 func (a *Agent) SaveRun(config resourced_config.Config, output []byte) error {
-	resourcedData := make(map[string]interface{})
-	resourcedData["UnixNano"] = time.Now().UnixNano()
-	resourcedData["Command"] = config.Command
-	resourcedData["Path"] = config.Path
-	resourcedData["Interval"] = config.Interval
+	record := make(map[string]interface{})
+	record["UnixNano"] = time.Now().UnixNano()
+	record["Command"] = config.Command
+	record["Path"] = config.Path
+	record["Interval"] = config.Interval
 
 	runData := make(map[string]interface{})
 	err := json.Unmarshal(output, &runData)
@@ -102,8 +102,6 @@ func (a *Agent) SaveRun(config resourced_config.Config, output []byte) error {
 		return err
 	}
 
-	record := make(map[string]interface{})
-	record["ResourceD"] = resourcedData
 	record["Data"] = runData
 
 	recordInJson, err := json.Marshal(record)

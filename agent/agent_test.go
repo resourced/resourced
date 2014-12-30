@@ -104,8 +104,10 @@ func TestHttpRouter(t *testing.T) {
 	} else {
 		if strings.Contains(string(jsonData), "Error") {
 			t.Errorf("jsonData shouldn't return error: %s", jsonData)
-		} else if !strings.Contains(string(jsonData), `ResourceD`) {
-			t.Errorf("jsonData does not contain 'ResourceD' key: %s", jsonData)
+		} else if !strings.Contains(string(jsonData), `UnixNano`) {
+			t.Errorf("jsonData does not contain 'UnixNano' key: %s", jsonData)
+		} else if !strings.Contains(string(jsonData), `Command`) {
+			t.Errorf("jsonData does not contain 'Command' key: %s", jsonData)
 		} else if !strings.Contains(string(jsonData), `Data`) {
 			t.Errorf("jsonData does not contain 'Data' key: %s", jsonData)
 		}
