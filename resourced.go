@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	resourced_agent "github.com/resourced/resourced/agent"
 	"os"
 )
@@ -10,6 +11,8 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+
+	agent.RunAllForever()
 
 	err = agent.ListenAndServe(os.Getenv("RESOURCED_ADDR"))
 

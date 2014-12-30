@@ -2,12 +2,11 @@ package agent
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/boltdb/bolt"
-	"github.com/julienschmidt/httprouter"
 	resourced_config "github.com/resourced/resourced/config"
+	"github.com/resourced/resourced/libprocess"
 	"github.com/resourced/resourced/libstring"
-	"net/http"
+	"github.com/resourced/resourced/libtime"
 	"os"
 	"time"
 )
@@ -78,48 +77,9 @@ func (a *Agent) DbBucket(tx *bolt.Tx) *bolt.Bucket {
 	return tx.Bucket([]byte("resources"))
 }
 
-func (a *Agent) HttpRouter() *httprouter.Router {
-	router := httprouter.New()
-
-	for _, config := range a.ConfigStorage.Readers {
-		path := config.Path
-		router.GET(path, func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-			jsonData, err := a.GetRunByPath(config.Path)
-			w.Header().Set("Content-Type", "application/json")
-
-			if err == nil && jsonData != nil {
-				w.WriteHeader(200)
-				w.Write(jsonData)
-			} else {
-				w.WriteHeader(404)
-				w.Write([]byte(fmt.Sprintf(`{"Error": "Run data does not exist.", "Path": "%v"}`, config.Path)))
-			}
-		})
-	}
-
-	return router
-}
-
-func (a *Agent) ListenAndServe(addr string) error {
-	if addr == "" {
-		addr = ":55555"
-	}
-
-	router := a.HttpRouter()
-	return http.ListenAndServe(addr, router)
-}
-
-func (a *Agent) ListenAndServeTLS(addr string, certFile string, keyFile string) error {
-	if addr == "" {
-		addr = ":55555"
-	}
-
-	router := a.HttpRouter()
-	return http.ListenAndServeTLS(addr, certFile, keyFile, router)
-}
-
 func (a *Agent) Run(config resourced_config.Config) ([]byte, error) {
-	output, err := config.Run()
+	cmd := libprocess.NewCmd(config.Command)
+	output, err := cmd.Output()
 	if err != nil {
 		return nil, err
 	}
@@ -171,4 +131,22 @@ func (a *Agent) GetRunByPath(path string) ([]byte, error) {
 	})
 
 	return data, nil
+}
+
+func (a *Agent) RunForever(config resourced_config.Config) {
+	go func(a *Agent, config resourced_config.Config) {
+		for {
+			a.Run(config)
+			libtime.SleepString(config.Interval)
+		}
+	}(a, config)
+}
+
+func (a *Agent) RunAllForever() {
+	for _, config := range a.ConfigStorage.Readers {
+		a.RunForever(config)
+	}
+	for _, config := range a.ConfigStorage.Writers {
+		a.RunForever(config)
+	}
 }
