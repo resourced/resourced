@@ -2,11 +2,13 @@ package agent
 
 import (
 	"encoding/json"
+	"errors"
 	"github.com/boltdb/bolt"
 	resourced_config "github.com/resourced/resourced/config"
 	"github.com/resourced/resourced/libprocess"
 	"github.com/resourced/resourced/libstring"
 	"github.com/resourced/resourced/libtime"
+	resourced_readers "github.com/resourced/resourced/readers"
 	"os"
 	"time"
 )
@@ -78,23 +80,60 @@ func (a *Agent) DbBucket(tx *bolt.Tx) *bolt.Bucket {
 }
 
 func (a *Agent) Run(config resourced_config.Config) ([]byte, error) {
-	cmd := libprocess.NewCmd(config.Command)
-	output, err := cmd.Output()
+	var output []byte
+	var err error
+
+	if config.Command != "" {
+		output, err = a.RunCommand(config)
+	} else if config.GoStruct != "" {
+		output, err = a.RunGoStruct(config)
+	}
+
 	if err != nil {
 		return nil, err
 	}
 
 	err = a.SaveRun(config, output)
+	return nil, err
+}
 
-	return output, err
+func (a *Agent) RunCommand(config resourced_config.Config) ([]byte, error) {
+	cmd := libprocess.NewCmd(config.Command)
+	return cmd.Output()
+}
+
+func (a *Agent) RunGoStruct(config resourced_config.Config) ([]byte, error) {
+	var reader resourced_readers.IReader
+
+	// TODO(didip): Without reflection, this is going to be so ghetto.
+	if config.GoStruct == "NetworkInterfaces" {
+		reader = resourced_readers.NewNetworkInterfaces()
+	} else {
+		err := errors.New("GoStruct is undefined.")
+		return nil, err
+	}
+
+	err := reader.Run()
+	if err != nil {
+		return nil, err
+	}
+
+	return reader.ToJson()
 }
 
 func (a *Agent) SaveRun(config resourced_config.Config, output []byte) error {
 	record := make(map[string]interface{})
 	record["UnixNano"] = time.Now().UnixNano()
-	record["Command"] = config.Command
 	record["Path"] = config.Path
 	record["Interval"] = config.Interval
+
+	if config.Command != "" {
+		record["Command"] = config.Command
+	}
+
+	if config.GoStruct != "" {
+		record["GoStruct"] = config.GoStruct
+	}
 
 	hostname, err := os.Hostname()
 	if err != nil {

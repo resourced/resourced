@@ -65,6 +65,7 @@ func NewConfigStorage(configReaderDir, configWriterDir string) (*ConfigStorage, 
 
 type Config struct {
 	Command  string
+	GoStruct string
 	Path     string
 	Interval string
 }

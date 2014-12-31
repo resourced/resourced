@@ -4,6 +4,11 @@ import (
 	"encoding/json"
 )
 
+type IReader interface {
+	Run() error
+	ToJson() ([]byte, error)
+}
+
 type Base struct {
 	Data map[string]interface{}
 }

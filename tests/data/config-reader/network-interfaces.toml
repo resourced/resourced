@@ -1,0 +1,3 @@
+GoStruct = "NetworkInterfaces"
+Path = "/network/interfaces"
+Interval = "3s"
