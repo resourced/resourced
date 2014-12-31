@@ -1,0 +1,17 @@
+package readers
+
+import (
+	"encoding/json"
+)
+
+type Base struct {
+	Data map[string]interface{}
+}
+
+func (b *Base) Run() error {
+	return nil
+}
+
+func (b *Base) ToJson() ([]byte, error) {
+	return json.Marshal(b.Data)
+}
