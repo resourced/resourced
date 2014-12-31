@@ -1,3 +1,3 @@
 Command = "~/go/src/github.com/resourced/resourced/tests/data/script-reader/darwin-memory.py"
-Path = "/darwin/memory"
+Path = "/memory.darwin"
 Interval = "3s"

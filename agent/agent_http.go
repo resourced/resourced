@@ -57,18 +57,20 @@ func (a *Agent) HttpRouter() *httprouter.Router {
 
 	// Readers' Path
 	for _, config := range a.ConfigStorage.Readers {
-		if config.Path != "" {
-			router.GET(config.Path, func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+		path := config.Path
+
+		if path != "" {
+			router.GET(path, func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 				w.Header().Set("Content-Type", "application/json")
 
-				jsonData, err := a.GetRunByPath(config.Path)
+				jsonData, err := a.GetRunByPath(path)
 
 				if err == nil && jsonData != nil {
 					w.WriteHeader(200)
 					w.Write(jsonData)
 				} else {
 					w.WriteHeader(404)
-					w.Write([]byte(fmt.Sprintf(`{"Error": "Run data does not exist.", "Path": "%v"}`, config.Path)))
+					w.Write([]byte(fmt.Sprintf(`{"Error": "Run data does not exist.", "Path": "%v"}`, path)))
 				}
 			})
 		}
