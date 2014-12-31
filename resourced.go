@@ -13,7 +13,15 @@ func main() {
 
 	agent.RunAllForever()
 
-	err = agent.ListenAndServe(os.Getenv("RESOURCED_ADDR"))
+	httpAddr := os.Getenv("RESOURCED_ADDR")
+	httpsCertFile := os.Getenv("RESOURCED_CERT_FILE")
+	httpsKeyFile := os.Getenv("RESOURCED_KEY_FILE")
+
+	if httpsCertFile != "" && httpsKeyFile != "" {
+		err = agent.ListenAndServeTLS(httpAddr, httpsCertFile, httpsKeyFile)
+	} else {
+		err = agent.ListenAndServe(httpAddr)
+	}
 
 	if err != nil {
 		panic(err)

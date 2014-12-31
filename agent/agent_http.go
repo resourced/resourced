@@ -71,7 +71,6 @@ func (a *Agent) HttpRouter() *httprouter.Router {
 					w.Write([]byte(fmt.Sprintf(`{"Error": "Run data does not exist.", "Path": "%v"}`, config.Path)))
 				}
 			})
-
 		}
 	}
 
