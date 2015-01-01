@@ -6,9 +6,9 @@ import (
 )
 
 func NewDf() *Df {
-	n := &Df{}
-	n.Data = make(map[string]map[string]interface{})
-	return n
+	d := &Df{}
+	d.Data = make(map[string]map[string]interface{})
+	return d
 }
 
 type Df struct {

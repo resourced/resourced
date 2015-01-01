@@ -109,6 +109,8 @@ func (a *Agent) RunGoStruct(config resourced_config.Config) ([]byte, error) {
 		reader = resourced_readers.NewDf()
 	} else if config.GoStruct == "Memory" {
 		reader = resourced_readers.NewMemory()
+	} else if config.GoStruct == "Ps" {
+		reader = resourced_readers.NewPs()
 	} else {
 		err := errors.New("GoStruct is undefined.")
 		return nil, err
