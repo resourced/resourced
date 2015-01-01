@@ -79,10 +79,7 @@ func (a *Agent) DbBucket(tx *bolt.Tx) *bolt.Bucket {
 	return tx.Bucket([]byte("resources"))
 }
 
-func (a *Agent) Run(config resourced_config.Config) ([]byte, error) {
-	var output []byte
-	var err error
-
+func (a *Agent) Run(config resourced_config.Config) (output []byte, err error) {
 	if config.Command != "" {
 		output, err = a.RunCommand(config)
 	} else if config.GoStruct != "" {
@@ -108,6 +105,8 @@ func (a *Agent) RunGoStruct(config resourced_config.Config) ([]byte, error) {
 	// TODO(didip): Without reflection, this is going to be so ghetto.
 	if config.GoStruct == "NetworkInterfaces" {
 		reader = resourced_readers.NewNetworkInterfaces()
+	} else if config.GoStruct == "Df" {
+		reader = resourced_readers.NewDf()
 	} else {
 		err := errors.New("GoStruct is undefined.")
 		return nil, err
