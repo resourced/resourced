@@ -39,13 +39,13 @@ func (p *Ps) Run() error {
 		}
 
 		procData := make(map[string]interface{})
-		procData["Pid"] = pid
-		procData["Ppid"] = state.Ppid
-		procData["StartTime"] = time.FormatStartTime()
-		procData["FormatTotal"] = time.FormatTotal()
-		procData["MemoryResident"] = mem.Resident / 1024
-		procData["State"] = state.State
 		procData["Name"] = state.Name
+		procData["Pid"] = pid
+		procData["ParentPid"] = state.Ppid
+		procData["StartTime"] = time.FormatStartTime()
+		procData["RunTime"] = time.FormatTotal()
+		procData["MemoryResident"] = mem.Resident / 1024
+		// procData["State"] = state.State // Not sure what state is.
 
 		if len(procData) > 0 {
 			p.Data = append(p.Data, procData)
