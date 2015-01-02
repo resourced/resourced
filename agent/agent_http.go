@@ -8,11 +8,8 @@ import (
 	"strings"
 )
 
-func (a *Agent) HttpRouter() *httprouter.Router {
-	router := httprouter.New()
-
-	// Root Path
-	router.GET("/", func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+func (a *Agent) RootGetHandler() func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	return func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 		w.Header().Set("Content-Type", "application/json")
 
 		jsonObjects := make([]string, 0)
@@ -32,10 +29,11 @@ func (a *Agent) HttpRouter() *httprouter.Router {
 			w.WriteHeader(404)
 			w.Write([]byte(fmt.Sprintf(`{"Error": "Run data does not exist."}`)))
 		}
-	})
+	}
+}
 
-	// /paths Path
-	router.GET("/paths", func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+func (a *Agent) PathsGetHandler() func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	return func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 		w.Header().Set("Content-Type", "application/json")
 
 		jsonObjects := make([]string, 0)
@@ -49,18 +47,24 @@ func (a *Agent) HttpRouter() *httprouter.Router {
 		if len(jsonObjects) > 0 && err == nil {
 			w.WriteHeader(200)
 			w.Write([]byte(arrayOfJsonObjects))
+		} else if err != nil {
+			w.WriteHeader(503)
+			w.Write([]byte(fmt.Sprintf(`{"Error": "%v"}`, err)))
 		} else {
 			w.WriteHeader(404)
 			w.Write([]byte(fmt.Sprintf(`{"Error": "Run data does not exist."}`)))
 		}
-	})
+	}
+}
 
-	// Readers' Path
+func (a *Agent) ReadersGetHandler() map[string]func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	handlersMap := make(map[string]func(w http.ResponseWriter, r *http.Request, ps httprouter.Params))
+
 	for _, config := range a.ConfigStorage.Readers {
 		path := config.Path
 
 		if path != "" {
-			router.GET(path, func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+			handlersMap[path] = func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 				w.Header().Set("Content-Type", "application/json")
 
 				jsonData, err := a.GetRunByPath(path)
@@ -68,12 +72,28 @@ func (a *Agent) HttpRouter() *httprouter.Router {
 				if err == nil && jsonData != nil {
 					w.WriteHeader(200)
 					w.Write(jsonData)
+				} else if err != nil {
+					w.WriteHeader(503)
+					w.Write([]byte(fmt.Sprintf(`{"Error": "%v"}`, err)))
 				} else {
 					w.WriteHeader(404)
 					w.Write([]byte(fmt.Sprintf(`{"Error": "Run data does not exist.", "Path": "%v"}`, path)))
 				}
-			})
+			}
 		}
+	}
+	return handlersMap
+}
+
+func (a *Agent) HttpRouter() *httprouter.Router {
+	router := httprouter.New()
+
+	router.GET("/", a.RootGetHandler())
+
+	router.GET("/paths", a.PathsGetHandler())
+
+	for path, handler := range a.ReadersGetHandler() {
+		router.GET(path, handler)
 	}
 
 	return router
