@@ -7,13 +7,13 @@ import (
 
 func NewPs() *Ps {
 	p := &Ps{}
-	p.Data = make([]map[string]interface{}, 0)
+	p.Data = make(map[string][]map[string]interface{})
 	return p
 }
 
 type Ps struct {
 	Base
-	Data []map[string]interface{}
+	Data map[string][]map[string]interface{}
 }
 
 func (p *Ps) Run() error {
@@ -22,6 +22,8 @@ func (p *Ps) Run() error {
 	if err != nil {
 		return err
 	}
+
+	p.Data["Processes"] = make([]map[string]interface{}, 0)
 
 	for _, pid := range pids.List {
 		state := sigar.ProcState{}
@@ -48,7 +50,7 @@ func (p *Ps) Run() error {
 		// procData["State"] = state.State // Not sure what state is.
 
 		if len(procData) > 0 {
-			p.Data = append(p.Data, procData)
+			p.Data["Processes"] = append(p.Data["Processes"], procData)
 		}
 	}
 

@@ -91,7 +91,7 @@ func (a *Agent) Run(config resourced_config.Config) (output []byte, err error) {
 	}
 
 	err = a.SaveRun(config, output)
-	return nil, err
+	return output, err
 }
 
 func (a *Agent) RunCommand(config resourced_config.Config) ([]byte, error) {
