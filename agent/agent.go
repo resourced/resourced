@@ -10,9 +10,11 @@ import (
 	"github.com/resourced/resourced/libtime"
 	resourced_readers "github.com/resourced/resourced/readers"
 	"os"
+	// "runtime"
 	"time"
 )
 
+// NewAgent is the constructor fot Agent struct.
 func NewAgent() (*Agent, error) {
 	agent := &Agent{}
 
@@ -29,12 +31,15 @@ func NewAgent() (*Agent, error) {
 	return agent, err
 }
 
+// Agent struct carries most of the functionality of ResourceD.
+// It collects information through readers and serve them up as HTTP+JSON.
 type Agent struct {
 	ConfigStorage *resourced_config.ConfigStorage
 	DbPath        string
 	Db            *bolt.DB
 }
 
+// setConfigStorage reads config paths and setup configStorage.
 func (a *Agent) setConfigStorage() error {
 	readerDir := os.Getenv("RESOURCED_CONFIG_READER_DIR")
 	writerDir := os.Getenv("RESOURCED_CONFIG_WRITER_DIR")
@@ -46,6 +51,7 @@ func (a *Agent) setConfigStorage() error {
 	return err
 }
 
+// setDb configures the local storage.
 func (a *Agent) setDb() error {
 	var err error
 
@@ -75,10 +81,12 @@ func (a *Agent) setDb() error {
 	return err
 }
 
+// DbBucket returns the boltdb bucket.
 func (a *Agent) DbBucket(tx *bolt.Tx) *bolt.Bucket {
 	return tx.Bucket([]byte("resources"))
 }
 
+// Run executes a particular reader/writer config and saves the result on local storage.
 func (a *Agent) Run(config resourced_config.Config) (output []byte, err error) {
 	if config.Command != "" {
 		output, err = a.RunCommand(config)
@@ -94,15 +102,17 @@ func (a *Agent) Run(config resourced_config.Config) (output []byte, err error) {
 	return output, err
 }
 
+// RunCommand shells out external program and returns the output.
 func (a *Agent) RunCommand(config resourced_config.Config) ([]byte, error) {
 	cmd := libprocess.NewCmd(config.Command)
 	return cmd.Output()
 }
 
+// RunCommand executes IReaderWriter and returns the output.
 func (a *Agent) RunGoStruct(config resourced_config.Config) ([]byte, error) {
-	var reader resourced_readers.IReader
+	var reader resourced_readers.IReaderWriter
 
-	// TODO(didip): Without reflection, this is going to be so ghetto.
+	// TODO(didip): We need reflection, this is so ghetto!
 	if config.GoStruct == "NetworkInterfaces" {
 		reader = resourced_readers.NewNetworkInterfaces()
 	} else if config.GoStruct == "Df" {
@@ -115,6 +125,8 @@ func (a *Agent) RunGoStruct(config resourced_config.Config) ([]byte, error) {
 		reader = resourced_readers.NewLoadAvg()
 	} else if config.GoStruct == "Uptime" {
 		reader = resourced_readers.NewUptime()
+		// } else if runtime.GOOS == "linux" && (config.GoStruct == "Meminfo") {  // TODO(didip): This is not working on GOOS=="darwin" for obvious reason.
+		// 	reader = resourced_readers.NewMeminfo()
 	} else {
 		err := errors.New("GoStruct is undefined.")
 		return nil, err
@@ -128,6 +140,7 @@ func (a *Agent) RunGoStruct(config resourced_config.Config) ([]byte, error) {
 	return reader.ToJson()
 }
 
+// SaveRun gathers default basic information and saves output into local storage.
 func (a *Agent) SaveRun(config resourced_config.Config, output []byte) error {
 	record := make(map[string]interface{})
 	record["UnixNano"] = time.Now().UnixNano()
@@ -168,10 +181,12 @@ func (a *Agent) SaveRun(config resourced_config.Config, output []byte) error {
 	return err
 }
 
+// GetRun returns JSON data stored in local storage given Config struct.
 func (a *Agent) GetRun(config resourced_config.Config) ([]byte, error) {
 	return a.GetRunByPath(config.Path)
 }
 
+// GetRunByPath returns JSON data stored in local storage given path string.
 func (a *Agent) GetRunByPath(path string) ([]byte, error) {
 	var data []byte
 
@@ -183,6 +198,7 @@ func (a *Agent) GetRunByPath(path string) ([]byte, error) {
 	return data, nil
 }
 
+// RunForever executes Run() in a loop with a sleep of config.Interval.
 func (a *Agent) RunForever(config resourced_config.Config) {
 	go func(a *Agent, config resourced_config.Config) {
 		for {
@@ -192,6 +208,7 @@ func (a *Agent) RunForever(config resourced_config.Config) {
 	}(a, config)
 }
 
+// RunAllForever executes all readers & writers in a loop.
 func (a *Agent) RunAllForever() {
 	for _, config := range a.ConfigStorage.Readers {
 		a.RunForever(config)
