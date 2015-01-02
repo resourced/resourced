@@ -1,0 +1,3 @@
+GoStruct = "LoadAvg"
+Path = "/load-avg"
+Interval = "1s"
