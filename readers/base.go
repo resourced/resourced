@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 )
 
-type IReader interface {
+type IReaderWriter interface {
 	Run() error
 	ToJson() ([]byte, error)
 }
