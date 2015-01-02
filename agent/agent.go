@@ -113,6 +113,8 @@ func (a *Agent) RunGoStruct(config resourced_config.Config) ([]byte, error) {
 		reader = resourced_readers.NewPs()
 	} else if config.GoStruct == "LoadAvg" {
 		reader = resourced_readers.NewLoadAvg()
+	} else if config.GoStruct == "Uptime" {
+		reader = resourced_readers.NewUptime()
 	} else {
 		err := errors.New("GoStruct is undefined.")
 		return nil, err
