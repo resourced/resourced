@@ -47,7 +47,7 @@ func (p *Ps) Run() error {
 		procData["StartTime"] = time.FormatStartTime()
 		procData["RunTime"] = time.FormatTotal()
 		procData["MemoryResident"] = mem.Resident / 1024
-		// procData["State"] = state.State // Not sure what state is.
+		procData["State"] = string(state.State)
 
 		if len(procData) > 0 {
 			p.Data["Processes"] = append(p.Data["Processes"], procData)
