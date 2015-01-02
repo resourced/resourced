@@ -29,3 +29,11 @@ Example, by running your server as described above, you should be able to GET lo
 curl -X GET -H "Content-type: application/json" -H "Accept: application/json" \
 http://localhost:55555/load-avg
 ```
+
+## 3rd party data source for native readers data
+
+* github.com/cloudfoundry/gosigar
+
+* https://github.com/shirou/gopsutil
+
+* https://github.com/guillermo/go.procmeminfo
