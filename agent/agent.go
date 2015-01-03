@@ -116,6 +116,8 @@ func (a *Agent) RunGoStruct(config resourced_config.Config) ([]byte, error) {
 		reader = resourced_readers.NewNetworkInterfaces()
 	} else if config.GoStruct == "Df" {
 		reader = resourced_readers.NewDf()
+	} else if config.GoStruct == "Du" {
+		reader = resourced_readers.NewDu()
 	} else if config.GoStruct == "Memory" {
 		reader = resourced_readers.NewMemory()
 	} else if config.GoStruct == "Ps" {
