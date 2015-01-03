@@ -10,7 +10,6 @@ import (
 	"github.com/resourced/resourced/libtime"
 	resourced_readers "github.com/resourced/resourced/readers"
 	"os"
-	// "runtime"
 	"time"
 )
 
@@ -125,8 +124,8 @@ func (a *Agent) RunGoStruct(config resourced_config.Config) ([]byte, error) {
 		reader = resourced_readers.NewLoadAvg()
 	} else if config.GoStruct == "Uptime" {
 		reader = resourced_readers.NewUptime()
-		// } else if runtime.GOOS == "linux" && (config.GoStruct == "Meminfo") {  // TODO(didip): This is not working on GOOS=="darwin" for obvious reason.
-		// 	reader = resourced_readers.NewMeminfo()
+	} else if config.GoStruct == "Meminfo" {
+		reader = resourced_readers.NewMeminfo()
 	} else {
 		err := errors.New("GoStruct is undefined.")
 		return nil, err

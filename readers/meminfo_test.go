@@ -1,8 +1,7 @@
-// +build linux
-
 package readers
 
 import (
+	"runtime"
 	"strings"
 	"testing"
 )
@@ -34,9 +33,17 @@ func TestNewMeminfoToJson(t *testing.T) {
 		t.Errorf("Marshalling memory data should always be successful. Error: %v", err)
 	}
 
-	if strings.Contains(string(jsonData), "Error") {
-		t.Errorf("jsonData shouldn't return error: %s", jsonData)
-	} else if !strings.Contains(string(jsonData), `MemTotal`) {
-		t.Errorf("jsonData does not contain 'MemTotal' key. jsonData: %s", jsonData)
+	if runtime.GOOS == "darwin" {
+		if !strings.Contains(string(jsonData), "Error") {
+			t.Errorf("jsonData should return error on darwin: %s", jsonData)
+		}
+	}
+
+	if runtime.GOOS == "linux" {
+		if strings.Contains(string(jsonData), "Error") {
+			t.Errorf("jsonData shouldn't return error on linux: %s", jsonData)
+		} else if !strings.Contains(string(jsonData), `MemTotal`) {
+			t.Errorf("jsonData does not contain 'MemTotal' key. jsonData: %s", jsonData)
+		}
 	}
 }

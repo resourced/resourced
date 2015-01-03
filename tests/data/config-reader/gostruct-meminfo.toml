@@ -1,0 +1,3 @@
+GoStruct = "Meminfo"
+Path = "/proc/meminfo"
+Interval = "3s"
