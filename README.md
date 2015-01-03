@@ -32,7 +32,7 @@ http://localhost:55555/load-avg
 
 ## 3rd party data source for native readers data
 
-* github.com/cloudfoundry/gosigar
+* https://github.com/cloudfoundry/gosigar
 
 * https://github.com/shirou/gopsutil
 
