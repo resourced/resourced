@@ -4,6 +4,7 @@ import (
 	"github.com/BurntSushi/toml"
 	"github.com/resourced/resourced/libstring"
 	"io/ioutil"
+	"os"
 	"path"
 )
 
@@ -13,6 +14,7 @@ func NewConfig(fullpath string) (Config, error) {
 
 	if config.Command != "" {
 		config.Command = libstring.ExpandTilde(config.Command)
+		config.Command = os.ExpandEnv(config.Command)
 	}
 
 	if config.Interval == "" {
@@ -31,6 +33,8 @@ func NewConfigStorage(configReaderDir, configWriterDir string) (*ConfigStorage, 
 
 	if configReaderDir != "" {
 		configReaderDir = libstring.ExpandTilde(configReaderDir)
+		configReaderDir = os.ExpandEnv(configReaderDir)
+
 		readerFiles, err := ioutil.ReadDir(configReaderDir)
 
 		if err == nil {
@@ -47,6 +51,8 @@ func NewConfigStorage(configReaderDir, configWriterDir string) (*ConfigStorage, 
 
 	if configWriterDir != "" {
 		configWriterDir = libstring.ExpandTilde(configWriterDir)
+		configWriterDir = os.ExpandEnv(configWriterDir)
+
 		writerFiles, err := ioutil.ReadDir(configWriterDir)
 		if err == nil {
 			for _, f := range writerFiles {
