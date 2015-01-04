@@ -32,19 +32,17 @@ func TestNewPsToJson(t *testing.T) {
 		t.Errorf("Marshalling df data should always be successful. Error: %v", err)
 	}
 
-	if strings.Contains(string(jsonData), "Error") {
-		t.Errorf("jsonData shouldn't return error: %s", jsonData)
-	} else if !strings.Contains(string(jsonData), `Name`) {
-		t.Errorf("jsonData does not contain 'Name' key. jsonData: %s", jsonData)
-	} else if !strings.Contains(string(jsonData), `Pid`) {
-		t.Errorf("jsonData does not contain 'Pid' key. jsonData: %s", jsonData)
-	} else if !strings.Contains(string(jsonData), `ParentPid`) {
-		t.Errorf("jsonData does not contain 'ParentPid' key. jsonData: %s", jsonData)
-	} else if !strings.Contains(string(jsonData), `StartTime`) {
-		t.Errorf("jsonData does not contain 'StartTime' key. jsonData: %s", jsonData)
-	} else if !strings.Contains(string(jsonData), `RunTime`) {
-		t.Errorf("jsonData does not contain 'RunTime' key. jsonData: %s", jsonData)
-	} else if !strings.Contains(string(jsonData), `MemoryResident`) {
-		t.Errorf("jsonData does not contain 'MemoryResident' key. jsonData: %s", jsonData)
+	jsonDataString := string(jsonData)
+
+	if strings.Contains(jsonDataString, "Error") {
+		t.Errorf("jsonDataString shouldn't return error: %v", jsonDataString)
+	}
+
+	keysToTest := []string{"Name", "Pid", "ParentPid", "StartTime", "RunTime", "MemoryResident"}
+
+	for _, key := range keysToTest {
+		if !strings.Contains(jsonDataString, key) {
+			t.Errorf("jsonDataString does not contain '%v' key. jsonDataString: %v", key, jsonDataString)
+		}
 	}
 }
