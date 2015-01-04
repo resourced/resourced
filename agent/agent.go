@@ -2,7 +2,6 @@ package agent
 
 import (
 	"encoding/json"
-	"errors"
 	"github.com/boltdb/bolt"
 	resourced_config "github.com/resourced/resourced/config"
 	"github.com/resourced/resourced/libprocess"
