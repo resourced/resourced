@@ -11,6 +11,5 @@ docker build -t resourced .
 
 ```
 cd $GOPATH/src/github.com/resourced/resourced
-docker run -i -t resourced /bin/bash
-go test ./...
+docker build -t resourced . && docker run -t resourced go test ./...
 ```
