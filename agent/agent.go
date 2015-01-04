@@ -111,29 +111,12 @@ func (a *Agent) RunCommand(config resourced_config.Config) ([]byte, error) {
 func (a *Agent) RunGoStruct(config resourced_config.Config) ([]byte, error) {
 	var reader resourced_readers.IReaderWriter
 
-	// TODO(didip): We need reflection, this is so ghetto!
-	if config.GoStruct == "NetworkInterfaces" {
-		reader = resourced_readers.NewNetworkInterfaces()
-	} else if config.GoStruct == "Df" {
-		reader = resourced_readers.NewDf()
-	} else if config.GoStruct == "Du" {
-		reader = resourced_readers.NewDu()
-	} else if config.GoStruct == "Memory" {
-		reader = resourced_readers.NewMemory()
-	} else if config.GoStruct == "Ps" {
-		reader = resourced_readers.NewPs()
-	} else if config.GoStruct == "LoadAvg" {
-		reader = resourced_readers.NewLoadAvg()
-	} else if config.GoStruct == "Uptime" {
-		reader = resourced_readers.NewUptime()
-	} else if config.GoStruct == "Meminfo" {
-		reader = resourced_readers.NewMeminfo()
-	} else {
-		err := errors.New("GoStruct is undefined.")
+	reader, err := resourced_readers.NewGoStruct(config.GoStruct)
+	if err != nil {
 		return nil, err
 	}
 
-	err := reader.Run()
+	err = reader.Run()
 	if err != nil {
 		return nil, err
 	}
