@@ -1,11 +1,13 @@
 package config
 
 import (
+	"os"
 	"testing"
 )
 
 func TestConstructor(t *testing.T) {
-	config, err := NewConfigStorage("~/go/src/github.com/resourced/resourced/tests/data/config-reader", "~/go/src/github.com/resourced/resourced/tests/data/config-writer")
+	gopath := os.Getenv("GOPATH")
+	config, err := NewConfigStorage(gopath+"/src/github.com/resourced/resourced/tests/data/config-reader", gopath+"/src/github.com/resourced/resourced/tests/data/config-writer")
 
 	if err != nil {
 		t.Fatalf("Initializing ConfigStorage should work. Error: %v", err)

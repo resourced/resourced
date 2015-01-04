@@ -1,7 +1,6 @@
 package agent
 
 import (
-	"github.com/resourced/resourced/libstring"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
@@ -11,8 +10,9 @@ import (
 )
 
 func TestConstructor(t *testing.T) {
-	os.Setenv("RESOURCED_CONFIG_READER_DIR", "~/go/src/github.com/resourced/resourced/tests/data/config-reader")
-	os.Setenv("RESOURCED_CONFIG_WRITER_DIR", "~/go/src/github.com/resourced/resourced/tests/data/config-writer")
+	gopath := os.Getenv("GOPATH")
+	os.Setenv("RESOURCED_CONFIG_READER_DIR", gopath+"/src/github.com/resourced/resourced/tests/data/config-reader")
+	os.Setenv("RESOURCED_CONFIG_WRITER_DIR", gopath+"/src/github.com/resourced/resourced/tests/data/config-writer")
 
 	agent, err := NewAgent()
 	defer agent.Db.Close()
@@ -21,11 +21,11 @@ func TestConstructor(t *testing.T) {
 		t.Fatalf("Initializing ConfigStorage should work. Error: %v", err)
 	}
 
-	if agent.DbPath != libstring.ExpandTilde("~/resourced/db") {
-		t.Error("Default DbPath is set incorrectly.")
+	if agent.DbPath == "" {
+		t.Errorf("Default DbPath is set incorrectly. agent.DbPath: %v", agent.DbPath)
 	}
 
-	if _, err := os.Stat(libstring.ExpandTilde("~/resourced")); err != nil {
+	if _, err := os.Stat(agent.DbPath); err != nil {
 		if os.IsNotExist(err) {
 			t.Error("resourced directory does not exist.")
 		}
@@ -33,8 +33,9 @@ func TestConstructor(t *testing.T) {
 }
 
 func TestRun(t *testing.T) {
-	os.Setenv("RESOURCED_CONFIG_READER_DIR", "~/go/src/github.com/resourced/resourced/tests/data/config-reader")
-	os.Setenv("RESOURCED_CONFIG_WRITER_DIR", "~/go/src/github.com/resourced/resourced/tests/data/config-writer")
+	gopath := os.Getenv("GOPATH")
+	os.Setenv("RESOURCED_CONFIG_READER_DIR", gopath+"/src/github.com/resourced/resourced/tests/data/config-reader")
+	os.Setenv("RESOURCED_CONFIG_WRITER_DIR", gopath+"/src/github.com/resourced/resourced/tests/data/config-writer")
 
 	agent, err := NewAgent()
 	defer agent.Db.Close()
@@ -50,8 +51,9 @@ func TestRun(t *testing.T) {
 }
 
 func TestGetRun(t *testing.T) {
-	os.Setenv("RESOURCED_CONFIG_READER_DIR", "~/go/src/github.com/resourced/resourced/tests/data/config-reader")
-	os.Setenv("RESOURCED_CONFIG_WRITER_DIR", "~/go/src/github.com/resourced/resourced/tests/data/config-writer")
+	gopath := os.Getenv("GOPATH")
+	os.Setenv("RESOURCED_CONFIG_READER_DIR", gopath+"/src/github.com/resourced/resourced/tests/data/config-reader")
+	os.Setenv("RESOURCED_CONFIG_WRITER_DIR", gopath+"/src/github.com/resourced/resourced/tests/data/config-writer")
 
 	agent, err := NewAgent()
 	defer agent.Db.Close()
@@ -77,8 +79,9 @@ func TestGetRun(t *testing.T) {
 }
 
 func TestHttpRouter(t *testing.T) {
-	os.Setenv("RESOURCED_CONFIG_READER_DIR", "~/go/src/github.com/resourced/resourced/tests/data/config-reader")
-	os.Setenv("RESOURCED_CONFIG_WRITER_DIR", "~/go/src/github.com/resourced/resourced/tests/data/config-writer")
+	gopath := os.Getenv("GOPATH")
+	os.Setenv("RESOURCED_CONFIG_READER_DIR", gopath+"/src/github.com/resourced/resourced/tests/data/config-reader")
+	os.Setenv("RESOURCED_CONFIG_WRITER_DIR", gopath+"/src/github.com/resourced/resourced/tests/data/config-writer")
 
 	agent, _ := NewAgent()
 	defer agent.Db.Close()
@@ -106,8 +109,8 @@ func TestHttpRouter(t *testing.T) {
 			t.Errorf("jsonData shouldn't return error: %s", jsonData)
 		} else if !strings.Contains(string(jsonData), `UnixNano`) {
 			t.Errorf("jsonData does not contain 'UnixNano' key: %s", jsonData)
-		} else if !strings.Contains(string(jsonData), `Command`) {
-			t.Errorf("jsonData does not contain 'Command' key: %s", jsonData)
+		} else if !strings.Contains(string(jsonData), `Command`) && !strings.Contains(string(jsonData), `GoStruct`) {
+			t.Errorf("jsonData does not contain 'Command' and 'GoStruct' keys: %s", jsonData)
 		} else if !strings.Contains(string(jsonData), `Data`) {
 			t.Errorf("jsonData does not contain 'Data' key: %s", jsonData)
 		}
