@@ -1,3 +1,0 @@
-Command = "$GOPATH/src/github.com/resourced/resourced/tests/data/script-reader/load-avg.rb"
-Path = "/load-avg"
-Interval = "3s"
