@@ -10,7 +10,7 @@ RUN go install github.com/resourced/resourced
 
 RUN mkdir /resourced
 
-ENV RESOURCED_DB=/resourced/db
+ENV RESOURCED_DB /resourced/db
 
 CMD /go/bin/resourced
 
