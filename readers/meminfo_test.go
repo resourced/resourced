@@ -47,7 +47,7 @@ func TestNewMeminfoToJson(t *testing.T) {
 		}
 
 		keysToTest := []string{"Active", "AnonHugePages", "AnonPages", "Bounce", "Buffers", "Cached", "CommitLimit",
-			"DirectMap2M", "DirectMap4k", "Dirty", "Inactive", "MemAvailable", "MemFree", "MemTotal", "KernelStack", "PageTables"}
+			"DirectMap2M", "DirectMap4k", "Dirty", "Inactive", "MemFree", "MemTotal", "KernelStack", "PageTables"}
 
 		for _, key := range keysToTest {
 			if !strings.Contains(jsonDataString, key) {
