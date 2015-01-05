@@ -12,23 +12,24 @@ ResourceD is currently alpha software. Use it at your own risk.
 Precompiled binary for darwin and linux will be provided in the future.
 
 
-## Collecting and Running ResourceD
+## Collecting Data and Running ResourceD
 
 **1. Configuring readers and writers**
 
-The quickest way to configure a reader is to use dynamic language.
+ResourceD data collector is called a reader. The quickest way to configure a reader is to use dynamic language.
 
-1. Write your script. There is only 1 requirement to your script: **You must output the data in JSON format through STDOUT**.
+1. Write your script. There is only one requirement to your script: **You must output the data(in JSON) through STDOUT**.
 
 2. Write ResourceD config file. See examples [here](https://github.com/resourced/resourced/tree/master/tests/data/config-reader).
 
 
 **2. Running ResourceD**
 
-This is an example on how to run ResourceD as foreground process.
+Below is an example on how to run ResourceD as foreground process.
 
 ```bash
 RESOURCED_CONFIG_READER_DIR=$GOPATH/src/github.com/resourced/resourced/tests/data/config-reader \
+RESOURCED_CONFIG_WRITER_DIR=$GOPATH/src/github.com/resourced/resourced/tests/data/config-writer \
 go run $GOPATH/src/github.com/resourced/resourced/resourced.go
 ```
 
@@ -47,7 +48,7 @@ ResourceD accepts a few environment variables as configuration:
 
 ## Reading Data from HTTP Interface
 
-You can GET your resource data by sending HTTP request to the `Path = /your-resource` defined in your config-reader TOML.
+You can read resource data by sending HTTP request to the `Path = /your-resource` defined in your config-reader TOML.
 
 For example, if you run ResourceD server as described above, you should be able to GET load average data via cURL:
 
