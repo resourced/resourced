@@ -7,18 +7,46 @@
 ResourceD is currently alpha software. Use it at your own risk.
 
 
-## 1. Installation
+### 1. Installation
 
-#### Running as foreground process
+Precompiled binary for darwin and linux will be provided in the future.
+
+
+### 2. Collecting and Running ResourceD
+
+**Configuring readers and writers**
+
+The quickest way to configure a reader is to use dynamic language.
+
+1. Write your script. There is only 1 requirement to your script: **You must output the data in JSON format through STDOUT**.
+
+2. Write ResourceD config file. See examples [here](https://github.com/resourced/resourced/tree/master/tests/data/config-reader).
+
+**Running ResourceD**
+
+This is an example on how to run ResourceD as foreground process.
+
 ```bash
 RESOURCED_CONFIG_READER_DIR=$GOPATH/src/github.com/resourced/resourced/tests/data/config-reader \
 go run $GOPATH/src/github.com/resourced/resourced/resourced.go
 ```
 
+**List of Environment Variables**
 
-## 2. Usage
+ResourceD accepts a few environment variables as configuration:
 
-#### GET resource data through HTTP+JSON
+* RESOURCED_ADDR
+
+* RESOURCED_CERT_FILE
+
+* RESOURCED_KEY_FILE
+
+* RESOURCED_CONFIG_READER_DIR
+
+* RESOURCED_CONFIG_WRITER_DIR
+
+
+### Reading Data from HTTP Interface
 
 You can GET your resource data by sending HTTP request to the `Path = /your-resource` defined in your config-reader TOML.
 
@@ -29,7 +57,7 @@ curl -X GET -H "Content-type: application/json" http://localhost:55555/load-avg
 ```
 
 
-## 3rd party data source
+### Third Party Data Source
 
 The following is list of 3rd party data source that ResourceD readers use.
 
