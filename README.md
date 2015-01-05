@@ -68,3 +68,8 @@ Big thanks to these authors, without whom ResourceD would not be possible.
 * https://github.com/shirou/gopsutil
 
 * https://github.com/guillermo/go.procmeminfo
+
+
+## Contributors
+
+Are you a contributor, or looking to be one? [Go here!](https://github.com/resourced/resourced/tree/master/docs/contributors/README.md)
