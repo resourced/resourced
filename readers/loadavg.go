@@ -12,7 +12,6 @@ func NewLoadAvg() *LoadAvg {
 }
 
 type LoadAvg struct {
-	Base
 	Data map[string]interface{}
 }
 

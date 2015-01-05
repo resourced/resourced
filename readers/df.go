@@ -12,7 +12,6 @@ func NewDf() *Df {
 }
 
 type Df struct {
-	Base
 	Data map[string]map[string]interface{}
 }
 

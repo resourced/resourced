@@ -12,7 +12,6 @@ func NewMemory() *Memory {
 }
 
 type Memory struct {
-	Base
 	Data map[string]map[string]interface{}
 }
 

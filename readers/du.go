@@ -13,7 +13,6 @@ func NewDu() *Du {
 }
 
 type Du struct {
-	Base
 	Data map[string]map[string]interface{}
 }
 

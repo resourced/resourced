@@ -14,7 +14,6 @@ func NewMeminfo() *Meminfo {
 }
 
 type Meminfo struct {
-	Base
 	Data map[string]uint64
 }
 

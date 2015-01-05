@@ -12,7 +12,6 @@ func NewPs() *Ps {
 }
 
 type Ps struct {
-	Base
 	Data map[string][]map[string]interface{}
 }
 

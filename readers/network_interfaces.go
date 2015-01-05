@@ -12,7 +12,6 @@ func NewNetworkInterfaces() *NetworkInterfaces {
 }
 
 type NetworkInterfaces struct {
-	Base
 	Data map[string]map[string][]string
 }
 

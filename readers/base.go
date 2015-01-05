@@ -1,7 +1,6 @@
 package readers
 
 import (
-	"encoding/json"
 	"errors"
 )
 
@@ -43,16 +42,4 @@ func NewGoStruct(name string) (IReaderWriter, error) {
 type IReaderWriter interface {
 	Run() error
 	ToJson() ([]byte, error)
-}
-
-type Base struct {
-	Data map[string]interface{}
-}
-
-func (b *Base) Run() error {
-	return nil
-}
-
-func (b *Base) ToJson() ([]byte, error) {
-	return json.Marshal(b.Data)
 }

@@ -13,7 +13,6 @@ func NewUptime() *Uptime {
 }
 
 type Uptime struct {
-	Base
 	Data map[string]interface{}
 }
 

@@ -13,7 +13,6 @@ func NewDockerMemory() *DockerMemory {
 }
 
 type DockerMemory struct {
-	Base
 	Data map[string]string
 }
 
