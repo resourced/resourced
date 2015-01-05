@@ -8,18 +8,17 @@ import (
 	gopsutil_docker "github.com/shirou/gopsutil/docker"
 )
 
-func NewDockerMemory() *DockerMemory {
-	m := &DockerMemory{}
+func NewDockerContainersMemory() *DockerContainersMemory {
+	m := &DockerContainersMemory{}
 	m.Data = make(map[string]*gopsutil_docker.CgroupMemStat)
 	return m
 }
 
-type DockerMemory struct {
-	Base
+type DockerContainersMemory struct {
 	Data map[string]*gopsutil_docker.CgroupMemStat
 }
 
-func (m *DockerMemory) Run() error {
+func (m *DockerContainersMemory) Run() error {
 	containers, err := libdocker.AllContainers()
 	if err != nil {
 		return nil
@@ -37,6 +36,6 @@ func (m *DockerMemory) Run() error {
 	return nil
 }
 
-func (m *DockerMemory) ToJson() ([]byte, error) {
+func (m *DockerContainersMemory) ToJson() ([]byte, error) {
 	return json.Marshal(m.Data)
 }

@@ -6,21 +6,21 @@ import (
 	"encoding/json"
 )
 
-func NewDockerMemory() *DockerMemory {
-	m := &DockerMemory{}
+func NewDockerContainersMemory() *DockerContainersMemory {
+	m := &DockerContainersMemory{}
 	m.Data = make(map[string]string)
 	return m
 }
 
-type DockerMemory struct {
+type DockerContainersMemory struct {
 	Data map[string]string
 }
 
-func (m *DockerMemory) Run() error {
+func (m *DockerContainersMemory) Run() error {
 	m.Data["Error"] = "Docker cgroup memory data is only available on Linux."
 	return nil
 }
 
-func (m *DockerMemory) ToJson() ([]byte, error) {
+func (m *DockerContainersMemory) ToJson() ([]byte, error) {
 	return json.Marshal(m.Data)
 }

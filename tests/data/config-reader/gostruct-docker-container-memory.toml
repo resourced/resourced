@@ -1,0 +1,3 @@
+GoStruct = "DockerContainersMemory"
+Path = "/docker/containers/memory"
+Interval = "3s"
