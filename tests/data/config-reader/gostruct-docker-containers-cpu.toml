@@ -1,0 +1,3 @@
+GoStruct = "DockerContainersCpu"
+Path = "/docker/containers/cpu"
+Interval = "3s"

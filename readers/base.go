@@ -34,6 +34,9 @@ func NewGoStruct(name string) (IReaderWriter, error) {
 	if name == "DockerContainersMemory" {
 		structInstance = NewDockerContainersMemory()
 	}
+	if name == "DockerContainersCpu" {
+		structInstance = NewDockerContainersCpu()
+	}
 
 	if structInstance == nil {
 		return nil, errors.New("GoStruct is undefined.")
