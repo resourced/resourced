@@ -46,8 +46,11 @@ func NewGoStruct(name string) (IReaderWriter, error) {
 	if name == "Meminfo" {
 		structInstance = NewMeminfo()
 	}
-	if name == "NetworkInterfaces" {
-		structInstance = NewNetworkInterfaces()
+	if name == "NetIO" {
+		structInstance = NewNetIO()
+	}
+	if name == "NetInterfaces" {
+		structInstance = NewNetInterfaces()
 	}
 	if name == "Uptime" {
 		structInstance = NewUptime()

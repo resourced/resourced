@@ -48,6 +48,8 @@ func TestNewDiskPartitionsToJson(t *testing.T) {
 	}
 }
 
+// ------------------------------------------------------------
+
 func TestNewDiskIO(t *testing.T) {
 	n := NewDiskIO()
 	if n.Data == nil {

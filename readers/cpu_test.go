@@ -48,6 +48,8 @@ func TestNewCpuInfoToJson(t *testing.T) {
 	}
 }
 
+// ------------------------------------------------------------
+
 func TestNewCpuStat(t *testing.T) {
 	n := NewCpuStat()
 	if n.Data == nil {
