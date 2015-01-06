@@ -37,3 +37,27 @@ func (d *DiskPartitions) ToJson() ([]byte, error) {
 }
 
 // ----------------------------------------------------------------
+
+func NewDiskIO() *DiskIO {
+	d := &DiskIO{}
+	d.Data = make(map[string]gopsutil_disk.DiskIOCountersStat)
+	return d
+}
+
+type DiskIO struct {
+	Data map[string]gopsutil_disk.DiskIOCountersStat
+}
+
+func (d *DiskIO) Run() error {
+	data, err := gopsutil_disk.DiskIOCounters()
+	if err != nil {
+		return err
+	}
+
+	d.Data = data
+	return nil
+}
+
+func (d *DiskIO) ToJson() ([]byte, error) {
+	return json.Marshal(d.Data)
+}

@@ -1,0 +1,3 @@
+GoStruct = "DiskIO"
+Path = "/disk/io"
+Interval = "3s"
