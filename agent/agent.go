@@ -9,12 +9,15 @@ import (
 	"github.com/resourced/resourced/libtime"
 	resourced_readers "github.com/resourced/resourced/readers"
 	"os"
+	"strings"
 	"time"
 )
 
 // NewAgent is the constructor fot Agent struct.
 func NewAgent() (*Agent, error) {
 	agent := &Agent{}
+
+	agent.setTags()
 
 	err := agent.setConfigStorage()
 	if err != nil {
@@ -35,6 +38,19 @@ type Agent struct {
 	ConfigStorage *resourced_config.ConfigStorage
 	DbPath        string
 	Db            *bolt.DB
+	Tags          []string
+}
+
+func (a *Agent) setTags() {
+	tags := os.Getenv("RESOURCED_TAGS")
+	if tags != "" {
+		tagsSlice := strings.Split(tags, ",")
+		a.Tags = make([]string, len(tagsSlice))
+
+		for i, tag := range tagsSlice {
+			a.Tags[i] = strings.TrimSpace(tag)
+		}
+	}
 }
 
 // setConfigStorage reads config paths and setup configStorage.

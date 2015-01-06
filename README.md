@@ -45,6 +45,8 @@ ResourceD accepts a few environment variables as configuration:
 
 * `RESOURCED_CONFIG_WRITER_DIR`
 
+* `RESOURCED_TAGS`
+
 
 ## Reading Data from HTTP Interface
 

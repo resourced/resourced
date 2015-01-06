@@ -11,6 +11,7 @@ import (
 
 func TestConstructor(t *testing.T) {
 	gopath := os.Getenv("GOPATH")
+	os.Setenv("RESOURCED_TAGS", "prod, mysql, percona")
 	os.Setenv("RESOURCED_CONFIG_READER_DIR", gopath+"/src/github.com/resourced/resourced/tests/data/config-reader")
 	os.Setenv("RESOURCED_CONFIG_WRITER_DIR", gopath+"/src/github.com/resourced/resourced/tests/data/config-writer")
 
@@ -28,6 +29,16 @@ func TestConstructor(t *testing.T) {
 	if _, err := os.Stat(agent.DbPath); err != nil {
 		if os.IsNotExist(err) {
 			t.Error("resourced directory does not exist.")
+		}
+	}
+
+	if len(agent.Tags) != 3 {
+		t.Error("agent.Tags should not be empty.")
+	}
+
+	for _, tag := range agent.Tags {
+		if tag != "prod" && tag != "mysql" && tag != "percona" {
+			t.Errorf("agent.Tags is incorrect: %v", agent.Tags)
 		}
 	}
 }
