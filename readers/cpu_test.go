@@ -56,33 +56,37 @@ func TestNewCpuStat(t *testing.T) {
 }
 
 func TestNewCpuStatRun(t *testing.T) {
-	n := NewCpuStat()
-	err := n.Run()
-	if err != nil {
-		t.Errorf("Reading cpu stat data should always be successful. Error: %v", err)
+	// Darwin version of gopsutil_cpu.CPUTimes is broken, so we are only testing this on Linux.
+	if runtime.GOOS == "linux" {
+
+		n := NewCpuStat()
+		err := n.Run()
+		if err != nil {
+			t.Errorf("Reading cpu stat data should always be successful. Error: %v", err)
+		}
 	}
 }
 
 func TestNewCpuStatToJson(t *testing.T) {
-	n := NewCpuStat()
-	err := n.Run()
-	if err != nil {
-		t.Fatalf("Reading cpu stat data should always be successful. Error: %v", err)
-	}
-
-	jsonData, err := n.ToJson()
-	if err != nil {
-		t.Errorf("Marshalling cpu stat data should always be successful. Error: %v", err)
-	}
-
-	jsonDataString := string(jsonData)
-
-	if strings.Contains(jsonDataString, "Error") {
-		t.Errorf("jsonDataString shouldn't return error: %v", jsonDataString)
-	}
-
 	// Darwin version of gopsutil_cpu.CPUTimes is broken, so we are only testing this on Linux.
 	if runtime.GOOS == "linux" {
+		n := NewCpuStat()
+		err := n.Run()
+		if err != nil {
+			t.Fatalf("Reading cpu stat data should always be successful. Error: %v", err)
+		}
+
+		jsonData, err := n.ToJson()
+		if err != nil {
+			t.Errorf("Marshalling cpu stat data should always be successful. Error: %v", err)
+		}
+
+		jsonDataString := string(jsonData)
+
+		if strings.Contains(jsonDataString, "Error") {
+			t.Errorf("jsonDataString shouldn't return error: %v", jsonDataString)
+		}
+
 		keysToTest := []string{"cpu", "user", "system", "idle", "nice", "iowait", "irq", "softirq", "steal", "guest", "guest_nice", "stolen"}
 
 		for _, key := range keysToTest {
