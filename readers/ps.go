@@ -3,16 +3,18 @@ package readers
 import (
 	"encoding/json"
 	"github.com/cloudfoundry/gosigar"
+	gopsutil_process "github.com/shirou/gopsutil/process"
+	"strconv"
 )
 
 func NewPs() *Ps {
 	p := &Ps{}
-	p.Data = make(map[string][]map[string]interface{})
+	p.Data = make(map[string]map[string]interface{})
 	return p
 }
 
 type Ps struct {
-	Data map[string][]map[string]interface{}
+	Data map[string]map[string]interface{}
 }
 
 func (p *Ps) Run() error {
@@ -21,8 +23,6 @@ func (p *Ps) Run() error {
 	if err != nil {
 		return err
 	}
-
-	p.Data["Processes"] = make([]map[string]interface{}, 0)
 
 	for _, pid := range pids.List {
 		state := sigar.ProcState{}
@@ -48,8 +48,28 @@ func (p *Ps) Run() error {
 		procData["MemoryResident"] = mem.Resident / 1024
 		procData["State"] = string(state.State)
 
+		gopsutilProcess, err := gopsutil_process.NewProcess(int32(pid))
+		if err != nil {
+			continue
+		}
+
+		mmaps, err := gopsutilProcess.MemoryMaps(false)
+		if err == nil {
+			procData["MemoryMaps"] = mmaps
+		}
+
+		ios, err := gopsutilProcess.IOCounters()
+		if err == nil {
+			procData["IOCounters"] = ios
+		}
+
+		ctxSwitches, err := gopsutilProcess.NumCtxSwitches()
+		if err == nil {
+			procData["CtxSwitches"] = ctxSwitches
+		}
+
 		if len(procData) > 0 {
-			p.Data["Processes"] = append(p.Data["Processes"], procData)
+			p.Data[strconv.Itoa(pid)] = procData
 		}
 	}
 
