@@ -19,6 +19,9 @@ func NewGoStruct(name string) (IReaderWriter, error) {
 	if name == "DiskPartitions" {
 		structInstance = NewDiskPartitions()
 	}
+	if name == "DiskIO" {
+		structInstance = NewDiskIO()
+	}
 	if name == "DockerContainersMemory" {
 		structInstance = NewDockerContainersMemory()
 	}
