@@ -1,0 +1,3 @@
+GoStruct = "DiskPartitions"
+Path = "/disk/partitions"
+Interval = "3s"
