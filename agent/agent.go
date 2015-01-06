@@ -44,6 +44,8 @@ type Agent struct {
 }
 
 func (a *Agent) setTags() {
+	a.Tags = make([]string, 0)
+
 	tags := os.Getenv("RESOURCED_TAGS")
 	if tags != "" {
 		tagsSlice := strings.Split(tags, ",")
@@ -188,6 +190,7 @@ func (a *Agent) SaveRun(config resourced_config.Config, output []byte) error {
 	record["UnixNano"] = time.Now().UnixNano()
 	record["Path"] = config.Path
 	record["Interval"] = config.Interval
+	record["Tags"] = a.Tags
 
 	if config.Command != "" {
 		record["Command"] = config.Command
