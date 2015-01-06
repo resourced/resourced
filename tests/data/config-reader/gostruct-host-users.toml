@@ -1,0 +1,3 @@
+GoStruct = "HostUsers"
+Path = "/host/users"
+Interval = "3s"

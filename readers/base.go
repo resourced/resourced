@@ -31,6 +31,12 @@ func NewGoStruct(name string) (IReaderWriter, error) {
 	if name == "Free" {
 		structInstance = NewFree()
 	}
+	if name == "HostInfo" {
+		structInstance = NewHostInfo()
+	}
+	if name == "HostUsers" {
+		structInstance = NewHostUsers()
+	}
 	if name == "LoadAvg" {
 		structInstance = NewLoadAvg()
 	}

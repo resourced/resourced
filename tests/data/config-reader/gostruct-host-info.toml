@@ -1,0 +1,3 @@
+GoStruct = "HostInfo"
+Path = "/host/info"
+Interval = "3s"
