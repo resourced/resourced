@@ -5,23 +5,23 @@ import (
 	"testing"
 )
 
-func TestNewMemory(t *testing.T) {
-	n := NewMemory()
+func TestNewFree(t *testing.T) {
+	n := NewFree()
 	if n.Data == nil {
 		t.Error("Reader data should never be nil.")
 	}
 }
 
-func TestNewMemoryRun(t *testing.T) {
-	n := NewMemory()
+func TestNewFreeRun(t *testing.T) {
+	n := NewFree()
 	err := n.Run()
 	if err != nil {
 		t.Errorf("Parsing memory data should always be successful. Error: %v", err)
 	}
 }
 
-func TestNewMemoryToJson(t *testing.T) {
-	n := NewMemory()
+func TestNewFreeToJson(t *testing.T) {
+	n := NewFree()
 	err := n.Run()
 	if err != nil {
 		t.Errorf("Parsing memory data should always be successful. Error: %v", err)
@@ -38,7 +38,7 @@ func TestNewMemoryToJson(t *testing.T) {
 		t.Errorf("jsonDataString shouldn't return error: %v", jsonDataString)
 	}
 
-	keysToTest := []string{"Memory", "Swap", "ActualFree", "ActualUsed", "Used", "Free", "Total"}
+	keysToTest := []string{"Free", "Swap", "ActualFree", "ActualUsed", "Used", "Free", "Total"}
 
 	for _, key := range keysToTest {
 		if !strings.Contains(jsonDataString, key) {

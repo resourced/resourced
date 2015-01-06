@@ -22,11 +22,11 @@ func NewGoStruct(name string) (IReaderWriter, error) {
 	if name == "DockerContainersCpu" {
 		structInstance = NewDockerContainersCpu()
 	}
+	if name == "Free" {
+		structInstance = NewFree()
+	}
 	if name == "LoadAvg" {
 		structInstance = NewLoadAvg()
-	}
-	if name == "Memory" {
-		structInstance = NewMemory()
 	}
 	if name == "Ps" {
 		structInstance = NewPs()

@@ -5,17 +5,17 @@ import (
 	"github.com/cloudfoundry/gosigar"
 )
 
-func NewMemory() *Memory {
-	m := &Memory{}
+func NewFree() *Free {
+	m := &Free{}
 	m.Data = make(map[string]map[string]interface{})
 	return m
 }
 
-type Memory struct {
+type Free struct {
 	Data map[string]map[string]interface{}
 }
 
-func (m *Memory) Run() error {
+func (m *Free) Run() error {
 	mem := sigar.Mem{}
 	err := mem.Get()
 	if err != nil {
@@ -44,6 +44,6 @@ func (m *Memory) Run() error {
 	return nil
 }
 
-func (m *Memory) ToJson() ([]byte, error) {
+func (m *Free) ToJson() ([]byte, error) {
 	return json.Marshal(m.Data)
 }
