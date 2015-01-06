@@ -7,8 +7,8 @@ import (
 func NewGoStruct(name string) (IReaderWriter, error) {
 	var structInstance IReaderWriter
 
-	if name == "NetworkInterfaces" {
-		structInstance = NewNetworkInterfaces()
+	if name == "CpuInfo" {
+		structInstance = NewCpuInfo()
 	}
 	if name == "Df" {
 		structInstance = NewDf()
@@ -16,26 +16,29 @@ func NewGoStruct(name string) (IReaderWriter, error) {
 	if name == "Du" {
 		structInstance = NewDu()
 	}
+	if name == "DockerContainersMemory" {
+		structInstance = NewDockerContainersMemory()
+	}
+	if name == "DockerContainersCpu" {
+		structInstance = NewDockerContainersCpu()
+	}
+	if name == "LoadAvg" {
+		structInstance = NewLoadAvg()
+	}
 	if name == "Memory" {
 		structInstance = NewMemory()
 	}
 	if name == "Ps" {
 		structInstance = NewPs()
 	}
-	if name == "LoadAvg" {
-		structInstance = NewLoadAvg()
-	}
-	if name == "Uptime" {
-		structInstance = NewUptime()
-	}
 	if name == "Meminfo" {
 		structInstance = NewMeminfo()
 	}
-	if name == "DockerContainersMemory" {
-		structInstance = NewDockerContainersMemory()
+	if name == "NetworkInterfaces" {
+		structInstance = NewNetworkInterfaces()
 	}
-	if name == "DockerContainersCpu" {
-		structInstance = NewDockerContainersCpu()
+	if name == "Uptime" {
+		structInstance = NewUptime()
 	}
 
 	if structInstance == nil {

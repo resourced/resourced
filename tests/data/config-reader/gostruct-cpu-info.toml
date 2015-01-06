@@ -1,0 +1,3 @@
+GoStruct = "CpuInfo"
+Path = "/cpu/info"
+Interval = "3s"

@@ -67,6 +67,8 @@ Big thanks to these authors, without whom ResourceD would not be possible.
 
 * https://github.com/shirou/gopsutil
 
+* https://github.com/c9s/goprocinfo
+
 * https://github.com/guillermo/go.procmeminfo
 
 
