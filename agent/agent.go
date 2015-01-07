@@ -2,7 +2,6 @@ package agent
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"github.com/boltdb/bolt"
 	"github.com/go-fsnotify/fsnotify"
@@ -147,6 +146,16 @@ func (a *Agent) dbBucket(tx *bolt.Tx) *bolt.Bucket {
 	return tx.Bucket([]byte("resources"))
 }
 
+// pathWithPrefix prepends the short version of config.Kind to path.
+func (a *Agent) pathWithPrefix(config resourced_config.Config) string {
+	if config.Kind == "reader" {
+		return "/r" + config.Path
+	} else if config.Kind == "writer" {
+		return "/w" + config.Path
+	}
+	return config.Path
+}
+
 // Run executes a reader/writer config.
 // Run will save reader data as JSON in local db.
 func (a *Agent) Run(config resourced_config.Config) (output []byte, err error) {
@@ -249,15 +258,7 @@ func (a *Agent) saveRun(config resourced_config.Config, output []byte) error {
 	}
 
 	err = a.Db.Update(func(tx *bolt.Tx) error {
-		var dbPath string
-
-		if config.Kind == "reader" {
-			dbPath = "/r" + config.Path
-		} else if config.Kind == "writer" {
-			dbPath = "/w" + config.Path
-		}
-
-		return a.dbBucket(tx).Put([]byte(dbPath), recordInJson)
+		return a.dbBucket(tx).Put([]byte(a.pathWithPrefix(config)), recordInJson)
 	})
 
 	return err
@@ -265,12 +266,7 @@ func (a *Agent) saveRun(config resourced_config.Config, output []byte) error {
 
 // GetRun returns the JSON data stored in local storage given Config struct.
 func (a *Agent) GetRun(config resourced_config.Config) ([]byte, error) {
-	if config.Kind == "reader" {
-		return a.GetRunByPath("/r" + config.Path)
-	} else if config.Kind == "writer" {
-		return a.GetRunByPath("/w" + config.Path)
-	}
-	return nil, errors.New("There is no run data.")
+	return a.GetRunByPath(a.pathWithPrefix(config))
 }
 
 // GetRunByPath returns JSON data stored in local storage given path string.

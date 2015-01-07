@@ -19,7 +19,7 @@ func TestConstructor(t *testing.T) {
 	defer agent.Db.Close()
 
 	if err != nil {
-		t.Fatalf("Initializing ConfigStorage should work. Error: %v", err)
+		t.Fatalf("Initializing agent should work. Error: %v", err)
 	}
 
 	if agent.DbPath == "" {
@@ -52,7 +52,7 @@ func TestRun(t *testing.T) {
 	defer agent.Db.Close()
 
 	if err != nil {
-		t.Fatalf("Initializing ConfigStorage should work. Error: %v", err)
+		t.Fatalf("Initializing agent should work. Error: %v", err)
 	}
 
 	_, err = agent.Run(agent.ConfigStorage.Readers[1])
@@ -125,5 +125,24 @@ func TestHttpRouter(t *testing.T) {
 		} else if !strings.Contains(string(jsonData), `Data`) {
 			t.Errorf("jsonData does not contain 'Data' key: %s", jsonData)
 		}
+	}
+}
+
+func TestPathWithPrefix(t *testing.T) {
+	gopath := os.Getenv("GOPATH")
+	os.Setenv("RESOURCED_CONFIG_READER_DIR", gopath+"/src/github.com/resourced/resourced/tests/data/config-reader")
+	os.Setenv("RESOURCED_CONFIG_WRITER_DIR", gopath+"/src/github.com/resourced/resourced/tests/data/config-writer")
+
+	agent, _ := NewAgent()
+	defer agent.Db.Close()
+
+	config := agent.ConfigStorage.Readers[1]
+
+	path := agent.pathWithPrefix(config)
+	if !strings.HasPrefix(path, "/r") {
+		t.Errorf("Path should have been prefixed with /r. Path: %v", path)
+	}
+	if strings.HasPrefix(path, "/w") {
+		t.Errorf("Path is prefixed incorrectly. Path: %v", path)
 	}
 }

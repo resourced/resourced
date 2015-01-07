@@ -18,9 +18,7 @@ func (a *Agent) RootGetHandler() func(w http.ResponseWriter, r *http.Request, ps
 		arrayOfReaderJsonString := "[]"
 
 		for _, config := range a.ConfigStorage.Readers {
-			path := "/r" + config.Path
-
-			jsonData, err := a.GetRunByPath(path)
+			jsonData, err := a.GetRunByPath(a.pathWithPrefix(config))
 			if err == nil && jsonData != nil {
 				readerJsonBytes = append(readerJsonBytes, string(jsonData))
 			}
@@ -33,9 +31,7 @@ func (a *Agent) RootGetHandler() func(w http.ResponseWriter, r *http.Request, ps
 		arrayOfWriterJsonString := "[]"
 
 		for _, config := range a.ConfigStorage.Writers {
-			path := "/w" + config.Path
-
-			jsonData, err := a.GetRunByPath(path)
+			jsonData, err := a.GetRunByPath(a.pathWithPrefix(config))
 			if err == nil && jsonData != nil {
 				writerJsonBytes = append(writerJsonBytes, string(jsonData))
 			}
@@ -64,9 +60,7 @@ func (a *Agent) ReadersGetHandler() func(w http.ResponseWriter, r *http.Request,
 		arrayOfReaderJsonString := "[]"
 
 		for _, config := range a.ConfigStorage.Readers {
-			path := "/r" + config.Path
-
-			jsonData, err := a.GetRunByPath(path)
+			jsonData, err := a.GetRunByPath(a.pathWithPrefix(config))
 			if err == nil && jsonData != nil {
 				readerJsonBytes = append(readerJsonBytes, string(jsonData))
 			}
@@ -95,9 +89,7 @@ func (a *Agent) WritersGetHandler() func(w http.ResponseWriter, r *http.Request,
 		arrayOfWriterJsonString := "[]"
 
 		for _, config := range a.ConfigStorage.Writers {
-			path := "/w" + config.Path
-
-			jsonData, err := a.GetRunByPath(path)
+			jsonData, err := a.GetRunByPath(a.pathWithPrefix(config))
 			if err == nil && jsonData != nil {
 				writerJsonBytes = append(writerJsonBytes, string(jsonData))
 			}
@@ -128,13 +120,13 @@ func (a *Agent) PathsGetHandler() func(w http.ResponseWriter, r *http.Request, p
 
 		for i, config := range a.ConfigStorage.Readers {
 			if config.Path != "" {
-				payload["Readers"][i] = "/r" + config.Path
+				payload["Readers"][i] = a.pathWithPrefix(config)
 			}
 		}
 
 		for i, config := range a.ConfigStorage.Writers {
 			if config.Path != "" {
-				payload["Writers"][i] = "/w" + config.Path
+				payload["Writers"][i] = a.pathWithPrefix(config)
 			}
 		}
 
@@ -162,7 +154,7 @@ func (a *Agent) ReaderPathsGetHandler() func(w http.ResponseWriter, r *http.Requ
 
 		for i, config := range a.ConfigStorage.Readers {
 			if config.Path != "" {
-				payload[i] = "/r" + config.Path
+				payload[i] = a.pathWithPrefix(config)
 			}
 		}
 
@@ -190,7 +182,7 @@ func (a *Agent) WriterPathsGetHandler() func(w http.ResponseWriter, r *http.Requ
 
 		for i, config := range a.ConfigStorage.Writers {
 			if config.Path != "" {
-				payload[i] = "/w" + config.Path
+				payload[i] = a.pathWithPrefix(config)
 			}
 		}
 
@@ -242,7 +234,7 @@ func (a *Agent) MapReadersGetHandlers() map[string]func(w http.ResponseWriter, r
 
 	for _, config := range a.ConfigStorage.Readers {
 		if config.Path != "" {
-			path := "/r" + config.Path
+			path := a.pathWithPrefix(config)
 			handlersMap[path] = a.readerOrWriterGetHandler(path, config)
 		}
 	}
@@ -255,7 +247,7 @@ func (a *Agent) MapWritersGetHandlers() map[string]func(w http.ResponseWriter, r
 
 	for _, config := range a.ConfigStorage.Writers {
 		if config.Path != "" {
-			path := "/w" + config.Path
+			path := a.pathWithPrefix(config)
 			handlersMap[path] = a.readerOrWriterGetHandler(path, config)
 		}
 	}
