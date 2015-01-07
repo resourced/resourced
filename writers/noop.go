@@ -27,3 +27,7 @@ func (n *Noop) SetData(jsonBytes []byte) error {
 	}
 	return err
 }
+
+func (n *Noop) ToJson() ([]byte, error) {
+	return json.Marshal(n.Data)
+}
