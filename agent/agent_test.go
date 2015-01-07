@@ -55,7 +55,7 @@ func TestRun(t *testing.T) {
 		t.Fatalf("Initializing ConfigStorage should work. Error: %v", err)
 	}
 
-	_, err = agent.Run(agent.ConfigStorage.Readers[0])
+	_, err = agent.Run(agent.ConfigStorage.Readers[1])
 	if err != nil {
 		t.Fatalf("Run should work. Error: %v", err)
 	}
@@ -73,7 +73,7 @@ func TestGetRun(t *testing.T) {
 		t.Fatalf("Initializing ConfigStorage should work. Error: %v", err)
 	}
 
-	config := agent.ConfigStorage.Readers[0]
+	config := agent.ConfigStorage.Readers[1]
 
 	_, err = agent.Run(config)
 	if err != nil {
@@ -97,14 +97,14 @@ func TestHttpRouter(t *testing.T) {
 	agent, _ := NewAgent()
 	defer agent.Db.Close()
 
-	_, err := agent.Run(agent.ConfigStorage.Readers[0])
+	_, err := agent.Run(agent.ConfigStorage.Readers[1])
 	if err != nil {
 		t.Fatalf("Run should work. Error: %v", err)
 	}
 
 	router := agent.HttpRouter()
 
-	req, err := http.NewRequest("GET", "/load-avg", nil)
+	req, err := http.NewRequest("GET", "/r/cpu/info", nil)
 	if err != nil {
 		t.Errorf("Failed to create HTTP request. Error: %v", err)
 	}

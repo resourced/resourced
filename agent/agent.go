@@ -2,6 +2,7 @@ package agent
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/boltdb/bolt"
 	"github.com/go-fsnotify/fsnotify"
@@ -264,7 +265,12 @@ func (a *Agent) saveRun(config resourced_config.Config, output []byte) error {
 
 // GetRun returns the JSON data stored in local storage given Config struct.
 func (a *Agent) GetRun(config resourced_config.Config) ([]byte, error) {
-	return a.GetRunByPath(config.Path)
+	if config.Kind == "reader" {
+		return a.GetRunByPath("/r" + config.Path)
+	} else if config.Kind == "writer" {
+		return a.GetRunByPath("/w" + config.Path)
+	}
+	return nil, errors.New("There is no run data.")
 }
 
 // GetRunByPath returns JSON data stored in local storage given path string.
