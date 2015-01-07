@@ -4,85 +4,259 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/julienschmidt/httprouter"
+	resourced_config "github.com/resourced/resourced/config"
 	"net/http"
 	"strings"
 )
 
-// RootGetHandler returns function that handles /.
+// RootGetHandler returns function that handles all readers and writers.
 func (a *Agent) RootGetHandler() func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	return func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 		w.Header().Set("Content-Type", "application/json")
 
-		jsonObjects := make([]string, 0)
+		readerJsonBytes := make([]string, 0)
+		arrayOfReaderJsonString := "[]"
 
 		for _, config := range a.ConfigStorage.Readers {
-			jsonData, err := a.GetRunByPath(config.Path)
+			path := "/r" + config.Path
+
+			jsonData, err := a.GetRunByPath(path)
 			if err == nil && jsonData != nil {
-				jsonObjects = append(jsonObjects, string(jsonData))
+				readerJsonBytes = append(readerJsonBytes, string(jsonData))
 			}
 		}
+		if len(readerJsonBytes) > 0 {
+			arrayOfReaderJsonString = "[" + strings.Join(readerJsonBytes, ",") + "]"
+		}
 
-		if len(jsonObjects) > 0 {
-			w.WriteHeader(200)
-			arrayOfJsonObjects := "[" + strings.Join(jsonObjects, ",") + "]"
-			w.Write([]byte(arrayOfJsonObjects))
-		} else {
+		writerJsonBytes := make([]string, 0)
+		arrayOfWriterJsonString := "[]"
+
+		for _, config := range a.ConfigStorage.Writers {
+			path := "/w" + config.Path
+
+			jsonData, err := a.GetRunByPath(path)
+			if err == nil && jsonData != nil {
+				writerJsonBytes = append(writerJsonBytes, string(jsonData))
+			}
+		}
+		if len(writerJsonBytes) > 0 {
+			arrayOfWriterJsonString = "[" + strings.Join(writerJsonBytes, ",") + "]"
+		}
+
+		if arrayOfReaderJsonString == "[]" && arrayOfWriterJsonString == "[]" {
 			w.WriteHeader(404)
 			w.Write([]byte(fmt.Sprintf(`{"Error": "Run data does not exist."}`)))
+
+		} else {
+			w.WriteHeader(200)
+			w.Write([]byte(fmt.Sprintf(`{"Readers": %v, "Writers": %v}`, arrayOfReaderJsonString, arrayOfWriterJsonString)))
 		}
 	}
 }
 
-// RootGetHandler returns function that handles /paths.
+// ReadersGetHandler returns function that handles all readers.
+func (a *Agent) ReadersGetHandler() func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	return func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+		w.Header().Set("Content-Type", "application/json")
+
+		readerJsonBytes := make([]string, 0)
+		arrayOfReaderJsonString := "[]"
+
+		for _, config := range a.ConfigStorage.Readers {
+			path := "/r" + config.Path
+
+			jsonData, err := a.GetRunByPath(path)
+			if err == nil && jsonData != nil {
+				readerJsonBytes = append(readerJsonBytes, string(jsonData))
+			}
+		}
+		if len(readerJsonBytes) > 0 {
+			arrayOfReaderJsonString = "[" + strings.Join(readerJsonBytes, ",") + "]"
+		}
+
+		if arrayOfReaderJsonString == "[]" {
+			w.WriteHeader(404)
+			w.Write([]byte(fmt.Sprintf(`{"Error": "Run data does not exist."}`)))
+
+		} else {
+			w.WriteHeader(200)
+			w.Write([]byte(arrayOfReaderJsonString))
+		}
+	}
+}
+
+// WritersGetHandler returns function that handles all writers.
+func (a *Agent) WritersGetHandler() func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	return func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+		w.Header().Set("Content-Type", "application/json")
+
+		writerJsonBytes := make([]string, 0)
+		arrayOfWriterJsonString := "[]"
+
+		for _, config := range a.ConfigStorage.Writers {
+			path := "/w" + config.Path
+
+			jsonData, err := a.GetRunByPath(path)
+			if err == nil && jsonData != nil {
+				writerJsonBytes = append(writerJsonBytes, string(jsonData))
+			}
+		}
+		if len(writerJsonBytes) > 0 {
+			arrayOfWriterJsonString = "[" + strings.Join(writerJsonBytes, ",") + "]"
+		}
+
+		if arrayOfWriterJsonString == "[]" {
+			w.WriteHeader(404)
+			w.Write([]byte(fmt.Sprintf(`{"Error": "Run data does not exist."}`)))
+
+		} else {
+			w.WriteHeader(200)
+			w.Write([]byte(arrayOfWriterJsonString))
+		}
+	}
+}
+
+// PathsGetHandler returns function that shows all the paths.
 func (a *Agent) PathsGetHandler() func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	return func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 		w.Header().Set("Content-Type", "application/json")
 
-		jsonObjects := make([]string, 0)
+		payload := make(map[string][]string)
+		payload["Readers"] = make([]string, len(a.ConfigStorage.Readers))
+		payload["Writers"] = make([]string, len(a.ConfigStorage.Writers))
 
-		for _, config := range a.ConfigStorage.Readers {
-			jsonObjects = append(jsonObjects, config.Path)
+		for i, config := range a.ConfigStorage.Readers {
+			if config.Path != "" {
+				payload["Readers"][i] = "/r" + config.Path
+			}
 		}
 
-		arrayOfJsonObjects, err := json.Marshal(jsonObjects)
+		for i, config := range a.ConfigStorage.Writers {
+			if config.Path != "" {
+				payload["Writers"][i] = "/w" + config.Path
+			}
+		}
 
-		if len(jsonObjects) > 0 && err == nil {
+		payloadBytes, err := json.Marshal(payload)
+
+		if (len(payload["Readers"]) > 0 || len(payload["Writers"]) > 0) && err == nil {
 			w.WriteHeader(200)
-			w.Write([]byte(arrayOfJsonObjects))
+			w.Write(payloadBytes)
 		} else if err != nil {
 			w.WriteHeader(503)
 			w.Write([]byte(fmt.Sprintf(`{"Error": "%v"}`, err)))
 		} else {
 			w.WriteHeader(404)
-			w.Write([]byte(fmt.Sprintf(`{"Error": "Run data does not exist."}`)))
+			w.Write([]byte(fmt.Sprintf(`{"Error": "There are no readers and writers data at all."}`)))
 		}
 	}
 }
 
-// ReadersGetHandler returns functions that handle readers' path.
-func (a *Agent) ReadersGetHandler() map[string]func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+// ReaderPathsGetHandler returns function that shows all the readers paths.
+func (a *Agent) ReaderPathsGetHandler() func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	return func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+		w.Header().Set("Content-Type", "application/json")
+
+		payload := make([]string, len(a.ConfigStorage.Readers))
+
+		for i, config := range a.ConfigStorage.Readers {
+			if config.Path != "" {
+				payload[i] = "/r" + config.Path
+			}
+		}
+
+		payloadBytes, err := json.Marshal(payload)
+
+		if len(payload) > 0 && err == nil {
+			w.WriteHeader(200)
+			w.Write(payloadBytes)
+		} else if err != nil {
+			w.WriteHeader(503)
+			w.Write([]byte(fmt.Sprintf(`{"Error": "%v"}`, err)))
+		} else {
+			w.WriteHeader(404)
+			w.Write([]byte(fmt.Sprintf(`{"Error": "There are no readers data at all."}`)))
+		}
+	}
+}
+
+// WriterPathsGetHandler returns function that shows all the writers paths.
+func (a *Agent) WriterPathsGetHandler() func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	return func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+		w.Header().Set("Content-Type", "application/json")
+
+		payload := make([]string, len(a.ConfigStorage.Writers))
+
+		for i, config := range a.ConfigStorage.Writers {
+			if config.Path != "" {
+				payload[i] = "/w" + config.Path
+			}
+		}
+
+		payloadBytes, err := json.Marshal(payload)
+
+		if len(payload) > 0 && err == nil {
+			w.WriteHeader(200)
+			w.Write(payloadBytes)
+		} else if err != nil {
+			w.WriteHeader(503)
+			w.Write([]byte(fmt.Sprintf(`{"Error": "%v"}`, err)))
+		} else {
+			w.WriteHeader(404)
+			w.Write([]byte(fmt.Sprintf(`{"Error": "There are no writers data at all."}`)))
+		}
+	}
+}
+
+// readerOrWriterGetHandler returns a function that handle reader/writer.
+func (a *Agent) readerOrWriterGetHandler(path string, config resourced_config.Config) func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	if path != "" {
+		return func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+			w.Header().Set("Content-Type", "application/json")
+
+			jsonData, err := a.GetRunByPath(path)
+
+			if err == nil && jsonData != nil {
+				w.WriteHeader(200)
+				w.Write(jsonData)
+			} else if err != nil {
+				w.WriteHeader(503)
+				w.Write([]byte(fmt.Sprintf(`{"Error": "%v"}`, err)))
+			} else {
+				w.WriteHeader(404)
+				w.Write([]byte(fmt.Sprintf(`{"Error": "Run data does not exist.", "Path": "%v"}`, path)))
+			}
+		}
+	}
+
+	return func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+		w.WriteHeader(404)
+		w.Write([]byte(fmt.Sprintf(`{"Error": "Run data does not exist.", "Path": "%v"}`, path)))
+	}
+}
+
+// MapReadersGetHandlers returns functions that handle readers paths.
+func (a *Agent) MapReadersGetHandlers() map[string]func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	handlersMap := make(map[string]func(w http.ResponseWriter, r *http.Request, ps httprouter.Params))
 
 	for _, config := range a.ConfigStorage.Readers {
-		path := config.Path
+		if config.Path != "" {
+			path := "/r" + config.Path
+			handlersMap[path] = a.readerOrWriterGetHandler(path, config)
+		}
+	}
+	return handlersMap
+}
 
-		if path != "" {
-			handlersMap[path] = func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-				w.Header().Set("Content-Type", "application/json")
+// MapWritersGetHandlers returns functions that handle writers paths.
+func (a *Agent) MapWritersGetHandlers() map[string]func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	handlersMap := make(map[string]func(w http.ResponseWriter, r *http.Request, ps httprouter.Params))
 
-				jsonData, err := a.GetRunByPath(path)
-
-				if err == nil && jsonData != nil {
-					w.WriteHeader(200)
-					w.Write(jsonData)
-				} else if err != nil {
-					w.WriteHeader(503)
-					w.Write([]byte(fmt.Sprintf(`{"Error": "%v"}`, err)))
-				} else {
-					w.WriteHeader(404)
-					w.Write([]byte(fmt.Sprintf(`{"Error": "Run data does not exist.", "Path": "%v"}`, path)))
-				}
-			}
+	for _, config := range a.ConfigStorage.Writers {
+		if config.Path != "" {
+			path := "/w" + config.Path
+			handlersMap[path] = a.readerOrWriterGetHandler(path, config)
 		}
 	}
 	return handlersMap
@@ -93,11 +267,20 @@ func (a *Agent) HttpRouter() *httprouter.Router {
 	router := httprouter.New()
 
 	router.GET("/", a.RootGetHandler())
-
 	router.GET("/paths", a.PathsGetHandler())
 
-	for path, handler := range a.ReadersGetHandler() {
-		router.GET(path, handler)
+	router.GET("/r", a.ReadersGetHandler())
+	router.GET("/r/paths", a.ReaderPathsGetHandler())
+
+	router.GET("/w", a.WritersGetHandler())
+	router.GET("/w/paths", a.WriterPathsGetHandler())
+
+	for readerPath, readerHandler := range a.MapReadersGetHandlers() {
+		router.GET(readerPath, readerHandler)
+	}
+
+	for writerPath, writerHandler := range a.MapWritersGetHandlers() {
+		router.GET(writerPath, writerHandler)
 	}
 
 	return router

@@ -160,9 +160,7 @@ func (a *Agent) Run(config resourced_config.Config) (output []byte, err error) {
 		return output, err
 	}
 
-	if config.Kind == "reader" {
-		err = a.saveRun(config, output)
-	}
+	err = a.saveRun(config, output)
 
 	return output, err
 }
@@ -211,6 +209,11 @@ func (a *Agent) runGoStructWriter(config resourced_config.Config) error {
 
 // saveRun gathers default basic information and saves output into local storage.
 func (a *Agent) saveRun(config resourced_config.Config, output []byte) error {
+	// Do not perform save if config.Path is empty.
+	if config.Path == "" {
+		return nil
+	}
+
 	record := make(map[string]interface{})
 	record["UnixNano"] = time.Now().UnixNano()
 	record["Path"] = config.Path
@@ -245,7 +248,15 @@ func (a *Agent) saveRun(config resourced_config.Config, output []byte) error {
 	}
 
 	err = a.Db.Update(func(tx *bolt.Tx) error {
-		return a.dbBucket(tx).Put([]byte(config.Path), recordInJson)
+		var dbPath string
+
+		if config.Kind == "reader" {
+			dbPath = "/r" + config.Path
+		} else if config.Kind == "writer" {
+			dbPath = "/w" + config.Path
+		}
+
+		return a.dbBucket(tx).Put([]byte(dbPath), recordInJson)
 	})
 
 	return err
