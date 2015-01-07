@@ -12,7 +12,8 @@ func NewNoop() *Noop {
 
 // Noop is a writer that does not do anything.
 type Noop struct {
-	Data map[string]interface{}
+	InputData map[string]interface{}
+	Data      map[string]interface{}
 }
 
 func (n *Noop) Run() error {
@@ -20,7 +21,7 @@ func (n *Noop) Run() error {
 }
 
 func (n *Noop) SetData(jsonBytes []byte) error {
-	err := json.Unmarshal(jsonBytes, &n.Data)
+	err := json.Unmarshal(jsonBytes, &n.InputData)
 	if err != nil {
 		return err
 	}

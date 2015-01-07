@@ -35,7 +35,7 @@ func TestNewNoopSetJsonData(t *testing.T) {
 	}
 
 	keysToTest := []string{"LoadAvg15m", "LoadAvg1m", "LoadAvg5m"}
-	realData := n.Data["Data"].(map[string]interface{})
+	realData := n.InputData["Data"].(map[string]interface{})
 
 	for _, key := range keysToTest {
 		_, ok := realData[key]
