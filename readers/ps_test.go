@@ -1,6 +1,7 @@
 package readers
 
 import (
+	"runtime"
 	"strings"
 	"testing"
 )
@@ -38,7 +39,11 @@ func TestNewPsToJson(t *testing.T) {
 		t.Errorf("jsonDataString shouldn't return error: %v", jsonDataString)
 	}
 
-	keysToTest := []string{"Name", "Pid", "ParentPid", "StartTime", "RunTime", "MemoryResident", "MemoryMaps", "IOCounters", "CtxSwitches"}
+	keysToTest := []string{"Name", "Pid", "ParentPid", "StartTime", "RunTime", "MemoryResident"}
+
+	if runtime.GOOS == "linux" {
+		keysToTest = []string{"Name", "Pid", "ParentPid", "StartTime", "RunTime", "MemoryResident", "MemoryMaps", "IOCounters", "CtxSwitches"}
+	}
 
 	for _, key := range keysToTest {
 		if !strings.Contains(jsonDataString, key) {
