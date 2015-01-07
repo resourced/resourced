@@ -8,8 +8,8 @@ import (
 	"path"
 )
 
-// NewConfig creates Config struct given fullpath.
-func NewConfig(fullpath string) (Config, error) {
+// NewConfig creates Config struct given fullpath and kind.
+func NewConfig(fullpath, kind string) (Config, error) {
 	var config Config
 	_, err := toml.DecodeFile(fullpath, &config)
 
@@ -21,6 +21,8 @@ func NewConfig(fullpath string) (Config, error) {
 	if config.Interval == "" {
 		config.Interval = "1m"
 	}
+
+	config.Kind = kind
 
 	return config, err
 }
@@ -43,7 +45,7 @@ func NewConfigStorage(configReaderDir, configWriterDir string) (*ConfigStorage, 
 			for _, f := range readerFiles {
 				fullpath := path.Join(configReaderDir, f.Name())
 
-				readerConfig, err := NewConfig(fullpath)
+				readerConfig, err := NewConfig(fullpath, "reader")
 				if err == nil {
 					storage.Readers = append(storage.Readers, readerConfig)
 				}
@@ -60,7 +62,7 @@ func NewConfigStorage(configReaderDir, configWriterDir string) (*ConfigStorage, 
 			for _, f := range writerFiles {
 				fullpath := path.Join(configWriterDir, f.Name())
 
-				writerConfig, err := NewConfig(fullpath)
+				writerConfig, err := NewConfig(fullpath, "writer")
 				if err == nil {
 					storage.Writers = append(storage.Writers, writerConfig)
 				}
@@ -79,6 +81,9 @@ type Config struct {
 	GoStruct string
 	Path     string
 	Interval string
+
+	// There are only 2 kinds: reader and writer
+	Kind string
 }
 
 // ConfigStorage stores all readers and writers configuration.

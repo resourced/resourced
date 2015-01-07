@@ -4,9 +4,9 @@ import (
 	"errors"
 )
 
-// NewGoStruct instantiates IReaderWriter
-func NewGoStruct(name string) (IReaderWriter, error) {
-	var structInstance IReaderWriter
+// NewGoStruct instantiates IReader
+func NewGoStruct(name string) (IReader, error) {
+	var structInstance IReader
 
 	if name == "CpuInfo" {
 		structInstance = NewCpuInfo()
@@ -64,7 +64,7 @@ func NewGoStruct(name string) (IReaderWriter, error) {
 	return structInstance, nil
 }
 
-type IReaderWriter interface {
+type IReader interface {
 	Run() error
 	ToJson() ([]byte, error)
 }

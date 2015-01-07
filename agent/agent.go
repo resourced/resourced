@@ -10,6 +10,7 @@ import (
 	"github.com/resourced/resourced/libstring"
 	"github.com/resourced/resourced/libtime"
 	resourced_readers "github.com/resourced/resourced/readers"
+	resourced_writers "github.com/resourced/resourced/writers"
 	"os"
 	"strings"
 	"time"
@@ -145,19 +146,24 @@ func (a *Agent) dbBucket(tx *bolt.Tx) *bolt.Bucket {
 	return tx.Bucket([]byte("resources"))
 }
 
-// Run executes a reader/writer and saves the result as JSON in local db.
+// Run executes a reader/writer config.
+// Run will save reader data as JSON in local db.
 func (a *Agent) Run(config resourced_config.Config) (output []byte, err error) {
 	if config.Command != "" {
 		output, err = a.runCommand(config)
-	} else if config.GoStruct != "" {
-		output, err = a.runGoStruct(config)
+	} else if config.GoStruct != "" && config.Kind == "reader" {
+		output, err = a.runGoStructReader(config)
+	} else if config.GoStruct != "" && config.Kind == "writer" {
+		err = a.runGoStructWriter(config)
 	}
-
 	if err != nil {
-		return nil, err
+		return output, err
 	}
 
-	err = a.saveRun(config, output)
+	if config.Kind == "reader" {
+		err = a.saveRun(config, output)
+	}
+
 	return output, err
 }
 
@@ -167,10 +173,8 @@ func (a *Agent) runCommand(config resourced_config.Config) ([]byte, error) {
 	return cmd.Output()
 }
 
-// runGoStruct executes IReaderWriter and returns the output.
-func (a *Agent) runGoStruct(config resourced_config.Config) ([]byte, error) {
-	var reader resourced_readers.IReaderWriter
-
+// runGoStructReader executes IReader and returns the output.
+func (a *Agent) runGoStructReader(config resourced_config.Config) ([]byte, error) {
 	reader, err := resourced_readers.NewGoStruct(config.GoStruct)
 	if err != nil {
 		return nil, err
@@ -182,6 +186,27 @@ func (a *Agent) runGoStruct(config resourced_config.Config) ([]byte, error) {
 	}
 
 	return reader.ToJson()
+}
+
+// runGoStructWriter executes IWriter and returns error if exists.
+func (a *Agent) runGoStructWriter(config resourced_config.Config) error {
+	writer, err := resourced_writers.NewGoStruct(config.GoStruct)
+	if err != nil {
+		return err
+	}
+
+	jsonBytes, err := a.GetRun(config)
+	if err != nil {
+		return err
+	}
+
+	err = writer.SetData(jsonBytes)
+	if err != nil {
+		return err
+	}
+
+	err = writer.Run()
+	return err
 }
 
 // saveRun gathers default basic information and saves output into local storage.
