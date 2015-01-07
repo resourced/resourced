@@ -20,13 +20,9 @@ func (n *Noop) Run() error {
 }
 
 func (n *Noop) SetData(jsonBytes []byte) error {
-	var fullJsonMap map[string]interface{}
-
-	err := json.Unmarshal(jsonBytes, &fullJsonMap)
+	err := json.Unmarshal(jsonBytes, &n.Data)
 	if err != nil {
 		return err
 	}
-
-	n.Data = fullJsonMap["Data"].(map[string]interface{})
-	return nil
+	return err
 }

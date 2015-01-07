@@ -1,7 +1,6 @@
 package writers
 
 import (
-	"strings"
 	"testing"
 )
 
@@ -35,22 +34,13 @@ func TestNewNoopSetJsonData(t *testing.T) {
 		t.Errorf("Marshalling data should be successful. Error: %v", err)
 	}
 
-	jsonDataFromStruct, err := n.ToJson()
-	if err != nil {
-		t.Errorf("Marshalling data should be successful. Error: %v", err)
-	}
-
-	jsonDataFromStructString := string(jsonDataFromStruct)
-
-	if strings.Contains(jsonDataFromStructString, "Error") {
-		t.Errorf("jsonDataFromStructString shouldn't return error: %v", jsonDataFromStructString)
-	}
-
 	keysToTest := []string{"LoadAvg15m", "LoadAvg1m", "LoadAvg5m"}
+	realData := n.Data["Data"].(map[string]interface{})
 
 	for _, key := range keysToTest {
-		if !strings.Contains(jsonDataFromStructString, key) {
-			t.Errorf("jsonDataFromStructString does not contain '%v' key. jsonDataFromStructString: %v", key, jsonDataFromStructString)
+		_, ok := realData[key]
+		if !ok {
+			t.Errorf("Key does not exist. Key: %v", key)
 		}
 	}
 }
