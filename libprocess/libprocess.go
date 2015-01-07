@@ -6,6 +6,7 @@ import (
 	"strings"
 )
 
+// NewCmd is a convenience function to construct `*exec.Cmd` from string input.
 func NewCmd(command string) *exec.Cmd {
 	wd, _ := os.Getwd()
 

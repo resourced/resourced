@@ -8,6 +8,7 @@ import (
 	"strings"
 )
 
+// RootGetHandler returns function that handles /.
 func (a *Agent) RootGetHandler() func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	return func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 		w.Header().Set("Content-Type", "application/json")
@@ -32,6 +33,7 @@ func (a *Agent) RootGetHandler() func(w http.ResponseWriter, r *http.Request, ps
 	}
 }
 
+// RootGetHandler returns function that handles /paths.
 func (a *Agent) PathsGetHandler() func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	return func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 		w.Header().Set("Content-Type", "application/json")
@@ -57,6 +59,7 @@ func (a *Agent) PathsGetHandler() func(w http.ResponseWriter, r *http.Request, p
 	}
 }
 
+// ReadersGetHandler returns functions that handle readers' path.
 func (a *Agent) ReadersGetHandler() map[string]func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	handlersMap := make(map[string]func(w http.ResponseWriter, r *http.Request, ps httprouter.Params))
 
@@ -85,6 +88,7 @@ func (a *Agent) ReadersGetHandler() map[string]func(w http.ResponseWriter, r *ht
 	return handlersMap
 }
 
+// HttpRouter returns HTTP router.
 func (a *Agent) HttpRouter() *httprouter.Router {
 	router := httprouter.New()
 
@@ -99,6 +103,7 @@ func (a *Agent) HttpRouter() *httprouter.Router {
 	return router
 }
 
+// ListenAndServe runs HTTP server.
 func (a *Agent) ListenAndServe(addr string) error {
 	if addr == "" {
 		addr = ":55555"
@@ -108,6 +113,7 @@ func (a *Agent) ListenAndServe(addr string) error {
 	return http.ListenAndServe(addr, router)
 }
 
+// ListenAndServe runs HTTPS server.
 func (a *Agent) ListenAndServeTLS(addr string, certFile string, keyFile string) error {
 	if addr == "" {
 		addr = ":55555"

@@ -140,35 +140,35 @@ func (a *Agent) setDb() error {
 	return err
 }
 
-// DbBucket returns the boltdb bucket.
-func (a *Agent) DbBucket(tx *bolt.Tx) *bolt.Bucket {
+// dbBucket returns the boltdb bucket.
+func (a *Agent) dbBucket(tx *bolt.Tx) *bolt.Bucket {
 	return tx.Bucket([]byte("resources"))
 }
 
-// Run executes a particular reader/writer config and saves the result on local storage.
+// Run executes a reader/writer and saves the result as JSON in local db.
 func (a *Agent) Run(config resourced_config.Config) (output []byte, err error) {
 	if config.Command != "" {
-		output, err = a.RunCommand(config)
+		output, err = a.runCommand(config)
 	} else if config.GoStruct != "" {
-		output, err = a.RunGoStruct(config)
+		output, err = a.runGoStruct(config)
 	}
 
 	if err != nil {
 		return nil, err
 	}
 
-	err = a.SaveRun(config, output)
+	err = a.saveRun(config, output)
 	return output, err
 }
 
-// RunCommand shells out external program and returns the output.
-func (a *Agent) RunCommand(config resourced_config.Config) ([]byte, error) {
+// runCommand shells out external program and returns the output.
+func (a *Agent) runCommand(config resourced_config.Config) ([]byte, error) {
 	cmd := libprocess.NewCmd(config.Command)
 	return cmd.Output()
 }
 
-// RunCommand executes IReaderWriter and returns the output.
-func (a *Agent) RunGoStruct(config resourced_config.Config) ([]byte, error) {
+// runGoStruct executes IReaderWriter and returns the output.
+func (a *Agent) runGoStruct(config resourced_config.Config) ([]byte, error) {
 	var reader resourced_readers.IReaderWriter
 
 	reader, err := resourced_readers.NewGoStruct(config.GoStruct)
@@ -184,8 +184,8 @@ func (a *Agent) RunGoStruct(config resourced_config.Config) ([]byte, error) {
 	return reader.ToJson()
 }
 
-// SaveRun gathers default basic information and saves output into local storage.
-func (a *Agent) SaveRun(config resourced_config.Config, output []byte) error {
+// saveRun gathers default basic information and saves output into local storage.
+func (a *Agent) saveRun(config resourced_config.Config, output []byte) error {
 	record := make(map[string]interface{})
 	record["UnixNano"] = time.Now().UnixNano()
 	record["Path"] = config.Path
@@ -220,13 +220,13 @@ func (a *Agent) SaveRun(config resourced_config.Config, output []byte) error {
 	}
 
 	err = a.Db.Update(func(tx *bolt.Tx) error {
-		return a.DbBucket(tx).Put([]byte(config.Path), recordInJson)
+		return a.dbBucket(tx).Put([]byte(config.Path), recordInJson)
 	})
 
 	return err
 }
 
-// GetRun returns JSON data stored in local storage given Config struct.
+// GetRun returns the JSON data stored in local storage given Config struct.
 func (a *Agent) GetRun(config resourced_config.Config) ([]byte, error) {
 	return a.GetRunByPath(config.Path)
 }
@@ -236,14 +236,14 @@ func (a *Agent) GetRunByPath(path string) ([]byte, error) {
 	var data []byte
 
 	a.Db.View(func(tx *bolt.Tx) error {
-		data = a.DbBucket(tx).Get([]byte(path))
+		data = a.dbBucket(tx).Get([]byte(path))
 		return nil
 	})
 
 	return data, nil
 }
 
-// RunForever executes Run() in a loop with a sleep of config.Interval.
+// RunForever executes Run() in an infinite loop with a sleep of config.Interval.
 func (a *Agent) RunForever(config resourced_config.Config) {
 	go func(a *Agent, config resourced_config.Config) {
 		for {
@@ -253,7 +253,7 @@ func (a *Agent) RunForever(config resourced_config.Config) {
 	}(a, config)
 }
 
-// RunAllForever executes all readers & writers in a loop.
+// RunAllForever executes all readers & writers in an infinite loop.
 func (a *Agent) RunAllForever() {
 	for _, config := range a.ConfigStorage.Readers {
 		a.RunForever(config)

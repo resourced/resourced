@@ -8,6 +8,7 @@ import (
 	"path"
 )
 
+// NewConfig creates Config struct given fullpath.
 func NewConfig(fullpath string) (Config, error) {
 	var config Config
 	_, err := toml.DecodeFile(fullpath, &config)
@@ -24,6 +25,7 @@ func NewConfig(fullpath string) (Config, error) {
 	return config, err
 }
 
+// NewConfigStorage creates ConfigStorage struct given configReaderDir and configWriterDir.
 func NewConfigStorage(configReaderDir, configWriterDir string) (*ConfigStorage, error) {
 	storage := &ConfigStorage{}
 	storage.Readers = make([]Config, 0)
@@ -69,6 +71,9 @@ func NewConfigStorage(configReaderDir, configWriterDir string) (*ConfigStorage, 
 	return storage, err
 }
 
+// Config is a unit of execution for a reader/writer.
+// Reader config defines how to fetch a particular information and its JSON data path.
+// Writer config defines how to export the JSON data to a particular destination. E.g. Facts/graphing database.
 type Config struct {
 	Command  string
 	GoStruct string
@@ -76,6 +81,7 @@ type Config struct {
 	Interval string
 }
 
+// ConfigStorage stores all readers and writers configuration.
 type ConfigStorage struct {
 	Readers []Config
 	Writers []Config

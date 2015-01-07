@@ -11,6 +11,8 @@ func NewFree() *Free {
 	return m
 }
 
+// Free is a reader that scrapes memory data and presents it in the form similar to `free`.
+// Data source: https://github.com/cloudfoundry/gosigar/tree/master
 type Free struct {
 	Data map[string]map[string]interface{}
 }

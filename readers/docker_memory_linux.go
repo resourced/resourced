@@ -14,6 +14,8 @@ func NewDockerContainersMemory() *DockerContainersMemory {
 	return m
 }
 
+// DockerContainersMemory gathers Docker memory data.
+// Data source: https://github.com/shirou/gopsutil/tree/master/docker
 type DockerContainersMemory struct {
 	Data map[string]*gopsutil_docker.CgroupMemStat
 }

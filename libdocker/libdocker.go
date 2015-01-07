@@ -6,6 +6,7 @@ import (
 	"path"
 )
 
+// DockerClient returns dockerclient.Client which handles Docker connection.
 func DockerClient() (*dockerclient.Client, error) {
 	dockerHost := os.Getenv("DOCKER_HOST")
 	if dockerHost == "" {
@@ -24,6 +25,7 @@ func DockerClient() (*dockerclient.Client, error) {
 	}
 }
 
+// AllContainers is a convenience function to fetch a slice of all containers data.
 func AllContainers() ([]dockerclient.APIContainers, error) {
 	client, err := DockerClient()
 

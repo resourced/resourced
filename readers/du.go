@@ -12,6 +12,10 @@ func NewDu() *Du {
 	return d
 }
 
+// Df is a reader that scrapes disk usage data and presents it in the form similar to `du`.
+// Data sources:
+// * https://github.com/cloudfoundry/gosigar/tree/master
+// * https://github.com/shirou/gopsutil/tree/master/disk
 type Du struct {
 	Data map[string]map[string]interface{}
 }

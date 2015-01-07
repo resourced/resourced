@@ -5,12 +5,15 @@ import (
 	"github.com/cloudfoundry/gosigar"
 )
 
+// NewDf is Df constructor.
 func NewDf() *Df {
 	d := &Df{}
 	d.Data = make(map[string]map[string]interface{})
 	return d
 }
 
+// Df is a reader that scrapes disk free data and presents it in the form similar to `df`.
+// Data source: https://github.com/cloudfoundry/gosigar/tree/master
 type Df struct {
 	Data map[string]map[string]interface{}
 }

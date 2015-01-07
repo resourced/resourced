@@ -5,12 +5,15 @@ import (
 	gopsutil_disk "github.com/shirou/gopsutil/disk"
 )
 
+// NewDiskPartitions is DiskPartitions constructor.
 func NewDiskPartitions() *DiskPartitions {
 	d := &DiskPartitions{}
 	d.Data = make(map[string]map[string]gopsutil_disk.DiskPartitionStat)
 	return d
 }
 
+// DiskPartitions is a reader that gathers partition data.
+// Data source: https://github.com/shirou/gopsutil/tree/master/disk
 type DiskPartitions struct {
 	Data map[string]map[string]gopsutil_disk.DiskPartitionStat
 }
@@ -38,12 +41,15 @@ func (d *DiskPartitions) ToJson() ([]byte, error) {
 
 // ----------------------------------------------------------------
 
+// NewDiskIO is DiskIO constructor.
 func NewDiskIO() *DiskIO {
 	d := &DiskIO{}
 	d.Data = make(map[string]gopsutil_disk.DiskIOCountersStat)
 	return d
 }
 
+// DiskIO is a reader that gathers disk io data.
+// Data source: https://github.com/shirou/gopsutil/tree/master/disk
 type DiskIO struct {
 	Data map[string]gopsutil_disk.DiskIOCountersStat
 }

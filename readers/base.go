@@ -4,6 +4,7 @@ import (
 	"errors"
 )
 
+// NewGoStruct instantiates IReaderWriter
 func NewGoStruct(name string) (IReaderWriter, error) {
 	var structInstance IReaderWriter
 

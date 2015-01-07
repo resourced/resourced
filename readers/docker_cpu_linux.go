@@ -15,6 +15,10 @@ func NewDockerContainersCpu() *DockerContainersCpu {
 	return m
 }
 
+// DockerContainersCpu gathers docker containers CPU data.
+// Data sources:
+// * https://github.com/shirou/gopsutil/tree/master/cpu
+// * https://github.com/shirou/gopsutil/tree/master/docker
 type DockerContainersCpu struct {
 	Data map[string]*gopsutil_cpu.CPUTimesStat
 }

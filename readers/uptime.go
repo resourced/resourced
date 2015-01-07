@@ -12,6 +12,8 @@ func NewUptime() *Uptime {
 	return u
 }
 
+// Uptime is a reader that presents its data in the form similar to `uptime`.
+// Data source: https://github.com/cloudfoundry/gosigar/tree/master
 type Uptime struct {
 	Data map[string]interface{}
 }

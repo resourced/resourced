@@ -5,12 +5,15 @@ import (
 	gopsutil_cpu "github.com/shirou/gopsutil/cpu"
 )
 
+// NewCpuInfo is CpuInfo constructor.
 func NewCpuInfo() *CpuInfo {
 	c := &CpuInfo{}
 	c.Data = make(map[string][]gopsutil_cpu.CPUInfoStat)
 	return c
 }
 
+// CpuInfo is a reader that scrapes cpu info data.
+// Data source: https://github.com/shirou/gopsutil/tree/master/cpu
 type CpuInfo struct {
 	Data map[string][]gopsutil_cpu.CPUInfoStat
 }
@@ -31,12 +34,15 @@ func (c *CpuInfo) ToJson() ([]byte, error) {
 
 // ----------------------------------------------------------------
 
+// NewCpuStat is CpuStat constructor.
 func NewCpuStat() *CpuStat {
 	c := &CpuStat{}
 	c.Data = make(map[string][]gopsutil_cpu.CPUTimesStat)
 	return c
 }
 
+// CpuStat is a reader that scrapes cpu stat data.
+// Data source: https://github.com/shirou/gopsutil/tree/master/cpu
 type CpuStat struct {
 	Data map[string][]gopsutil_cpu.CPUTimesStat
 }
