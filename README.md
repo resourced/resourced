@@ -37,7 +37,7 @@ go run $GOPATH/src/github.com/resourced/resourced/resourced.go
 
 ResourceD accepts a few environment variables as configuration:
 
-* **RESOURCED_ADDR:** The host and port of ResourceD HTTP server. Default: ":55555"
+* **RESOURCED_ADDR:** The HTTP server host and port. Default: ":55555"
 
 * **RESOURCED_CERT_FILE:** Path to cert file. Default: ""
 
@@ -47,20 +47,18 @@ ResourceD accepts a few environment variables as configuration:
 
 * **RESOURCED_CONFIG_WRITER_DIR:** Path to writers config directory. Default: ""
 
-* **RESOURCED_TAGS:** Comma separated tags for the host that ResourceD runs at. Default: []
+* **RESOURCED_TAGS:** Comma separated tags. Default: []
 
 
 ## Reading Data from HTTP Interface
 
-You can read resource data by sending HTTP request to the `Path = /your-resource` defined in your config-reader TOML.
-
-For example, if you run ResourceD server as described above, you should be able to GET load average data via cURL:
+If you run ResourceD server as described above, you should be able to GET load average data via cURL:
 
 ```bash
 curl -X GET -H "Content-type: application/json" http://localhost:55555/r/load-avg
 ```
 
-There are a few convenience paths you can access to navigate the JSON data:
+There are a few convenience paths to help you navigate the JSON data:
 
 * `/` Displays full JSON data of all readers and writers.
 
