@@ -1,3 +1,5 @@
+[![license](http://img.shields.io/badge/license-MIT-red.svg?style=flat)](https://raw.githubusercontent.com/resourced/resourced/master/LICENSE.md)
+
 **ResourceD** collects resources data inside host machine and perform the following:
 
 * Serves the data as HTTP+JSON.
