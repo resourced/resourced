@@ -1,0 +1,3 @@
+GoStruct = "ProcCpuInfo"
+Path = "/proc/cpuinfo"
+Interval = "3s"

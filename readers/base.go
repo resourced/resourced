@@ -2,6 +2,7 @@ package readers
 
 import (
 	"errors"
+	readers_procfs "github.com/resourced/resourced/readers/procfs"
 )
 
 // NewGoStruct instantiates IReader
@@ -52,6 +53,9 @@ func NewGoStruct(name string) (IReader, error) {
 	}
 	if name == "NetInterfaces" {
 		structInstance = NewNetInterfaces()
+	}
+	if name == "ProcCpuInfo" {
+		structInstance = readers_procfs.NewProcCpuInfo()
 	}
 	if name == "Uptime" {
 		structInstance = NewUptime()
