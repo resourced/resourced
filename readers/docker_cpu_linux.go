@@ -20,7 +20,8 @@ func NewDockerContainersCpu() *DockerContainersCpu {
 // * https://github.com/shirou/gopsutil/tree/master/cpu
 // * https://github.com/shirou/gopsutil/tree/master/docker
 type DockerContainersCpu struct {
-	Data map[string]*gopsutil_cpu.CPUTimesStat
+	Data           map[string]*gopsutil_cpu.CPUTimesStat
+	CgroupBasePath string
 }
 
 func (m *DockerContainersCpu) Run() error {
@@ -31,7 +32,7 @@ func (m *DockerContainersCpu) Run() error {
 
 	for _, container := range containers {
 		if container.ID != "" {
-			data, err := gopsutil_docker.CgroupCPUDocker(container.ID)
+			data, err := gopsutil_docker.CgroupCPU(container.ID, m.CgroupBasePath)
 			if err == nil {
 				m.Data[container.ID] = data
 			}

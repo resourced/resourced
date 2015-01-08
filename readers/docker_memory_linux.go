@@ -17,7 +17,8 @@ func NewDockerContainersMemory() *DockerContainersMemory {
 // DockerContainersMemory gathers Docker memory data.
 // Data source: https://github.com/shirou/gopsutil/tree/master/docker
 type DockerContainersMemory struct {
-	Data map[string]*gopsutil_docker.CgroupMemStat
+	Data           map[string]*gopsutil_docker.CgroupMemStat
+	CgroupBasePath string
 }
 
 func (m *DockerContainersMemory) Run() error {
@@ -28,7 +29,7 @@ func (m *DockerContainersMemory) Run() error {
 
 	for _, container := range containers {
 		if container.ID != "" {
-			data, err := gopsutil_docker.CgroupMemDocker(container.ID)
+			data, err := gopsutil_docker.CgroupMem(container.ID, m.CgroupBasePath)
 			if err == nil {
 				m.Data[container.ID] = data
 			}
