@@ -38,7 +38,7 @@ func TestNewUptimeToJson(t *testing.T) {
 		t.Errorf("jsonDataString shouldn't return error: %v", jsonDataString)
 	}
 
-	keysToTest := []string{"CurrentTimeUnixNano", "CurrentTime", "Uptime", "LoadAvg1m", "LoadAvg5m", "LoadAvg15m"}
+	keysToTest := []string{"CurrentTimeUnixNano", "CurrentTime", "Uptime", "LoadAvg1m", "LoadAvg5m", "LoadAvg15m", "TimeZone"}
 
 	for _, key := range keysToTest {
 		if !strings.Contains(jsonDataString, key) {
