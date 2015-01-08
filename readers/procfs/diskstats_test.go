@@ -6,15 +6,15 @@ import (
 	"testing"
 )
 
-func TestNewProcCpuInfo(t *testing.T) {
-	p := NewProcCpuInfo()
+func TestNewProcDiskStats(t *testing.T) {
+	p := NewProcDiskStats()
 	if p.Data == nil {
 		t.Error("Reader data should never be nil.")
 	}
 }
 
-func TestNewProcCpuInfoRun(t *testing.T) {
-	p := NewProcCpuInfo()
+func TestNewProcDiskStatsRun(t *testing.T) {
+	p := NewProcDiskStats()
 
 	if runtime.GOOS == "linux" {
 		err := p.Run()
@@ -29,8 +29,8 @@ func TestNewProcCpuInfoRun(t *testing.T) {
 	}
 }
 
-func TestNewProcCpuInfoToJson(t *testing.T) {
-	p := NewProcCpuInfo()
+func TestNewProcDiskStatsToJson(t *testing.T) {
+	p := NewProcDiskStats()
 	p.Run()
 
 	jsonData, err := p.ToJson()
@@ -45,7 +45,8 @@ func TestNewProcCpuInfoToJson(t *testing.T) {
 			t.Errorf("jsonDataString shouldn't return error: %v", jsonDataString)
 		}
 
-		keysToTest := []string{"vendor_id", "model", "model_name", "flags", "cores", "mhz"}
+		keysToTest := []string{"major", "minor", "name", "read_ios", "read_merges", "read_sectors", "read_ticks",
+			"write_ios", "write_merges", "write_sectors", "write_ticks", "in_flight", "io_ticks", "time_in_queue"}
 
 		for _, key := range keysToTest {
 			if !strings.Contains(jsonDataString, key) {

@@ -9,9 +9,9 @@ import (
 
 // NewProcCpuInfo is ProcCpuInfo constructor.
 func NewProcCpuInfo() *ProcCpuInfo {
-	c := &ProcCpuInfo{}
-	c.Data = make(map[string][]interface{})
-	return c
+	p := &ProcCpuInfo{}
+	p.Data = make(map[string][]interface{})
+	return p
 }
 
 // ProcCpuInfo is a reader that scrapes /proc/cpuinfo data.
@@ -19,10 +19,10 @@ type ProcCpuInfo struct {
 	Data map[string][]interface{}
 }
 
-func (c *ProcCpuInfo) Run() error {
+func (p *ProcCpuInfo) Run() error {
 	return errors.New("/proc/cpuinfo is only available on Linux.")
 }
 
-func (c *ProcCpuInfo) ToJson() ([]byte, error) {
-	return json.Marshal(c.Data)
+func (p *ProcCpuInfo) ToJson() ([]byte, error) {
+	return json.Marshal(p.Data)
 }

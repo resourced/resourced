@@ -1,0 +1,3 @@
+GoStruct = "ProcDiskStats"
+Path = "/proc/diskstats"
+Interval = "3s"
