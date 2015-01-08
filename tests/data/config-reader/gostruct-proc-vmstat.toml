@@ -1,0 +1,3 @@
+GoStruct = "ProcVmStat"
+Path = "/proc/vmstat"
+Interval = "3s"

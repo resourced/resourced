@@ -69,6 +69,9 @@ func NewGoStruct(name string) (IReader, error) {
 	if name == "ProcNetDev" {
 		structInstance = readers_procfs.NewProcNetDev()
 	}
+	if name == "ProcVmStat" {
+		structInstance = readers_procfs.NewProcVmStat()
+	}
 	if name == "Uptime" {
 		structInstance = NewUptime()
 	}
