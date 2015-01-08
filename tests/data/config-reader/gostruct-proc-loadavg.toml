@@ -1,0 +1,3 @@
+GoStruct = "ProcLoadAvg"
+Path = "/proc/loadavg"
+Interval = "3s"
