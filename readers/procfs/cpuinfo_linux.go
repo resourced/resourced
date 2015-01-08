@@ -26,7 +26,7 @@ func (p *ProcCpuInfo) Run() error {
 		return err
 	}
 
-	p.Data["ProcCpuInfo"] = cpuinfo.Processors
+	p.Data["CpuInfo"] = cpuinfo.Processors
 	return nil
 }
 

@@ -15,7 +15,7 @@ func NewProcMemInfo() *ProcMemInfo {
 }
 
 // ProcMemInfo is a reader that scrapes /proc/diskstats data.
-// Data source: https://github.com/c9s/goprocinfo/blob/master/linux/loadavg.go
+// Data source: https://github.com/guillermo/go.procmeminfo
 type ProcMemInfo struct {
 	Data map[string]uint64
 }
