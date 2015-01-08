@@ -190,7 +190,9 @@ func (a *Agent) runGoStructReader(config resourced_config.Config) ([]byte, error
 
 	err = reader.Run()
 	if err != nil {
-		return nil, err
+		errData := make(map[string]string)
+		errData["Error"] = err.Error()
+		return json.Marshal(errData)
 	}
 
 	return reader.ToJson()
@@ -216,7 +218,9 @@ func (a *Agent) runGoStructWriter(config resourced_config.Config) ([]byte, error
 
 	err = writer.Run()
 	if err != nil {
-		return nil, err
+		errData := make(map[string]string)
+		errData["Error"] = err.Error()
+		return json.Marshal(errData)
 	}
 
 	return writer.ToJson()
