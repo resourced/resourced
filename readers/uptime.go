@@ -38,6 +38,7 @@ func (u *Uptime) Run() error {
 	u.Data["CurrentTimeUnixNano"] = currentTime.UnixNano()
 	u.Data["CurrentTime"] = currentTime.Format("15:04:05")
 	u.Data["Uptime"] = uptime.Format()
+        u.Data["TimeZone"] = currentTime.Format("MST")
 
 	return err
 }
