@@ -164,7 +164,7 @@ func (a *Agent) Run(config resourced_config.Config) (output []byte, err error) {
 	} else if config.GoStruct != "" && config.Kind == "reader" {
 		output, err = a.runGoStructReader(config)
 	} else if config.GoStruct != "" && config.Kind == "writer" {
-		err = a.runGoStructWriter(config)
+		output, err = a.runGoStructWriter(config)
 	}
 	if err != nil {
 		return output, err
@@ -197,24 +197,29 @@ func (a *Agent) runGoStructReader(config resourced_config.Config) ([]byte, error
 }
 
 // runGoStructWriter executes IWriter and returns error if exists.
-func (a *Agent) runGoStructWriter(config resourced_config.Config) error {
+func (a *Agent) runGoStructWriter(config resourced_config.Config) ([]byte, error) {
 	writer, err := resourced_writers.NewGoStruct(config.GoStruct)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	jsonBytes, err := a.GetRun(config)
+	// Get reader's run data.
+	jsonBytes, err := a.GetRunByPath("/r" + config.Path)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	err = writer.SetData(jsonBytes)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	err = writer.Run()
-	return err
+	if err != nil {
+		return nil, err
+	}
+
+	return writer.ToJson()
 }
 
 // saveRun gathers default basic information and saves output into local storage.
