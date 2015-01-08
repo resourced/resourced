@@ -1,4 +1,4 @@
-package readers
+package procfs
 
 import (
 	"runtime"
@@ -6,37 +6,36 @@ import (
 	"testing"
 )
 
-func TestNewMeminfo(t *testing.T) {
-	n := NewMeminfo()
-	if n.Data == nil {
+func TestNewProcMemInfo(t *testing.T) {
+	p := NewProcMemInfo()
+	if p.Data == nil {
 		t.Error("Reader data should never be nil.")
 	}
 }
 
-func TestNewMeminfoRun(t *testing.T) {
-	n := NewMeminfo()
-	err := n.Run()
-	if err != nil {
-		t.Errorf("Parsing memory data should always be successful. Error: %v", err)
+func TestNewProcMemInfoRun(t *testing.T) {
+	p := NewProcMemInfo()
+
+	if runtime.GOOS == "linux" {
+		err := p.Run()
+		if err != nil {
+			t.Errorf("Reading /proc/meminfo data should work on linux. Error: %v", err)
+		}
+	} else {
+		err := p.Run()
+		if err == nil {
+			t.Error("Reading /proc/meminfo data should fail on non-linux.")
+		}
 	}
 }
 
-func TestNewMeminfoToJson(t *testing.T) {
-	n := NewMeminfo()
-	err := n.Run()
-	if err != nil {
-		t.Errorf("Parsing memory data should always be successful. Error: %v", err)
-	}
+func TestNewProcMemInfoToJson(t *testing.T) {
+	p := NewProcMemInfo()
+	p.Run()
 
-	jsonData, err := n.ToJson()
+	jsonData, err := p.ToJson()
 	if err != nil {
-		t.Errorf("Marshalling memory data should always be successful. Error: %v", err)
-	}
-
-	if runtime.GOOS == "darwin" {
-		if !strings.Contains(string(jsonData), "Error") {
-			t.Errorf("jsonData should return error on darwin: %s", jsonData)
-		}
+		t.Errorf("Marshalling /proc/meminfo data should always work. Error: %v", err)
 	}
 
 	if runtime.GOOS == "linux" {

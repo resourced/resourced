@@ -9,9 +9,9 @@ import (
 
 // NewProcDiskStats is ProcDiskStats constructor.
 func NewProcDiskStats() *ProcDiskStats {
-	c := &ProcDiskStats{}
-	c.Data = make(map[string]linuxproc.DiskStat)
-	return c
+	p := &ProcDiskStats{}
+	p.Data = make(map[string]linuxproc.DiskStat)
+	return p
 }
 
 // ProcDiskStats is a reader that scrapes /proc/diskstats data.
@@ -20,18 +20,18 @@ type ProcDiskStats struct {
 	Data map[string]linuxproc.DiskStat
 }
 
-func (c *ProcDiskStats) Run() error {
+func (p *ProcDiskStats) Run() error {
 	diskstats, err := linuxproc.ReadDiskStats("/proc/diskstats")
 	if err != nil {
 		return err
 	}
 
 	for _, perDevice := range diskstats {
-		c.Data[perDevice.Name] = perDevice
+		p.Data[perDevice.Name] = perDevice
 	}
 	return nil
 }
 
-func (c *ProcDiskStats) ToJson() ([]byte, error) {
-	return json.Marshal(c.Data)
+func (p *ProcDiskStats) ToJson() ([]byte, error) {
+	return json.Marshal(p.Data)
 }

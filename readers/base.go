@@ -45,9 +45,6 @@ func NewGoStruct(name string) (IReader, error) {
 	if name == "Ps" {
 		structInstance = NewPs()
 	}
-	if name == "Meminfo" {
-		structInstance = NewMeminfo()
-	}
 	if name == "NetIO" {
 		structInstance = NewNetIO()
 	}
@@ -62,6 +59,9 @@ func NewGoStruct(name string) (IReader, error) {
 	}
 	if name == "ProcLoadAvg" {
 		structInstance = readers_procfs.NewProcLoadAvg()
+	}
+	if name == "ProcMemInfo" {
+		structInstance = readers_procfs.NewProcMemInfo()
 	}
 	if name == "Uptime" {
 		structInstance = NewUptime()

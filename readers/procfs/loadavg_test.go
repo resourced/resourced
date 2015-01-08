@@ -19,12 +19,12 @@ func TestNewProcLoadAvgRun(t *testing.T) {
 	if runtime.GOOS == "linux" {
 		err := p.Run()
 		if err != nil {
-			t.Errorf("Reading /proc/cpuinfo data should work on linux. Error: %v", err)
+			t.Errorf("Reading /proc/loadavg data should work on linux. Error: %v", err)
 		}
 	} else {
 		err := p.Run()
 		if err == nil {
-			t.Error("Reading /proc/cpuinfo data should fail on non-linux.")
+			t.Error("Reading /proc/loadavg data should fail on non-linux.")
 		}
 	}
 }
@@ -35,7 +35,7 @@ func TestNewProcLoadAvgToJson(t *testing.T) {
 
 	jsonData, err := p.ToJson()
 	if err != nil {
-		t.Errorf("Marshalling /proc/cpuinfo data should always work. Error: %v", err)
+		t.Errorf("Marshalling /proc/loadavg data should always work. Error: %v", err)
 	}
 
 	if runtime.GOOS == "linux" {

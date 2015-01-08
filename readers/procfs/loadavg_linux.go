@@ -9,9 +9,9 @@ import (
 
 // NewProcLoadAvg is ProcLoadAvg constructor.
 func NewProcLoadAvg() *ProcLoadAvg {
-	c := &ProcLoadAvg{}
-	c.Data = make(map[string]float64)
-	return c
+	p := &ProcLoadAvg{}
+	p.Data = make(map[string]float64)
+	return p
 }
 
 // ProcLoadAvg is a reader that scrapes /proc/diskstats data.
@@ -20,19 +20,19 @@ type ProcLoadAvg struct {
 	Data map[string]float64
 }
 
-func (c *ProcLoadAvg) Run() error {
+func (p *ProcLoadAvg) Run() error {
 	loadavg, err := linuxproc.ReadLoadAvg("/proc/loadavg")
 	if err != nil {
 		return err
 	}
 
-	c.Data["last1min"] = loadavg.Last1Min
-	c.Data["last5min"] = loadavg.Last5Min
-	c.Data["last15min"] = loadavg.Last15Min
+	p.Data["last1min"] = loadavg.Last1Min
+	p.Data["last5min"] = loadavg.Last5Min
+	p.Data["last15min"] = loadavg.Last15Min
 
 	return nil
 }
 
-func (c *ProcLoadAvg) ToJson() ([]byte, error) {
-	return json.Marshal(c.Data)
+func (p *ProcLoadAvg) ToJson() ([]byte, error) {
+	return json.Marshal(p.Data)
 }
