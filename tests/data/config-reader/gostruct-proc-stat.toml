@@ -1,0 +1,3 @@
+GoStruct = "ProcStat"
+Path = "/proc/stat"
+Interval = "3s"
