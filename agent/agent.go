@@ -1,6 +1,7 @@
 package agent
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"github.com/boltdb/bolt"
@@ -178,6 +179,17 @@ func (a *Agent) Run(config resourced_config.Config) (output []byte, err error) {
 // runCommand shells out external program and returns the output.
 func (a *Agent) runCommand(config resourced_config.Config) ([]byte, error) {
 	cmd := libprocess.NewCmd(config.Command)
+
+	if config.Kind == "writer" {
+		// Get reader's run data.
+		jsonBytes, err := a.GetRunByPath("/r" + config.Path)
+		if err != nil {
+			return nil, err
+		}
+
+		cmd.Stdin = bytes.NewReader(jsonBytes)
+	}
+
 	return cmd.Output()
 }
 
