@@ -95,11 +95,19 @@ func (a *Agent) dbBucket(tx *bolt.Tx) *bolt.Bucket {
 // pathWithPrefix prepends the short version of config.Kind to path.
 func (a *Agent) pathWithPrefix(config resourced_config.Config) string {
 	if config.Kind == "reader" {
-		return "/r" + config.Path
+		return a.pathWithReaderPrefix(config)
 	} else if config.Kind == "writer" {
-		return "/w" + config.Path
+		return a.pathWithWriterPrefix(config)
 	}
 	return config.Path
+}
+
+func (a *Agent) pathWithReaderPrefix(config resourced_config.Config) string {
+	return "/r" + config.Path
+}
+
+func (a *Agent) pathWithWriterPrefix(config resourced_config.Config) string {
+	return "/w" + config.Path
 }
 
 // Run executes a reader/writer config.
@@ -127,7 +135,7 @@ func (a *Agent) runCommand(config resourced_config.Config) ([]byte, error) {
 
 	if config.Kind == "writer" {
 		// Get reader's run data.
-		jsonBytes, err := a.GetRunByPath("/r" + config.Path)
+		jsonBytes, err := a.GetRunByPath(a.pathWithReaderPrefix(config))
 		if err != nil {
 			return nil, err
 		}
@@ -163,7 +171,7 @@ func (a *Agent) runGoStructWriter(config resourced_config.Config) ([]byte, error
 	}
 
 	// Get reader's run data.
-	jsonBytes, err := a.GetRunByPath("/r" + config.Path)
+	jsonBytes, err := a.GetRunByPath(a.pathWithReaderPrefix(config))
 	if err != nil {
 		return nil, err
 	}
