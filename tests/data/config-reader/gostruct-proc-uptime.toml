@@ -1,0 +1,3 @@
+GoStruct = "ProcUptime"
+Path = "/proc/uptime"
+Interval = "3s"

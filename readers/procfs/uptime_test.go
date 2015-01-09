@@ -6,29 +6,29 @@ import (
 	"testing"
 )
 
-func TestNewProcStatRun(t *testing.T) {
-	p := NewProcStat()
+func TestNewProcUptimeRun(t *testing.T) {
+	p := NewProcUptime()
 
 	if runtime.GOOS == "linux" {
 		err := p.Run()
 		if err != nil {
-			t.Errorf("Reading /proc/cpuinfo data should work on linux. Error: %v", err)
+			t.Errorf("Reading /proc/uptime data should work on linux. Error: %v", err)
 		}
 	} else {
 		err := p.Run()
 		if err == nil {
-			t.Error("Reading /proc/cpuinfo data should fail on non-linux.")
+			t.Error("Reading /proc/uptime data should fail on non-linux.")
 		}
 	}
 }
 
-func TestNewProcStatToJson(t *testing.T) {
-	p := NewProcStat()
+func TestNewProcUptimeToJson(t *testing.T) {
+	p := NewProcUptime()
 	p.Run()
 
 	jsonData, err := p.ToJson()
 	if err != nil {
-		t.Errorf("Marshalling /proc/cpuinfo data should always work. Error: %v", err)
+		t.Errorf("Marshalling /proc/uptime data should always work. Error: %v", err)
 	}
 
 	if runtime.GOOS == "linux" {
@@ -38,7 +38,7 @@ func TestNewProcStatToJson(t *testing.T) {
 			t.Errorf("jsonDataString shouldn't return error: %v", jsonDataString)
 		}
 
-		keysToTest := []string{"cpu_all", "user", "nice", "system", "idle", "iowait"}
+		keysToTest := []string{"total", "idle"}
 
 		for _, key := range keysToTest {
 			if !strings.Contains(jsonDataString, key) {
