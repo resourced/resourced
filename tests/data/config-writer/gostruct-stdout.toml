@@ -1,0 +1,3 @@
+ReaderPaths = ["/load-avg", "/uptime", "/free"]
+GoStruct = "StdOut"
+Interval = "3s"

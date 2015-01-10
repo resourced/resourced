@@ -9,6 +9,10 @@ import (
 func NewGoStruct(name string) (IWriter, error) {
 	var structInstance IWriter
 
+	if name == "StdOut" {
+		structInstance = NewStdOut()
+	}
+
 	if structInstance == nil {
 		return nil, errors.New("GoStruct is undefined.")
 	}
