@@ -34,8 +34,8 @@ func TestNewNoopSetReadersData(t *testing.T) {
 	n.SetReadersData(readersData)
 
 	key := "/load-avg"
-	_, ok := n.ReadersData[key]
+	_, ok := n.GetReadersData()[key]
 	if !ok {
-		t.Errorf("Key does not exist. Key: %v, Data: %v", key, n.ReadersData)
+		t.Errorf("Key does not exist. Key: %v, Data: %v", key, n.GetReadersData())
 	}
 }
