@@ -192,10 +192,7 @@ func (a *Agent) runGoStructWriter(config resourced_config.Config) ([]byte, error
 		}
 	}
 
-	err = writer.SetReadersData(readersData)
-	if err != nil {
-		return nil, err
-	}
+	writer.SetReadersData(readersData)
 
 	err = writer.Run()
 	if err != nil {
