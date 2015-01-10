@@ -146,13 +146,27 @@ func (a *Agent) runCommand(config resourced_config.Config) ([]byte, error) {
 	cmd := libprocess.NewCmd(config.Command)
 
 	if config.Kind == "writer" {
-		// Get reader's run data.
-		jsonBytes, err := a.GetRunByPath(a.pathWithReaderPrefix(config))
+		// Get readers data.
+		readersData := make(map[string]interface{})
+
+		for _, readerPath := range config.ReaderPaths {
+			readerJsonBytes, err := a.GetRunByPath(a.pathWithReaderPrefix(readerPath))
+
+			if err == nil {
+				var data interface{}
+				err := json.Unmarshal(readerJsonBytes, &data)
+				if err == nil {
+					readersData[readerPath] = data
+				}
+			}
+		}
+
+		readersDataJsonBytes, err := json.Marshal(readersData)
 		if err != nil {
 			return nil, err
 		}
 
-		cmd.Stdin = bytes.NewReader(jsonBytes)
+		cmd.Stdin = bytes.NewReader(readersDataJsonBytes)
 	}
 
 	return cmd.Output()

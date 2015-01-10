@@ -1,3 +1,0 @@
-ReadersPath = ["/load-avg", "/uptime", "/free"]
-Command = "true"
-Interval = "1m"
