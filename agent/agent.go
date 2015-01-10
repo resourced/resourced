@@ -102,12 +102,24 @@ func (a *Agent) pathWithPrefix(config resourced_config.Config) string {
 	return config.Path
 }
 
-func (a *Agent) pathWithReaderPrefix(config resourced_config.Config) string {
-	return "/r" + config.Path
+func (a *Agent) pathWithReaderPrefix(input interface{}) string {
+	switch v := input.(type) {
+	case resourced_config.Config:
+		return "/r" + v.Path
+	case string:
+		return "/r" + v
+	}
+	return ""
 }
 
-func (a *Agent) pathWithWriterPrefix(config resourced_config.Config) string {
-	return "/w" + config.Path
+func (a *Agent) pathWithWriterPrefix(input interface{}) string {
+	switch v := input.(type) {
+	case resourced_config.Config:
+		return "/w" + v.Path
+	case string:
+		return "/w" + v
+	}
+	return ""
 }
 
 // Run executes a reader/writer config.
@@ -170,13 +182,17 @@ func (a *Agent) runGoStructWriter(config resourced_config.Config) ([]byte, error
 		return nil, err
 	}
 
-	// Get reader's run data.
-	jsonBytes, err := a.GetRunByPath(a.pathWithReaderPrefix(config))
-	if err != nil {
-		return nil, err
+	// Get readers data.
+	readersData := make(map[string][]byte)
+
+	for _, readerPath := range config.ReaderPaths {
+		readerJsonBytes, err := a.GetRunByPath(a.pathWithReaderPrefix(readerPath))
+		if err == nil {
+			readersData[readerPath] = readerJsonBytes
+		}
 	}
 
-	err = writer.SetData(jsonBytes)
+	err = writer.SetReadersData(readersData)
 	if err != nil {
 		return nil, err
 	}

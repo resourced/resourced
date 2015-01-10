@@ -12,7 +12,7 @@ func TestNewNoopRun(t *testing.T) {
 	}
 }
 
-func TestNewNoopSetJsonData(t *testing.T) {
+func TestNewNoopSetReadersData(t *testing.T) {
 	n := NewNoop()
 
 	jsonData := `{
@@ -28,19 +28,14 @@ func TestNewNoopSetJsonData(t *testing.T) {
     "Tags": [ ],
     "UnixNano": 1420607791403576000
 }`
+	readersData := make(map[string][]byte)
+	readersData["/load-avg"] = []byte(jsonData)
 
-	err := n.SetData([]byte(jsonData))
-	if err != nil {
-		t.Errorf("Marshalling data should be successful. Error: %v", err)
-	}
+	n.SetReadersData(readersData)
 
-	keysToTest := []string{"LoadAvg15m", "LoadAvg1m", "LoadAvg5m"}
-	realData := n.InputData["Data"].(map[string]interface{})
-
-	for _, key := range keysToTest {
-		_, ok := realData[key]
-		if !ok {
-			t.Errorf("Key does not exist. Key: %v", key)
-		}
+	key := "/load-avg"
+	_, ok := n.ReadersData[key]
+	if !ok {
+		t.Errorf("Key does not exist. Key: %v, Data: %v", key, n.ReadersData)
 	}
 }

@@ -84,6 +84,10 @@ type Config struct {
 
 	// There are only 2 kinds: reader and writer
 	Kind string
+
+	// Writer specific fields
+	// ReaderPaths defines input data endpoints for a Writer.
+	ReaderPaths []string
 }
 
 // ConfigStorage stores all readers and writers configuration.

@@ -17,6 +17,7 @@ func NewGoStruct(name string) (IWriter, error) {
 
 type IWriter interface {
 	Run() error
-	SetData([]byte) error
+	SetReadersData(map[string][]byte)
+	GetReadersData() map[string]interface{}
 	ToJson() ([]byte, error)
 }
