@@ -1,3 +1,0 @@
-ReaderPaths = ["/load-avg", "/uptime", "/free"]
-Command = "$GOPATH/src/github.com/resourced/resourced/tests/data/script-writer/stdin-echo.py"
-Interval = "3s"

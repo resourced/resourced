@@ -1,0 +1,4 @@
+ReaderPaths = ["/load-avg", "/uptime", "/free"]
+Path = "/python/loadavg-uptime-free"
+Command = "$GOPATH/src/github.com/resourced/resourced/tests/data/script-writer/stdin-stdout.py"
+Interval = "1m"

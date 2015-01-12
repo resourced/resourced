@@ -23,6 +23,6 @@ func (s *StdOut) Run() error {
 		return err
 	}
 
-	fmt.Printf("StdOut.Run().Data: %s\n", inJson)
+	fmt.Println(string(inJson))
 	return nil
 }
