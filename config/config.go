@@ -10,6 +10,9 @@ import (
 
 // NewConfig creates Config struct given fullpath and kind.
 func NewConfig(fullpath, kind string) (Config, error) {
+	fullpath = libstring.ExpandTilde(fullpath)
+	fullpath = os.ExpandEnv(fullpath)
+
 	var config Config
 	_, err := toml.DecodeFile(fullpath, &config)
 
@@ -77,10 +80,11 @@ func NewConfigStorage(configReaderDir, configWriterDir string) (*ConfigStorage, 
 // Reader config defines how to fetch a particular information and its JSON data path.
 // Writer config defines how to export the JSON data to a particular destination. E.g. Facts/graphing database.
 type Config struct {
-	Command  string
-	GoStruct string
-	Path     string
-	Interval string
+	Command        string
+	GoStruct       string
+	GoStructFields map[string]interface{}
+	Path           string
+	Interval       string
 
 	// There are only 2 kinds: reader and writer
 	Kind string

@@ -1,3 +1,6 @@
 GoStruct = "DockerContainersMemory"
 Path = "/docker/containers/memory"
 Interval = "3s"
+
+[GoStructFields]
+CgroupBasePath = "/sys/fs/cgroup/cpuacct/docker"

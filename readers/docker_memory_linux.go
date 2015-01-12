@@ -15,7 +15,7 @@ func NewDockerContainersMemory() *DockerContainersMemory {
 }
 
 // DockerContainersMemory gathers Docker memory data.
-// Data source: https://github.com/shirou/gopsutil/tree/master/docker
+// Data source: https://github.com/shirou/gopsutil/blob/master/docker/docker_linux.go
 type DockerContainersMemory struct {
 	Data           map[string]*gopsutil_docker.CgroupMemStat
 	CgroupBasePath string
