@@ -146,3 +146,17 @@ func TestPathWithPrefix(t *testing.T) {
 		t.Errorf("Path is prefixed incorrectly. Path: %v", path)
 	}
 }
+
+func TestPathWithReaderPrefix(t *testing.T) {
+	agent, _ := NewAgent()
+
+	toBeTested := agent.pathWithReaderPrefix("/stuff")
+	if toBeTested != "/r/stuff" {
+		t.Errorf("Path is prefixed incorrectly. toBeTested: %v", toBeTested)
+	}
+
+	toBeTested = agent.pathWithReaderPrefix("/r/stuff")
+	if toBeTested != "/r/stuff" {
+		t.Errorf("Path is prefixed incorrectly. toBeTested: %v", toBeTested)
+	}
+}

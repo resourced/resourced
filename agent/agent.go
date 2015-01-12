@@ -107,7 +107,11 @@ func (a *Agent) pathWithReaderPrefix(input interface{}) string {
 	case resourced_config.Config:
 		return "/r" + v.Path
 	case string:
-		return "/r" + v
+		if strings.HasPrefix(v, "/r/") {
+			return v
+		} else {
+			return "/r" + v
+		}
 	}
 	return ""
 }
@@ -117,7 +121,11 @@ func (a *Agent) pathWithWriterPrefix(input interface{}) string {
 	case resourced_config.Config:
 		return "/w" + v.Path
 	case string:
-		return "/w" + v
+		if strings.HasPrefix(v, "/w/") {
+			return v
+		} else {
+			return "/w" + v
+		}
 	}
 	return ""
 }
