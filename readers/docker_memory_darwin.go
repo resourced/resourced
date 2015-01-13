@@ -13,7 +13,8 @@ func NewDockerContainersMemory() *DockerContainersMemory {
 }
 
 type DockerContainersMemory struct {
-	Data map[string]string
+	Data           map[string]string
+	CgroupBasePath string
 }
 
 func (m *DockerContainersMemory) Run() error {

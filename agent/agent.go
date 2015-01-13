@@ -11,6 +11,7 @@ import (
 	resourced_readers "github.com/resourced/resourced/readers"
 	resourced_writers "github.com/resourced/resourced/writers"
 	"os"
+	"reflect"
 	"strings"
 	"time"
 )
@@ -182,9 +183,22 @@ func (a *Agent) runCommand(config resourced_config.Config) ([]byte, error) {
 
 // runGoStructReader executes IReader and returns the output.
 func (a *Agent) runGoStructReader(config resourced_config.Config) ([]byte, error) {
+	// Initialize IReader
 	reader, err := resourced_readers.NewGoStruct(config.GoStruct)
 	if err != nil {
 		return nil, err
+	}
+
+	// Populate IReader fields dynamically
+	if len(config.GoStructFields) > 0 {
+		for structFieldInString, value := range config.GoStructFields {
+			goStructField := reflect.ValueOf(reader).Elem().FieldByName(structFieldInString)
+
+			if goStructField.IsValid() && goStructField.CanSet() {
+				valueOfValue := reflect.ValueOf(value)
+				goStructField.Set(valueOfValue)
+			}
+		}
 	}
 
 	err = reader.Run()
@@ -199,9 +213,22 @@ func (a *Agent) runGoStructReader(config resourced_config.Config) ([]byte, error
 
 // runGoStructWriter executes IWriter and returns error if exists.
 func (a *Agent) runGoStructWriter(config resourced_config.Config) ([]byte, error) {
+	// Initialize IWriter
 	writer, err := resourced_writers.NewGoStruct(config.GoStruct)
 	if err != nil {
 		return nil, err
+	}
+
+	// Populate IWriter fields dynamically
+	if len(config.GoStructFields) > 0 {
+		for structFieldInString, value := range config.GoStructFields {
+			goStructField := reflect.ValueOf(writer).Elem().FieldByName(structFieldInString)
+
+			if goStructField.IsValid() && goStructField.CanSet() {
+				valueOfValue := reflect.ValueOf(value)
+				goStructField.Set(valueOfValue)
+			}
+		}
 	}
 
 	// Get readers data.

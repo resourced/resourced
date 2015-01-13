@@ -13,7 +13,8 @@ func NewDockerContainersCpu() *DockerContainersCpu {
 }
 
 type DockerContainersCpu struct {
-	Data map[string]string
+	Data           map[string]string
+	CgroupBasePath string
 }
 
 func (m *DockerContainersCpu) Run() error {
