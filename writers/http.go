@@ -27,7 +27,7 @@ func (h *Http) Run() error {
 		return err
 	}
 
-	client := httpclient.Defaults(httpclient.Map{
+	client := httpclient.NewHttpClient().Defaults(httpclient.Map{
 		httpclient.OPT_USERAGENT: "ResourceD/1.0",
 		"Accept-Language":        "en-us",
 	})
