@@ -1,0 +1,8 @@
+ReaderPaths = ["/load-avg", "/uptime", "/free"]
+Path = "/go/loadavg-uptime-free/http"
+GoStruct = "Http"
+Interval = "3s"
+
+[GoStructFields]
+Url = "http://localhost:55556"
+Method = "POST"
