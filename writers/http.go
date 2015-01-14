@@ -2,6 +2,7 @@ package writers
 
 import (
 	"bytes"
+	"errors"
 	"github.com/ddliu/go-httpclient"
 )
 
@@ -25,6 +26,14 @@ func (h *Http) Run() error {
 
 	if err != nil {
 		return err
+	}
+
+	if h.Url == "" {
+		return errors.New("Url is undefined.")
+	}
+
+	if h.Method == "" {
+		return errors.New("Method is undefined.")
 	}
 
 	client := httpclient.NewHttpClient().Defaults(httpclient.Map{
