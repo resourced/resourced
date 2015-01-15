@@ -66,13 +66,13 @@ func (a *Agent) setDb() error {
 	if dbPath == "" {
 		dbPath = "~/resourced/db"
 
-		err = os.MkdirAll(libstring.ExpandTilde("~/resourced"), 0755)
+		err = os.MkdirAll(libstring.ExpandTildeAndEnv("~/resourced"), 0755)
 		if err != nil {
 			return err
 		}
 	}
 
-	a.DbPath = libstring.ExpandTilde(dbPath)
+	a.DbPath = libstring.ExpandTildeAndEnv(dbPath)
 
 	a.Db, err = bolt.Open(a.DbPath, 0644, nil)
 	if err != nil {

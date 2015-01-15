@@ -4,21 +4,18 @@ import (
 	"github.com/BurntSushi/toml"
 	"github.com/resourced/resourced/libstring"
 	"io/ioutil"
-	"os"
 	"path"
 )
 
 // NewConfig creates Config struct given fullpath and kind.
 func NewConfig(fullpath, kind string) (Config, error) {
-	fullpath = libstring.ExpandTilde(fullpath)
-	fullpath = os.ExpandEnv(fullpath)
+	fullpath = libstring.ExpandTildeAndEnv(fullpath)
 
 	var config Config
 	_, err := toml.DecodeFile(fullpath, &config)
 
 	if config.Command != "" {
-		config.Command = libstring.ExpandTilde(config.Command)
-		config.Command = os.ExpandEnv(config.Command)
+		config.Command = libstring.ExpandTildeAndEnv(config.Command)
 	}
 
 	if config.Interval == "" {
@@ -39,8 +36,7 @@ func NewConfigStorage(configReaderDir, configWriterDir string) (*ConfigStorage, 
 	var err error
 
 	if configReaderDir != "" {
-		configReaderDir = libstring.ExpandTilde(configReaderDir)
-		configReaderDir = os.ExpandEnv(configReaderDir)
+		configReaderDir = libstring.ExpandTildeAndEnv(configReaderDir)
 
 		readerFiles, err := ioutil.ReadDir(configReaderDir)
 
@@ -57,8 +53,7 @@ func NewConfigStorage(configReaderDir, configWriterDir string) (*ConfigStorage, 
 	}
 
 	if configWriterDir != "" {
-		configWriterDir = libstring.ExpandTilde(configWriterDir)
-		configWriterDir = os.ExpandEnv(configWriterDir)
+		configWriterDir = libstring.ExpandTildeAndEnv(configWriterDir)
 
 		writerFiles, err := ioutil.ReadDir(configWriterDir)
 		if err == nil {
