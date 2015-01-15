@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"github.com/ddliu/go-httpclient"
+	"strings"
 )
 
 // NewHttp is Http constructor.
@@ -17,7 +18,26 @@ type Http struct {
 	Base
 	Url     string
 	Method  string
-	Headers map[string]string
+	Headers string
+}
+
+func (h *Http) headersAsMap() map[string]string {
+	if h.Headers == "" {
+		return nil
+	}
+
+	headersInMap := make(map[string]string)
+
+	pairs := strings.Split(h.Headers, ",")
+
+	for _, pairInString := range pairs {
+		pair := strings.Split(pairInString, "=")
+		if len(pair) >= 2 {
+			headersInMap[strings.TrimSpace(pair[0])] = strings.TrimSpace(pair[1])
+		}
+	}
+
+	return headersInMap
 }
 
 func (h *Http) Run() error {
@@ -41,6 +61,6 @@ func (h *Http) Run() error {
 		"Accept-Language":        "en-us",
 	})
 
-	_, err = client.Do(h.Method, h.Url, h.Headers, bytes.NewReader(inJson))
+	_, err = client.Do(h.Method, h.Url, h.headersAsMap(), bytes.NewReader(inJson))
 	return err
 }

@@ -184,7 +184,11 @@ func TestInitGoStructWriter(t *testing.T) {
 		t.Fatalf("Initializing Writer should not fail. Error: %v", err)
 	}
 
-	for field, value := range map[string]string{"Url": "http://localhost:55556", "Method": "POST"} {
+	for field, value := range map[string]string{
+		"Url":     "http://localhost:55556",
+		"Method":  "POST",
+		"Headers": "X-Token=abc123,X-Teapot-Count=2"} {
+
 		goStructField := reflect.ValueOf(writer).Elem().FieldByName(field)
 		if goStructField.String() != value {
 			t.Errorf("writer.%s is not set through the config. Url: %v", field, goStructField.String())
