@@ -181,8 +181,8 @@ func (a *Agent) runCommand(config resourced_config.Config) ([]byte, error) {
 	return cmd.Output()
 }
 
-// runGoStructReader executes IReader and returns the output.
-func (a *Agent) runGoStructReader(config resourced_config.Config) ([]byte, error) {
+// initGoStructReader initialize and return IReader.
+func (a *Agent) initGoStructReader(config resourced_config.Config) (resourced_readers.IReader, error) {
 	// Initialize IReader
 	reader, err := resourced_readers.NewGoStruct(config.GoStruct)
 	if err != nil {
@@ -201,18 +201,11 @@ func (a *Agent) runGoStructReader(config resourced_config.Config) ([]byte, error
 		}
 	}
 
-	err = reader.Run()
-	if err != nil {
-		errData := make(map[string]string)
-		errData["Error"] = err.Error()
-		return json.Marshal(errData)
-	}
-
-	return reader.ToJson()
+	return reader, err
 }
 
-// runGoStructWriter executes IWriter and returns error if exists.
-func (a *Agent) runGoStructWriter(config resourced_config.Config) ([]byte, error) {
+// initGoStructWriter initialize and return IWriter.
+func (a *Agent) initGoStructWriter(config resourced_config.Config) (resourced_writers.IWriter, error) {
 	// Initialize IWriter
 	writer, err := resourced_writers.NewGoStruct(config.GoStruct)
 	if err != nil {
@@ -243,14 +236,42 @@ func (a *Agent) runGoStructWriter(config resourced_config.Config) ([]byte, error
 
 	writer.SetReadersData(readersData)
 
-	err = writer.Run()
+	return writer, err
+}
+
+// runGoStruct executes IReader/IWriter and returns the output.
+// Note that IWriter also implements IReader
+func (a *Agent) runGoStruct(readerOrWriter resourced_readers.IReader) ([]byte, error) {
+	err := readerOrWriter.Run()
 	if err != nil {
 		errData := make(map[string]string)
 		errData["Error"] = err.Error()
 		return json.Marshal(errData)
 	}
 
-	return writer.ToJson()
+	return readerOrWriter.ToJson()
+}
+
+// runGoStructReader executes IReader and returns the output.
+func (a *Agent) runGoStructReader(config resourced_config.Config) ([]byte, error) {
+	// Initialize IReader
+	reader, err := a.initGoStructReader(config)
+	if err != nil {
+		return nil, err
+	}
+
+	return a.runGoStruct(reader)
+}
+
+// runGoStructWriter executes IWriter and returns error if exists.
+func (a *Agent) runGoStructWriter(config resourced_config.Config) ([]byte, error) {
+	// Initialize IWriter
+	writer, err := a.initGoStructWriter(config)
+	if err != nil {
+		return nil, err
+	}
+
+	return a.runGoStruct(writer)
 }
 
 // saveRun gathers default basic information and saves output into local storage.

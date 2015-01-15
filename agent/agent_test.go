@@ -1,26 +1,32 @@
 package agent
 
 import (
+	resourced_config "github.com/resourced/resourced/config"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"reflect"
 	"strings"
 	"testing"
 )
 
-func TestConstructor(t *testing.T) {
-	gopath := os.Getenv("GOPATH")
-	os.Setenv("RESOURCED_TAGS", "prod, mysql, percona")
-	os.Setenv("RESOURCED_CONFIG_READER_DIR", gopath+"/src/github.com/resourced/resourced/tests/data/config-reader")
-	os.Setenv("RESOURCED_CONFIG_WRITER_DIR", gopath+"/src/github.com/resourced/resourced/tests/data/config-writer")
+func createAgentForAgentTest(t *testing.T) *Agent {
+	os.Setenv("RESOURCED_CONFIG_READER_DIR", "$GOPATH/src/github.com/resourced/resourced/tests/data/config-reader")
+	os.Setenv("RESOURCED_CONFIG_WRITER_DIR", "$GOPATH/src/github.com/resourced/resourced/tests/data/config-writer")
 
 	agent, err := NewAgent()
-	defer agent.Db.Close()
-
 	if err != nil {
 		t.Fatalf("Initializing agent should work. Error: %v", err)
 	}
+	return agent
+}
+
+func TestConstructor(t *testing.T) {
+	os.Setenv("RESOURCED_TAGS", "prod, mysql, percona")
+
+	agent := createAgentForAgentTest(t)
+	defer agent.Db.Close()
 
 	if agent.DbPath == "" {
 		t.Errorf("Default DbPath is set incorrectly. agent.DbPath: %v", agent.DbPath)
@@ -44,38 +50,22 @@ func TestConstructor(t *testing.T) {
 }
 
 func TestRun(t *testing.T) {
-	gopath := os.Getenv("GOPATH")
-	os.Setenv("RESOURCED_CONFIG_READER_DIR", gopath+"/src/github.com/resourced/resourced/tests/data/config-reader")
-	os.Setenv("RESOURCED_CONFIG_WRITER_DIR", gopath+"/src/github.com/resourced/resourced/tests/data/config-writer")
-
-	agent, err := NewAgent()
+	agent := createAgentForAgentTest(t)
 	defer agent.Db.Close()
 
-	if err != nil {
-		t.Fatalf("Initializing agent should work. Error: %v", err)
-	}
-
-	_, err = agent.Run(agent.ConfigStorage.Readers[1])
+	_, err := agent.Run(agent.ConfigStorage.Readers[1])
 	if err != nil {
 		t.Fatalf("Run should work. Error: %v", err)
 	}
 }
 
 func TestGetRun(t *testing.T) {
-	gopath := os.Getenv("GOPATH")
-	os.Setenv("RESOURCED_CONFIG_READER_DIR", gopath+"/src/github.com/resourced/resourced/tests/data/config-reader")
-	os.Setenv("RESOURCED_CONFIG_WRITER_DIR", gopath+"/src/github.com/resourced/resourced/tests/data/config-writer")
-
-	agent, err := NewAgent()
+	agent := createAgentForAgentTest(t)
 	defer agent.Db.Close()
-
-	if err != nil {
-		t.Fatalf("Initializing ConfigStorage should work. Error: %v", err)
-	}
 
 	config := agent.ConfigStorage.Readers[1]
 
-	_, err = agent.Run(config)
+	_, err := agent.Run(config)
 	if err != nil {
 		t.Fatalf("Run should work. Error: %v", err)
 	}
@@ -90,11 +80,7 @@ func TestGetRun(t *testing.T) {
 }
 
 func TestHttpRouter(t *testing.T) {
-	gopath := os.Getenv("GOPATH")
-	os.Setenv("RESOURCED_CONFIG_READER_DIR", gopath+"/src/github.com/resourced/resourced/tests/data/config-reader")
-	os.Setenv("RESOURCED_CONFIG_WRITER_DIR", gopath+"/src/github.com/resourced/resourced/tests/data/config-writer")
-
-	agent, _ := NewAgent()
+	agent := createAgentForAgentTest(t)
 	defer agent.Db.Close()
 
 	_, err := agent.Run(agent.ConfigStorage.Readers[1])
@@ -129,11 +115,7 @@ func TestHttpRouter(t *testing.T) {
 }
 
 func TestPathWithPrefix(t *testing.T) {
-	gopath := os.Getenv("GOPATH")
-	os.Setenv("RESOURCED_CONFIG_READER_DIR", gopath+"/src/github.com/resourced/resourced/tests/data/config-reader")
-	os.Setenv("RESOURCED_CONFIG_WRITER_DIR", gopath+"/src/github.com/resourced/resourced/tests/data/config-writer")
-
-	agent, _ := NewAgent()
+	agent := createAgentForAgentTest(t)
 	defer agent.Db.Close()
 
 	config := agent.ConfigStorage.Readers[1]
@@ -148,7 +130,8 @@ func TestPathWithPrefix(t *testing.T) {
 }
 
 func TestPathWithReaderPrefix(t *testing.T) {
-	agent, _ := NewAgent()
+	agent := createAgentForAgentTest(t)
+	defer agent.Db.Close()
 
 	toBeTested := agent.pathWithReaderPrefix("/stuff")
 	if toBeTested != "/r/stuff" {
@@ -158,5 +141,53 @@ func TestPathWithReaderPrefix(t *testing.T) {
 	toBeTested = agent.pathWithReaderPrefix("/r/stuff")
 	if toBeTested != "/r/stuff" {
 		t.Errorf("Path is prefixed incorrectly. toBeTested: %v", toBeTested)
+	}
+}
+
+func TestInitGoStructReader(t *testing.T) {
+	agent := createAgentForAgentTest(t)
+	defer agent.Db.Close()
+
+	var config resourced_config.Config
+	for _, c := range agent.ConfigStorage.Readers {
+		if c.GoStruct == "DockerContainersMemory" {
+			config = c
+			break
+		}
+	}
+
+	reader, err := agent.initGoStructReader(config)
+	if err != nil {
+		t.Fatalf("Initializing Reader should not fail. Error: %v", err)
+	}
+
+	goStructField := reflect.ValueOf(reader).Elem().FieldByName("CgroupBasePath")
+	if goStructField.String() != "/sys/fs/cgroup/cpuacct/docker" {
+		t.Errorf("reader.CgroupBasePath is not set through the config. CgroupBasePath: %v", goStructField.String())
+	}
+}
+
+func TestInitGoStructWriter(t *testing.T) {
+	agent := createAgentForAgentTest(t)
+	defer agent.Db.Close()
+
+	var config resourced_config.Config
+	for _, c := range agent.ConfigStorage.Writers {
+		if c.GoStruct == "Http" {
+			config = c
+			break
+		}
+	}
+
+	writer, err := agent.initGoStructWriter(config)
+	if err != nil {
+		t.Fatalf("Initializing Writer should not fail. Error: %v", err)
+	}
+
+	for field, value := range map[string]string{"Url": "http://localhost:55556", "Method": "POST"} {
+		goStructField := reflect.ValueOf(writer).Elem().FieldByName(field)
+		if goStructField.String() != value {
+			t.Errorf("writer.%s is not set through the config. Url: %v", field, goStructField.String())
+		}
 	}
 }
