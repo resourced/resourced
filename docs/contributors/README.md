@@ -22,7 +22,11 @@ There are a few ways to run tests:
     cd $GOPATH/src/github.com/resourced/resourced
     vagrant up
     vagrant ssh
-    cd $GOPATH/src/github.com/resourced/resourced && go test ./...
+
+    # Inside Vagrant
+    cd $GOPATH/src/github.com/resourced/resourced
+    docker build -t resourced . && docker run -t resourced
+    go test ./...
     ```
 
 
