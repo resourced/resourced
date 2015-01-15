@@ -301,6 +301,25 @@ func (a *Agent) saveRun(config resourced_config.Config, output []byte) error {
 	}
 	record["Hostname"] = hostname
 
+	// net/interfaces data
+	interfacesReader := resourced_readers.NewNetInterfaces()
+	if interfacesReader.Run() == nil {
+		record["NetworkInterfaces"] = make(map[string]map[string]interface{})
+
+		for iface, stats := range interfacesReader.Data {
+			netInterfaces := record["NetworkInterfaces"].(map[string]map[string]interface{})
+
+			netInterfaces[iface] = make(map[string]interface{})
+			netInterfaces[iface]["HardwareAddress"] = stats.HardwareAddr
+			netInterfaces[iface]["IPAddresses"] = make([]string, len(stats.Addrs))
+
+			for i, addr := range stats.Addrs {
+				ipAddresses := netInterfaces[iface]["IPAddresses"].([]string)
+				ipAddresses[i] = addr.Addr
+			}
+		}
+	}
+
 	runData := make(map[string]interface{})
 	err = json.Unmarshal(output, &runData)
 	if err != nil {
