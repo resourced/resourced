@@ -6,8 +6,6 @@
 
 * Sends the data using custom programs.
 
-ResourceD is currently alpha software. Use it at your own risk.
-
 
 ## Installation
 
@@ -18,11 +16,11 @@ Precompiled binary for darwin and linux will be provided in the future.
 
 **1. Configuring readers and writers**
 
-ResourceD data collector is called a reader. The quickest way to configure a reader is to use dynamic language.
+ResourceD data collector is called a reader. The quickest way to configure a reader is to use a script.
 
-1. Write your script. There is only one requirement to your script: **You must output the data(in JSON) through STDOUT**.
+1. Write your script. There is only one requirement to your script: **You must output the JSON data through STDOUT**
 
-2. Write ResourceD config file. See examples [here](https://github.com/resourced/resourced/tree/master/tests/data/config-reader).
+2. Write ResourceD config file. [See examples here](https://github.com/resourced/resourced/tree/master/tests/data/config-reader).
 
 
 **2. Running ResourceD**
@@ -58,27 +56,25 @@ If you run ResourceD server as described above, you should be able to GET load a
 curl -X GET -H "Content-type: application/json" http://localhost:55555/r/load-avg
 ```
 
-There are a few convenience paths to help you navigate the JSON data:
+### RESTful Endpoints
 
-* `/` Displays full JSON data of all readers and writers.
+* **GET** `/` Displays full JSON data of all readers and writers.
 
-* `/paths` Displays paths to all readers and writers data.
+* **GET** `/paths` Displays paths to all readers and writers data.
 
-* `/r` Displays full JSON data of all readers.
+* **GET** `/r` Displays full JSON data of all readers.
 
-* `/r/paths` Displays paths to all readers data.
+* **GET** `/r/paths` Displays paths to all readers data.
 
-* `/w` Displays full JSON data of all writers.
+* **GET** `/w` Displays full JSON data of all writers.
 
-* `/w/paths` Displays paths to all writers data.
+* **GET** `/w/paths` Displays paths to all writers data.
 
 
 
 ## Third Party Data Source
 
-The following is list of 3rd party data source that ResourceD readers use.
-
-Big thanks to these authors, without whom ResourceD would not be possible.
+Here are list of 3rd party data source that ResourceD use. Big thanks to these authors, without whom this project would not be possible.
 
 * https://github.com/cloudfoundry/gosigar
 
