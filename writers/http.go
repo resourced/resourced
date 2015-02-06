@@ -3,7 +3,7 @@ package writers
 import (
 	"bytes"
 	"errors"
-	"github.com/ddliu/go-httpclient"
+	"net/http"
 	"strings"
 )
 
@@ -56,11 +56,22 @@ func (h *Http) Run() error {
 		return errors.New("Method is undefined.")
 	}
 
-	client := httpclient.NewHttpClient().Defaults(httpclient.Map{
-		httpclient.OPT_USERAGENT: "ResourceD/1.0",
-		"Accept-Language":        "en-us",
-	})
+	req, err := http.NewRequest(h.Method, h.Url, bytes.NewBuffer(inJson))
+	if err != nil {
+		return err
+	}
 
-	_, err = client.Do(h.Method, h.Url, h.headersAsMap(), bytes.NewReader(inJson))
-	return err
+	for key, value := range h.headersAsMap() {
+		req.Header.Set(key, value)
+	}
+
+	client := &http.Client{}
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	return nil
 }
