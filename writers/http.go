@@ -16,9 +16,11 @@ func NewHttp() *Http {
 // Http is a writer that simply serialize all readers data to Http.
 type Http struct {
 	Base
-	Url     string
-	Method  string
-	Headers string
+	Url      string
+	Method   string
+	Headers  string
+	Username string
+	Password string
 }
 
 func (h *Http) headersAsMap() map[string]string {
@@ -63,6 +65,10 @@ func (h *Http) Run() error {
 
 	for key, value := range h.headersAsMap() {
 		req.Header.Set(key, value)
+	}
+
+	if h.Username != "" {
+		req.SetBasicAuth(h.Username, h.Password)
 	}
 
 	client := &http.Client{}

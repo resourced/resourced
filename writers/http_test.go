@@ -21,13 +21,19 @@ func jsonReadersDataForHttpTest() []byte {
 	return []byte(jsonData)
 }
 
-func TestNewHttpSetReadersData(t *testing.T) {
+func newWriterForHttpTest() *Http {
 	n := NewHttp()
 
 	readersData := make(map[string][]byte)
 	readersData["/load-avg"] = jsonReadersDataForHttpTest()
 
 	n.SetReadersData(readersData)
+
+	return n
+}
+
+func TestNewHttpSetReadersData(t *testing.T) {
+	n := newWriterForHttpTest()
 
 	key := "/load-avg"
 	_, ok := n.GetReadersData()[key]
@@ -37,12 +43,7 @@ func TestNewHttpSetReadersData(t *testing.T) {
 }
 
 func TestNewHttpRun(t *testing.T) {
-	n := NewHttp()
-
-	readersData := make(map[string][]byte)
-	readersData["/load-avg"] = jsonReadersDataForHttpTest()
-
-	n.SetReadersData(readersData)
+	n := newWriterForHttpTest()
 	n.Url = "http://example.com/"
 	n.Method = "POST"
 
