@@ -42,25 +42,20 @@ func (h *Http) headersAsMap() map[string]string {
 	return headersInMap
 }
 
-func (h *Http) Run() error {
-	h.Data = h.GetReadersData()
-	inJson, err := h.ToJson()
-
-	if err != nil {
-		return err
-	}
+func (h *Http) NewHttpRequest(dataJson []byte) (*http.Request, error) {
+	var err error
 
 	if h.Url == "" {
-		return errors.New("Url is undefined.")
+		return nil, errors.New("Url is undefined.")
 	}
 
 	if h.Method == "" {
-		return errors.New("Method is undefined.")
+		return nil, errors.New("Method is undefined.")
 	}
 
-	req, err := http.NewRequest(h.Method, h.Url, bytes.NewBuffer(inJson))
+	req, err := http.NewRequest(h.Method, h.Url, bytes.NewBuffer(dataJson))
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	for key, value := range h.headersAsMap() {
@@ -71,8 +66,23 @@ func (h *Http) Run() error {
 		req.SetBasicAuth(h.Username, h.Password)
 	}
 
-	client := &http.Client{}
+	return req, err
+}
 
+func (h *Http) Run() error {
+	h.Data = h.GetReadersData()
+	dataJson, err := h.ToJson()
+
+	if err != nil {
+		return err
+	}
+
+	req, err := h.NewHttpRequest(dataJson)
+	if err != nil {
+		return err
+	}
+
+	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
 		return err

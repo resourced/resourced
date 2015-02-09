@@ -1,6 +1,7 @@
 package writers
 
 import (
+	"encoding/json"
 	"testing"
 )
 
@@ -22,32 +23,50 @@ func jsonReadersDataForHttpTest() []byte {
 }
 
 func newWriterForHttpTest() *Http {
-	n := NewHttp()
+	h := NewHttp()
 
 	readersData := make(map[string][]byte)
 	readersData["/load-avg"] = jsonReadersDataForHttpTest()
 
-	n.SetReadersData(readersData)
+	h.SetReadersData(readersData)
 
-	return n
+	return h
 }
 
 func TestNewHttpSetReadersData(t *testing.T) {
-	n := newWriterForHttpTest()
+	h := newWriterForHttpTest()
 
 	key := "/load-avg"
-	_, ok := n.GetReadersData()[key]
+	_, ok := h.GetReadersData()[key]
 	if !ok {
-		t.Errorf("Key does not exist. Key: %v, Data: %v", key, n.GetReadersData())
+		t.Errorf("Key does not exist. Key: %v, Data: %v", key, h.GetReadersData())
+	}
+}
+
+func TestNewHttpRequest(t *testing.T) {
+	h := newWriterForHttpTest()
+	h.Url = "http://example.com/"
+	h.Method = "POST"
+
+	readersData := h.GetReadersData()
+	dataJson, err := json.Marshal(readersData)
+
+	if err != nil {
+		t.Errorf("Failed to generate readers data. Error: %v", err)
+	}
+
+	_, err = h.NewHttpRequest(dataJson)
+	if err != nil {
+		t.Errorf("Failed to create Request struct. Error: %v", err)
 	}
 }
 
 func TestNewHttpRun(t *testing.T) {
-	n := newWriterForHttpTest()
-	n.Url = "http://example.com/"
-	n.Method = "POST"
+	h := newWriterForHttpTest()
+	h.Url = "http://example.com/"
+	h.Method = "POST"
 
-	err := n.Run()
+	err := h.Run()
 	if err != nil {
 		t.Errorf("Run() should never fail. Error: %v", err)
 	}
