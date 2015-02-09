@@ -1,0 +1,12 @@
+ReaderPaths = ["/load-avg", "/uptime", "/free"]
+Path = "/go/loadavg-uptime-free/resourced-master"
+GoStruct = "ResourcedMaster"
+Interval = "3s"
+
+[GoStructFields]
+Url = "http://localhost:55655/api/app/1422768391479155523/hosts/my-hostname"
+Method = "POST"
+Username = "abc123="
+
+# Headers data structure is comma delimited string because TOML map does not support dash as key.
+Headers = "X-Token=abc123,X-Teapot-Count=2"
