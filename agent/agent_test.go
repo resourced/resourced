@@ -185,7 +185,7 @@ func TestInitGoStructWriter(t *testing.T) {
 	}
 
 	for field, value := range map[string]string{
-		"Url":     "http://localhost:55556",
+		"Url":     "http://localhost:55655/",
 		"Method":  "POST",
 		"Headers": "X-Token=abc123,X-Teapot-Count=2"} {
 

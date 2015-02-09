@@ -15,6 +15,9 @@ func NewGoStruct(name string) (IWriter, error) {
 	if name == "Http" {
 		structInstance = NewHttp()
 	}
+	if name == "ResourcedMaster" {
+		structInstance = NewResourcedMaster()
+	}
 
 	if structInstance == nil {
 		return nil, errors.New("GoStruct is undefined.")

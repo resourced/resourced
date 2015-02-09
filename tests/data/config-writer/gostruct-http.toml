@@ -4,7 +4,7 @@ GoStruct = "Http"
 Interval = "3s"
 
 [GoStructFields]
-Url = "http://localhost:55655"
+Url = "http://localhost:55655/"
 Method = "POST"
 
 # Headers data structure is comma delimited string because TOML map does not support dash as key.

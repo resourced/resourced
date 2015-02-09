@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"github.com/boltdb/bolt"
 	resourced_config "github.com/resourced/resourced/config"
+	resourced_host "github.com/resourced/resourced/host"
 	"github.com/resourced/resourced/libprocess"
 	"github.com/resourced/resourced/libstring"
 	"github.com/resourced/resourced/libtime"
@@ -274,6 +275,33 @@ func (a *Agent) runGoStructWriter(config resourced_config.Config) ([]byte, error
 	return a.runGoStruct(writer)
 }
 
+func (a *Agent) hostDataForSaveRun() (*resourced_host.Host, error) {
+	host, err := resourced_host.NewHostByHostname()
+	if err != nil {
+		return nil, err
+	}
+
+	host.Tags = a.Tags
+
+	interfacesReader := resourced_readers.NewNetInterfaces()
+	if interfacesReader.Run() == nil {
+		host.NetworkInterfaces = make(map[string]map[string]interface{})
+
+		for iface, stats := range interfacesReader.Data {
+			host.NetworkInterfaces[iface] = make(map[string]interface{})
+			host.NetworkInterfaces[iface]["HardwareAddress"] = stats.HardwareAddr
+			host.NetworkInterfaces[iface]["IPAddresses"] = make([]string, len(stats.Addrs))
+
+			for i, addr := range stats.Addrs {
+				ipAddresses := host.NetworkInterfaces[iface]["IPAddresses"].([]string)
+				ipAddresses[i] = addr.Addr
+			}
+		}
+	}
+
+	return host, nil
+}
+
 // saveRun gathers default basic information and saves output into local storage.
 func (a *Agent) saveRun(config resourced_config.Config, output []byte) error {
 	// Do not perform save if config.Path is empty.
@@ -285,7 +313,6 @@ func (a *Agent) saveRun(config resourced_config.Config, output []byte) error {
 	record["UnixNano"] = time.Now().UnixNano()
 	record["Path"] = config.Path
 	record["Interval"] = config.Interval
-	record["Tags"] = a.Tags
 
 	if config.Command != "" {
 		record["Command"] = config.Command
@@ -295,37 +322,17 @@ func (a *Agent) saveRun(config resourced_config.Config, output []byte) error {
 		record["GoStruct"] = config.GoStruct
 	}
 
-	hostname, err := os.Hostname()
+	host, err := a.hostDataForSaveRun()
 	if err != nil {
 		return err
 	}
-	record["Hostname"] = hostname
-
-	// net/interfaces data
-	interfacesReader := resourced_readers.NewNetInterfaces()
-	if interfacesReader.Run() == nil {
-		record["NetworkInterfaces"] = make(map[string]map[string]interface{})
-
-		for iface, stats := range interfacesReader.Data {
-			netInterfaces := record["NetworkInterfaces"].(map[string]map[string]interface{})
-
-			netInterfaces[iface] = make(map[string]interface{})
-			netInterfaces[iface]["HardwareAddress"] = stats.HardwareAddr
-			netInterfaces[iface]["IPAddresses"] = make([]string, len(stats.Addrs))
-
-			for i, addr := range stats.Addrs {
-				ipAddresses := netInterfaces[iface]["IPAddresses"].([]string)
-				ipAddresses[i] = addr.Addr
-			}
-		}
-	}
+	record["Host"] = host
 
 	runData := make(map[string]interface{})
 	err = json.Unmarshal(output, &runData)
 	if err != nil {
 		return err
 	}
-
 	record["Data"] = runData
 
 	recordInJson, err := json.Marshal(record)
