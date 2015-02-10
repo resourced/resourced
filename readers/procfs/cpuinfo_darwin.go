@@ -23,6 +23,7 @@ func (p *ProcCpuInfo) Run() error {
 	return errors.New("/proc/cpuinfo is only available on Linux.")
 }
 
+// ToJson serialize Data field to JSON.
 func (p *ProcCpuInfo) ToJson() ([]byte, error) {
 	return json.Marshal(p.Data)
 }

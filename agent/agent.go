@@ -45,6 +45,7 @@ type Agent struct {
 	Tags          []string
 }
 
+// setTags store RESOURCED_TAGS data to Tags field.
 func (a *Agent) setTags() {
 	a.Tags = make([]string, 0)
 
@@ -60,6 +61,7 @@ func (a *Agent) setTags() {
 }
 
 // setDb configures the local storage.
+// The base path to local storage is defined in RESOURCED_DB.
 func (a *Agent) setDb() error {
 	var err error
 
@@ -104,6 +106,7 @@ func (a *Agent) pathWithPrefix(config resourced_config.Config) string {
 	return config.Path
 }
 
+// pathWithReaderPrefix conveniently assign /r prefix to path.
 func (a *Agent) pathWithReaderPrefix(input interface{}) string {
 	switch v := input.(type) {
 	case resourced_config.Config:
@@ -118,6 +121,7 @@ func (a *Agent) pathWithReaderPrefix(input interface{}) string {
 	return ""
 }
 
+// pathWithWriterPrefix conveniently assign /w prefix to path.
 func (a *Agent) pathWithWriterPrefix(input interface{}) string {
 	switch v := input.(type) {
 	case resourced_config.Config:
@@ -275,7 +279,8 @@ func (a *Agent) runGoStructWriter(config resourced_config.Config) ([]byte, error
 	return a.runGoStruct(writer)
 }
 
-func (a *Agent) hostDataForSaveRun() (*resourced_host.Host, error) {
+// hostData builds host related information.
+func (a *Agent) hostData() (*resourced_host.Host, error) {
 	host, err := resourced_host.NewHostByHostname()
 	if err != nil {
 		return nil, err
@@ -302,7 +307,7 @@ func (a *Agent) hostDataForSaveRun() (*resourced_host.Host, error) {
 	return host, nil
 }
 
-// saveRun gathers default basic information and saves output into local storage.
+// saveRun gathers basic, host, and reader/witer information and save them into local storage.
 func (a *Agent) saveRun(config resourced_config.Config, output []byte) error {
 	// Do not perform save if config.Path is empty.
 	if config.Path == "" {
@@ -322,7 +327,7 @@ func (a *Agent) saveRun(config resourced_config.Config, output []byte) error {
 		record["GoStruct"] = config.GoStruct
 	}
 
-	host, err := a.hostDataForSaveRun()
+	host, err := a.hostData()
 	if err != nil {
 		return err
 	}

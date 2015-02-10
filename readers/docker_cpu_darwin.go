@@ -22,6 +22,7 @@ func (m *DockerContainersCpu) Run() error {
 	return nil
 }
 
+// ToJson serialize Data field to JSON.
 func (m *DockerContainersCpu) ToJson() ([]byte, error) {
 	return json.Marshal(m.Data)
 }

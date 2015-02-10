@@ -23,6 +23,7 @@ func (p *ProcMemInfo) Run() error {
 	return errors.New("/proc/meminfo is only available on Linux.")
 }
 
+// ToJson serialize Data field to JSON.
 func (p *ProcMemInfo) ToJson() ([]byte, error) {
 	return json.Marshal(p.Data)
 }

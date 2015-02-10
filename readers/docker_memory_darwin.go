@@ -22,6 +22,7 @@ func (m *DockerContainersMemory) Run() error {
 	return nil
 }
 
+// ToJson serialize Data field to JSON.
 func (m *DockerContainersMemory) ToJson() ([]byte, error) {
 	return json.Marshal(m.Data)
 }

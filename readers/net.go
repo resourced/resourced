@@ -15,6 +15,7 @@ type NetIO struct {
 	Data map[string]gopsutil_net.NetIOCountersStat
 }
 
+// Run gathers network IO data from gopsutil.
 func (n *NetIO) Run() error {
 	dataSlice, err := gopsutil_net.NetIOCounters(true)
 	if err != nil {
@@ -28,6 +29,7 @@ func (n *NetIO) Run() error {
 	return nil
 }
 
+// ToJson serialize Data field to JSON.
 func (n *NetIO) ToJson() ([]byte, error) {
 	return json.Marshal(n.Data)
 }
@@ -44,6 +46,7 @@ type NetInterfaces struct {
 	Data map[string]gopsutil_net.NetInterfaceStat
 }
 
+// Run gathers network interfaces data from gopsutil.
 func (n *NetInterfaces) Run() error {
 	dataSlice, err := gopsutil_net.NetInterfaces()
 	if err != nil {
@@ -57,6 +60,7 @@ func (n *NetInterfaces) Run() error {
 	return nil
 }
 
+// ToJson serialize Data field to JSON.
 func (n *NetInterfaces) ToJson() ([]byte, error) {
 	return json.Marshal(n.Data)
 }

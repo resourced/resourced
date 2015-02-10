@@ -5,6 +5,7 @@ import (
 	"os"
 )
 
+// main runs the web server for resourced.
 func main() {
 	agent, err := resourced_agent.NewAgent()
 	if err != nil {

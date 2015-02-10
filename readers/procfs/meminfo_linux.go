@@ -29,6 +29,7 @@ func (p *ProcMemInfo) Run() error {
 	return err
 }
 
+// ToJson serialize Data field to JSON.
 func (p *ProcMemInfo) ToJson() ([]byte, error) {
 	return json.Marshal(p.Data)
 }

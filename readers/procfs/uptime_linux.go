@@ -29,6 +29,7 @@ func (p *ProcUptime) Run() error {
 	return nil
 }
 
+// ToJson serialize Data field to JSON.
 func (p *ProcUptime) ToJson() ([]byte, error) {
 	return json.Marshal(p.Data)
 }

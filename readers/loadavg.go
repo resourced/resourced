@@ -15,6 +15,7 @@ type LoadAvg struct {
 	Data map[string]interface{}
 }
 
+// Run gathers load average information from gosigar.
 func (l *LoadAvg) Run() error {
 	concreteSigar := sigar.ConcreteSigar{}
 	uptime := sigar.Uptime{}
@@ -32,6 +33,7 @@ func (l *LoadAvg) Run() error {
 	return err
 }
 
+// ToJson serialize Data field to JSON.
 func (l *LoadAvg) ToJson() ([]byte, error) {
 	return json.Marshal(l.Data)
 }

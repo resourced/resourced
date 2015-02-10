@@ -29,6 +29,7 @@ func (p *ProcVmStat) Run() error {
 	return nil
 }
 
+// ToJson serialize Data field to JSON.
 func (p *ProcVmStat) ToJson() ([]byte, error) {
 	return json.Marshal(p.Data)
 }

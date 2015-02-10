@@ -26,6 +26,7 @@ func NewGoStruct(name string) (IWriter, error) {
 	return structInstance, nil
 }
 
+// IWriter is general interface for writer.
 type IWriter interface {
 	Run() error
 	SetReadersData(map[string][]byte)
@@ -38,10 +39,12 @@ type Base struct {
 	Data        map[string]interface{}
 }
 
+// Run executes the writer.
 func (b *Base) Run() error {
 	return nil
 }
 
+// SetReadersData pulls readers data and store them on ReadersData field.
 func (b *Base) SetReadersData(readersJsonBytes map[string][]byte) {
 	if b.ReadersData == nil {
 		b.ReadersData = make(map[string]interface{})
@@ -56,10 +59,12 @@ func (b *Base) SetReadersData(readersJsonBytes map[string][]byte) {
 	}
 }
 
+// GetReadersData returns ReadersData field.
 func (b *Base) GetReadersData() map[string]interface{} {
 	return b.ReadersData
 }
 
+// ToJson serialize Data field to JSON.
 func (b *Base) ToJson() ([]byte, error) {
 	return json.Marshal(b.Data)
 }

@@ -21,6 +21,8 @@ type DockerContainersMemory struct {
 	CgroupBasePath string
 }
 
+// Run gathers cgroup memory information from cgroup itself.
+// TODO(didip): In newer version of docker we can get this information from docker itself.
 func (m *DockerContainersMemory) Run() error {
 	containers, err := libdocker.AllContainers()
 	if err != nil {
@@ -39,6 +41,7 @@ func (m *DockerContainersMemory) Run() error {
 	return nil
 }
 
+// ToJson serialize Data field to JSON.
 func (m *DockerContainersMemory) ToJson() ([]byte, error) {
 	return json.Marshal(m.Data)
 }

@@ -89,6 +89,7 @@ func NewGoStruct(name string) (IReader, error) {
 	return structInstance, nil
 }
 
+// IReader is generic interface for all readers.
 type IReader interface {
 	Run() error
 	ToJson() ([]byte, error)

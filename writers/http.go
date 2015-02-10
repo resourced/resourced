@@ -23,6 +23,7 @@ type Http struct {
 	Password string
 }
 
+// headersAsMap parses the headers data as string and returns them as map.
 func (h *Http) headersAsMap() map[string]string {
 	if h.Headers == "" {
 		return nil
@@ -42,6 +43,7 @@ func (h *Http) headersAsMap() map[string]string {
 	return headersInMap
 }
 
+// NewHttpRequest builds and returns http.Request struct.
 func (h *Http) NewHttpRequest(dataJson []byte) (*http.Request, error) {
 	var err error
 
@@ -69,6 +71,7 @@ func (h *Http) NewHttpRequest(dataJson []byte) (*http.Request, error) {
 	return req, err
 }
 
+// Run executes the writer.
 func (h *Http) Run() error {
 	h.Data = h.GetReadersData()
 	dataJson, err := h.ToJson()

@@ -30,6 +30,7 @@ func (p *ProcCpuInfo) Run() error {
 	return nil
 }
 
+// ToJson serialize Data field to JSON.
 func (p *ProcCpuInfo) ToJson() ([]byte, error) {
 	return json.Marshal(p.Data)
 }

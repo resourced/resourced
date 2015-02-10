@@ -23,6 +23,7 @@ func (p *ProcVmStat) Run() error {
 	return errors.New("/proc/vmstat is only available on Linux.")
 }
 
+// ToJson serialize Data field to JSON.
 func (p *ProcVmStat) ToJson() ([]byte, error) {
 	return json.Marshal(p.Data)
 }

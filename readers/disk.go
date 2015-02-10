@@ -18,6 +18,7 @@ type DiskPartitions struct {
 	Data map[string]map[string]gopsutil_disk.DiskPartitionStat
 }
 
+// Run gathers partition information from gopsutil.
 func (d *DiskPartitions) Run() error {
 	dataSlice, err := gopsutil_disk.DiskPartitions(true)
 	if err != nil {
@@ -35,6 +36,7 @@ func (d *DiskPartitions) Run() error {
 	return nil
 }
 
+// ToJson serialize Data field to JSON.
 func (d *DiskPartitions) ToJson() ([]byte, error) {
 	return json.Marshal(d.Data)
 }
@@ -54,6 +56,7 @@ type DiskIO struct {
 	Data map[string]gopsutil_disk.DiskIOCountersStat
 }
 
+// Run gathers disk IO information from gopsutil.
 func (d *DiskIO) Run() error {
 	data, err := gopsutil_disk.DiskIOCounters()
 	if err != nil {
@@ -64,6 +67,7 @@ func (d *DiskIO) Run() error {
 	return nil
 }
 
+// ToJson serialize Data field to JSON.
 func (d *DiskIO) ToJson() ([]byte, error) {
 	return json.Marshal(d.Data)
 }

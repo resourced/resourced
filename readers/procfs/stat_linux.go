@@ -29,6 +29,7 @@ func (p *ProcStat) Run() error {
 	return nil
 }
 
+// ToJson serialize Data field to JSON.
 func (p *ProcStat) ToJson() ([]byte, error) {
 	return json.Marshal(p.Data)
 }

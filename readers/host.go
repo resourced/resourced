@@ -15,6 +15,7 @@ type HostInfo struct {
 	Data map[string]interface{}
 }
 
+// Run gathers host information from gopsutil.
 func (h *HostInfo) Run() error {
 	data, err := gopsutil_host.HostInfo()
 	if err != nil {
@@ -39,6 +40,7 @@ func (h *HostInfo) Run() error {
 	return nil
 }
 
+// ToJson serialize Data field to JSON.
 func (h *HostInfo) ToJson() ([]byte, error) {
 	return json.Marshal(h.Data)
 }
@@ -55,6 +57,7 @@ type HostUsers struct {
 	Data map[string]gopsutil_host.UserStat
 }
 
+// Run gathers user information from gopsutil.
 func (h *HostUsers) Run() error {
 	dataSlice, err := gopsutil_host.Users()
 	if err != nil {
@@ -67,6 +70,7 @@ func (h *HostUsers) Run() error {
 	return nil
 }
 
+// ToJson serialize Data field to JSON.
 func (h *HostUsers) ToJson() ([]byte, error) {
 	return json.Marshal(h.Data)
 }

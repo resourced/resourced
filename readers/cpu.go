@@ -47,6 +47,7 @@ type CpuStat struct {
 	Data map[string][]gopsutil_cpu.CPUTimesStat
 }
 
+// Run gathers gopsutil_cpu.CPUTimes data.
 func (c *CpuStat) Run() error {
 	data, err := gopsutil_cpu.CPUTimes(true)
 	if err != nil {
@@ -57,6 +58,7 @@ func (c *CpuStat) Run() error {
 	return nil
 }
 
+// ToJson serialize Data field to JSON.
 func (c *CpuStat) ToJson() ([]byte, error) {
 	return json.Marshal(c.Data)
 }

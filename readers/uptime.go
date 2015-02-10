@@ -18,6 +18,7 @@ type Uptime struct {
 	Data map[string]interface{}
 }
 
+// Run gathers uptime information from gosigar.
 func (u *Uptime) Run() error {
 	loadAvg := NewLoadAvg()
 	err := loadAvg.Run()
@@ -38,11 +39,12 @@ func (u *Uptime) Run() error {
 	u.Data["CurrentTimeUnixNano"] = currentTime.UnixNano()
 	u.Data["CurrentTime"] = currentTime.Format("15:04:05")
 	u.Data["Uptime"] = uptime.Format()
-        u.Data["TimeZone"] = currentTime.Format("MST")
+	u.Data["TimeZone"] = currentTime.Format("MST")
 
 	return err
 }
 
+// ToJson serialize Data field to JSON.
 func (u *Uptime) ToJson() ([]byte, error) {
 	return json.Marshal(u.Data)
 }

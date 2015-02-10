@@ -17,6 +17,7 @@ type Ps struct {
 	Data map[string]map[string]interface{}
 }
 
+// Run gathers ps information from gosigar.
 func (p *Ps) Run() error {
 	pids := sigar.ProcList{}
 	err := pids.Get()
@@ -76,6 +77,7 @@ func (p *Ps) Run() error {
 	return nil
 }
 
+// ToJson serialize Data field to JSON.
 func (p *Ps) ToJson() ([]byte, error) {
 	return json.Marshal(p.Data)
 }

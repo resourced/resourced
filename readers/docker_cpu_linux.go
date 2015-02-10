@@ -24,6 +24,8 @@ type DockerContainersCpu struct {
 	CgroupBasePath string
 }
 
+// Run gathers cgroup CPU information from cgroup itself.
+// TODO(didip): In newer version of docker we can get this information from docker itself.
 func (m *DockerContainersCpu) Run() error {
 	containers, err := libdocker.AllContainers()
 	if err != nil {
@@ -42,6 +44,7 @@ func (m *DockerContainersCpu) Run() error {
 	return nil
 }
 
+// ToJson serialize Data field to JSON.
 func (m *DockerContainersCpu) ToJson() ([]byte, error) {
 	return json.Marshal(m.Data)
 }

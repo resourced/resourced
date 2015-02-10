@@ -23,6 +23,7 @@ func (p *ProcDiskStats) Run() error {
 	return errors.New("/proc/diskstats is only available on Linux.")
 }
 
+// ToJson serialize Data field to JSON.
 func (p *ProcDiskStats) ToJson() ([]byte, error) {
 	return json.Marshal(p.Data)
 }

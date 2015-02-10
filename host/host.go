@@ -4,6 +4,7 @@ import (
 	"os"
 )
 
+// NewHostByHostname construct Host struct by looking ad os.Hostname() directly.
 func NewHostByHostname() (*Host, error) {
 	hostname, err := os.Hostname()
 	if err != nil {
@@ -14,6 +15,7 @@ func NewHostByHostname() (*Host, error) {
 	return h, nil
 }
 
+// NewHost is constructor for Host.
 func NewHost(name string) *Host {
 	h := &Host{}
 	h.Name = name

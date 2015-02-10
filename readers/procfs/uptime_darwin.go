@@ -23,6 +23,7 @@ func (p *ProcUptime) Run() error {
 	return errors.New("/proc/uptime is only available on Linux.")
 }
 
+// ToJson serialize Data field to JSON.
 func (p *ProcUptime) ToJson() ([]byte, error) {
 	return json.Marshal(p.Data)
 }

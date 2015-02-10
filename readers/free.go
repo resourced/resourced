@@ -17,6 +17,7 @@ type Free struct {
 	Data map[string]map[string]interface{}
 }
 
+// Run gathers free data from gosigar.
 func (m *Free) Run() error {
 	mem := sigar.Mem{}
 	err := mem.Get()
@@ -46,6 +47,7 @@ func (m *Free) Run() error {
 	return nil
 }
 
+// ToJson serialize Data field to JSON.
 func (m *Free) ToJson() ([]byte, error) {
 	return json.Marshal(m.Data)
 }

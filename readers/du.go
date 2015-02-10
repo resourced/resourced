@@ -20,6 +20,7 @@ type Du struct {
 	Data map[string]map[string]interface{}
 }
 
+// Run gathers du information from gosigar.
 func (d *Du) Run() error {
 	fslist := sigar.FileSystemList{}
 	err := fslist.Get()
@@ -51,6 +52,7 @@ func (d *Du) Run() error {
 	return nil
 }
 
+// ToJson serialize Data field to JSON.
 func (d *Du) ToJson() ([]byte, error) {
 	return json.Marshal(d.Data)
 }

@@ -23,6 +23,7 @@ func (p *ProcStat) Run() error {
 	return errors.New("/proc/stat is only available on Linux.")
 }
 
+// ToJson serialize Data field to JSON.
 func (p *ProcStat) ToJson() ([]byte, error) {
 	return json.Marshal(p.Data)
 }

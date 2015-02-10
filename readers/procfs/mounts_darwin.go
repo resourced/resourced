@@ -23,6 +23,7 @@ func (p *ProcMounts) Run() error {
 	return errors.New("/proc/mounts is only available on Linux.")
 }
 
+// ToJson serialize Data field to JSON.
 func (p *ProcMounts) ToJson() ([]byte, error) {
 	return json.Marshal(p.Data)
 }

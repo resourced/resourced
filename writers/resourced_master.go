@@ -20,6 +20,7 @@ type ResourcedMaster struct {
 	Http
 }
 
+// Run pushes every reader data to ResourcedMaster keyed by reader's key itself.
 func (rm *ResourcedMaster) Run() error {
 	readersData := rm.GetReadersData()
 

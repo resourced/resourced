@@ -18,6 +18,7 @@ type Df struct {
 	Data map[string]map[string]interface{}
 }
 
+// Run gathers df information from gosigar.
 func (d *Df) Run() error {
 	fslist := sigar.FileSystemList{}
 	err := fslist.Get()
@@ -41,6 +42,7 @@ func (d *Df) Run() error {
 	return nil
 }
 
+// ToJson serialize Data field to JSON.
 func (d *Df) ToJson() ([]byte, error) {
 	return json.Marshal(d.Data)
 }

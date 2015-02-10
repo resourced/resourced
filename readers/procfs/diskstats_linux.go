@@ -32,6 +32,7 @@ func (p *ProcDiskStats) Run() error {
 	return nil
 }
 
+// ToJson serialize Data field to JSON.
 func (p *ProcDiskStats) ToJson() ([]byte, error) {
 	return json.Marshal(p.Data)
 }

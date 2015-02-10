@@ -33,6 +33,7 @@ func (p *ProcLoadAvg) Run() error {
 	return nil
 }
 
+// ToJson serialize Data field to JSON.
 func (p *ProcLoadAvg) ToJson() ([]byte, error) {
 	return json.Marshal(p.Data)
 }

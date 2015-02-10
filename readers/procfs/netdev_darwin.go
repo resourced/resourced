@@ -23,6 +23,7 @@ func (p *ProcNetDev) Run() error {
 	return errors.New("/proc/net/dev is only available on Linux.")
 }
 
+// ToJson serialize Data field to JSON.
 func (p *ProcNetDev) ToJson() ([]byte, error) {
 	return json.Marshal(p.Data)
 }

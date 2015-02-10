@@ -15,6 +15,7 @@ type StdOut struct {
 	Base
 }
 
+// Run puts all readers data to STDOUT.
 func (s *StdOut) Run() error {
 	s.Data = s.GetReadersData()
 	inJson, err := s.ToJson()
