@@ -1,3 +1,4 @@
+// Package libprocess provides process related library functions.
 package libprocess
 
 import (

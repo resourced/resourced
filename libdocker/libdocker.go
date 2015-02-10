@@ -1,3 +1,4 @@
+// Package libdocker provides docker related library functions.
 package libdocker
 
 import (

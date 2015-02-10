@@ -1,3 +1,4 @@
+// Package host provides data structure for storing resourced host information.
 package host
 
 import (

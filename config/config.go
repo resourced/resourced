@@ -1,3 +1,4 @@
+// Package config provides data structure for storing resourced reader/writer configurations.
 package config
 
 import (

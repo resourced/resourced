@@ -1,3 +1,4 @@
+// Package libtime provides time related library functions.
 package libtime
 
 import (

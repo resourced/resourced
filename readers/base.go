@@ -1,3 +1,4 @@
+// Package readers provides objects that gathers resource data from a host.
 package readers
 
 import (

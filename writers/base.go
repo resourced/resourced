@@ -1,3 +1,4 @@
+// Package writers provides objects that can send colected resource data to external place.
 package writers
 
 import (

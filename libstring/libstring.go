@@ -1,3 +1,4 @@
+// Package libstring provides string related library functions.
 package libstring
 
 import (
