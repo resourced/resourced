@@ -1,0 +1,60 @@
+{
+	"ImportPath": "github.com/resourced/resourced",
+	"GoVersion": "go1.4",
+	"Deps": [
+		{
+			"ImportPath": "github.com/BurntSushi/toml",
+			"Comment": "v0.1.0-9-g3883ac1",
+			"Rev": "3883ac1ce943878302255f538fce319d23226223"
+		},
+		{
+			"ImportPath": "github.com/boltdb/bolt",
+			"Comment": "v1.0-5-g33e7a07",
+			"Rev": "33e7a074e2c470b6d0b7ee23322a1c4cc759044b"
+		},
+		{
+			"ImportPath": "github.com/cloudfoundry/gosigar",
+			"Comment": "scotty_09012012-24-gc36220e",
+			"Rev": "c36220e40949db17f92b2d7eaf0355eada43993a"
+		},
+		{
+			"ImportPath": "github.com/go-fsnotify/fsnotify",
+			"Comment": "v1.1.0-11-g8f4d598",
+			"Rev": "8f4d59892a7165d85442ef9d4d701ef80c4466df"
+		},
+		{
+			"ImportPath": "github.com/julienschmidt/httprouter",
+			"Rev": "91101d17f079ca3c05c6e00354e914a35aa0d3e7"
+		},
+		{
+			"ImportPath": "github.com/shirou/gopsutil/common",
+			"Comment": "1.0.0-4-g1f5941f",
+			"Rev": "1f5941f396229aff41e88c31570da4646cc6c7df"
+		},
+		{
+			"ImportPath": "github.com/shirou/gopsutil/cpu",
+			"Comment": "1.0.0-4-g1f5941f",
+			"Rev": "1f5941f396229aff41e88c31570da4646cc6c7df"
+		},
+		{
+			"ImportPath": "github.com/shirou/gopsutil/disk",
+			"Comment": "1.0.0-4-g1f5941f",
+			"Rev": "1f5941f396229aff41e88c31570da4646cc6c7df"
+		},
+		{
+			"ImportPath": "github.com/shirou/gopsutil/host",
+			"Comment": "1.0.0-4-g1f5941f",
+			"Rev": "1f5941f396229aff41e88c31570da4646cc6c7df"
+		},
+		{
+			"ImportPath": "github.com/shirou/gopsutil/net",
+			"Comment": "1.0.0-4-g1f5941f",
+			"Rev": "1f5941f396229aff41e88c31570da4646cc6c7df"
+		},
+		{
+			"ImportPath": "github.com/shirou/gopsutil/process",
+			"Comment": "1.0.0-4-g1f5941f",
+			"Rev": "1f5941f396229aff41e88c31570da4646cc6c7df"
+		}
+	]
+}
