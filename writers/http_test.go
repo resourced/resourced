@@ -33,6 +33,16 @@ func newWriterForHttpTest() *Http {
 	return h
 }
 
+func TestHeadersAsMap(t *testing.T) {
+	h := newWriterForHttpTest()
+	h.Headers = "X-Key=test"
+
+	asMap := h.headersAsMap()
+	if asMap["X-Key"] != "test" {
+		t.Error("headersAsMap did the wrong thing.")
+	}
+}
+
 func TestNewHttpSetReadersData(t *testing.T) {
 	h := newWriterForHttpTest()
 
