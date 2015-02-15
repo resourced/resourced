@@ -4,6 +4,7 @@ package writers
 import (
 	"encoding/json"
 	"errors"
+	"github.com/resourced/resourced/libstring"
 )
 
 // NewGoStruct instantiates IWriter
@@ -32,12 +33,14 @@ type IWriter interface {
 	Run() error
 	SetReadersData(map[string][]byte)
 	GetReadersData() map[string]interface{}
+	GetJsonProcessor() string
 	ToJson() ([]byte, error)
 }
 
 type Base struct {
-	ReadersData map[string]interface{}
-	Data        map[string]interface{}
+	ReadersData   map[string]interface{}
+	Data          map[string]interface{}
+	JsonProcessor string
 }
 
 // Run executes the writer.
@@ -63,6 +66,15 @@ func (b *Base) SetReadersData(readersJsonBytes map[string][]byte) {
 // GetReadersData returns ReadersData field.
 func (b *Base) GetReadersData() map[string]interface{} {
 	return b.ReadersData
+}
+
+// GetJsonProcessor returns json processor path.
+func (b *Base) GetJsonProcessor() string {
+	path := ""
+	if b.JsonProcessor != "" {
+		path = libstring.ExpandTildeAndEnv(b.JsonProcessor)
+	}
+	return path
 }
 
 // ToJson serialize Data field to JSON.

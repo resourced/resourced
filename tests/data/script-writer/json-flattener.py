@@ -3,22 +3,10 @@
 
 from __future__ import print_function
 
-'''
-usage:
-cat about.json | python stdin-stdout.py
-'''
-
 import sys
 
-def read_in():
+def read_json_lines():
     lines = sys.stdin.readlines()
     for i in range(len(lines)):
         lines[i] = lines[i].replace('\n','')
     return lines
-
-def main():
-    lines = read_in()
-    print('\n'.join(lines))
-
-if __name__ == '__main__':
-    main()

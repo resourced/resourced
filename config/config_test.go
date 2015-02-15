@@ -40,22 +40,12 @@ func TestNewReaderConfig(t *testing.T) {
 	}
 }
 
-func TestNewWriterConfig(t *testing.T) {
-	config, err := NewConfig("$GOPATH/src/github.com/resourced/resourced/tests/data/config-writer/gostruct-http.toml", "reader")
+func TestNewWriterConfigWithJsonProcessor(t *testing.T) {
+	config, err := NewConfig("$GOPATH/src/github.com/resourced/resourced/tests/data/config-writer/gostruct-stdout.toml", "reader")
 	if err != nil {
 		t.Fatalf("Initializing Config should work. Error: %v", err)
 	}
-
-	if config.GoStruct != "Http" {
-		t.Fatalf("Config is initialized incorrectly. config.GoStruct: %v", config.GoStruct)
-	}
-	if config.Path != "/go/loadavg-uptime-free/http" {
-		t.Fatalf("Config is initialized incorrectly. config.Path: %v", config.Path)
-	}
-	if config.Interval != "3s" {
-		t.Fatalf("Config is initialized incorrectly. config.Interval: %v", config.Interval)
-	}
-	if config.GoStructFields["Headers"] != "X-Token=abc123,X-Teapot-Count=2" {
+	if config.GoStructFields["JsonProcessor"] == "" {
 		inJson, _ := json.Marshal(config.GoStructFields)
 		t.Fatalf("Config is initialized incorrectly. config.GoStructFields: %v", string(inJson))
 	}
