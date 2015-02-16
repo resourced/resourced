@@ -211,8 +211,9 @@ func (a *Agent) processJson(config resourced_config.Config, writer resourced_wri
 	}
 
 	var newJsonData map[string]interface{}
-	err = json.Unmarshal(newJsonDataBytes, newJsonData)
+	err = json.Unmarshal(newJsonDataBytes, &newJsonData)
 	if err != nil {
+		println("is unmarshalling yield error? " + err.Error())
 		return err
 	}
 
