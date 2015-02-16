@@ -210,3 +210,26 @@ func TestInitGoStructWriter(t *testing.T) {
 		}
 	}
 }
+
+func TestCommonData(t *testing.T) {
+	agent := createAgentForAgentTest(t)
+	defer agent.Db.Close()
+
+	var config resourced_config.Config
+	for _, c := range agent.ConfigStorage.Readers {
+		if c.GoStruct == "DockerContainersMemory" {
+			config = c
+			break
+		}
+	}
+
+	record := agent.commonData(config)
+	if len(record) == 0 {
+		t.Error("common data should never be empty")
+	}
+	for _, key := range []string{"UnixNano", "Path", "Interval"} {
+		if _, ok := record[key]; !ok {
+			t.Errorf("%v data should never be empty.", key)
+		}
+	}
+}

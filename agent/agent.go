@@ -284,6 +284,28 @@ func (a *Agent) runGoStructWriter(config resourced_config.Config) ([]byte, error
 	return a.runGoStruct(writer)
 }
 
+// commonData gathers common information for every reader and writer.
+func (a *Agent) commonData(config resourced_config.Config) map[string]interface{} {
+	record := make(map[string]interface{})
+	record["UnixNano"] = time.Now().UnixNano()
+	record["Path"] = config.Path
+
+	if config.Interval == "" {
+		config.Interval = "1m"
+	}
+	record["Interval"] = config.Interval
+
+	if config.Command != "" {
+		record["Command"] = config.Command
+	}
+
+	if config.GoStruct != "" {
+		record["GoStruct"] = config.GoStruct
+	}
+
+	return record
+}
+
 // hostData builds host related information.
 func (a *Agent) hostData() (*resourced_host.Host, error) {
 	host, err := resourced_host.NewHostByHostname()
@@ -319,18 +341,7 @@ func (a *Agent) saveRun(config resourced_config.Config, output []byte) error {
 		return nil
 	}
 
-	record := make(map[string]interface{})
-	record["UnixNano"] = time.Now().UnixNano()
-	record["Path"] = config.Path
-	record["Interval"] = config.Interval
-
-	if config.Command != "" {
-		record["Command"] = config.Command
-	}
-
-	if config.GoStruct != "" {
-		record["GoStruct"] = config.GoStruct
-	}
+	record := a.commonData(config)
 
 	host, err := a.hostData()
 	if err != nil {
