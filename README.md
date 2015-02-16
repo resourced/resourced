@@ -39,6 +39,8 @@ ResourceD data collector is called a reader. The quickest way to configure a rea
 
 2. Write ResourceD config file. [See examples here](https://github.com/resourced/resourced/tree/master/tests/data/config-reader).
 
+For more info, [follow this link](https://github.com/resourced/resourced/tree/master/docs/users/DATA-COLLECTION.md).
+
 
 ## Reading Data from HTTP Interface
 
