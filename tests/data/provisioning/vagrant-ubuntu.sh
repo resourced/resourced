@@ -17,10 +17,9 @@ rm -rf $GOPATH/pkg/linux_amd64
 echo 'GOPATH=/go' > /etc/profile.d/go.sh
 echo 'PATH=$GOPATH/bin:$PATH' >> /etc/profile.d/go.sh
 
-# Install ResourceD
-mkdir -p $GOPATH/src/github.com/resourced/resourced && cd $GOPATH/src/github.com/resourced/resourced
-GOPATH=/go go get ./... && GOPATH=/go go install github.com/resourced/resourced
-mkdir -p /resourced && echo 'RESOURCED_DB=/resourced/db' > /etc/profile.d/resourced.sh
+# Install supervisord
+apt-get install -y supervisor
+service supervisord start
 
 # Place ENV variables in /home/vagrant/.bashrc
 if ! grep -Fxq "# Go and ResourceD Evironment Variables" /home/vagrant/.bashrc ; then
@@ -28,3 +27,11 @@ if ! grep -Fxq "# Go and ResourceD Evironment Variables" /home/vagrant/.bashrc ;
     echo -e ". /etc/profile.d/go.sh" >> /home/vagrant/.bashrc
     echo -e ". /etc/profile.d/resourced.sh" >> /home/vagrant/.bashrc
 fi
+
+# Install ResourceD
+mkdir -p $GOPATH/src/github.com/resourced/resourced && cd $GOPATH/src/github.com/resourced/resourced
+GOPATH=/go go get ./... && GOPATH=/go go install github.com/resourced/resourced
+mkdir -p /resourced && echo 'RESOURCED_DB=/resourced/db' > /etc/profile.d/resourced.sh
+
+# Setup ResourceD under supervisor
+ln -fs /go/src/github.com/resourced/resourced/tests/data/script-init/supervisord/resourced.conf /etc/supervisor/conf.d/
