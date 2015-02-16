@@ -28,7 +28,7 @@ func newWriterForHttpTest() *Http {
 	readersData := make(map[string][]byte)
 	readersData["/load-avg"] = jsonReadersDataForHttpTest()
 
-	h.SetReadersData(readersData)
+	h.SetReadersDataInBytes(readersData)
 
 	return h
 }
@@ -43,7 +43,7 @@ func TestHeadersAsMap(t *testing.T) {
 	}
 }
 
-func TestNewHttpSetReadersData(t *testing.T) {
+func TestNewHttpSetReadersDataInBytes(t *testing.T) {
 	h := newWriterForHttpTest()
 
 	key := "/load-avg"

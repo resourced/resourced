@@ -4,7 +4,7 @@ import (
 	"testing"
 )
 
-func TestNewStdOutSetReadersData(t *testing.T) {
+func TestNewStdOutSetReadersDataInBytes(t *testing.T) {
 	n := NewStdOut()
 
 	jsonData := `{
@@ -23,7 +23,7 @@ func TestNewStdOutSetReadersData(t *testing.T) {
 	readersData := make(map[string][]byte)
 	readersData["/load-avg"] = []byte(jsonData)
 
-	n.SetReadersData(readersData)
+	n.SetReadersDataInBytes(readersData)
 
 	key := "/load-avg"
 	_, ok := n.GetReadersData()[key]
@@ -32,7 +32,7 @@ func TestNewStdOutSetReadersData(t *testing.T) {
 	}
 }
 
-func TestNewStdOutRun(t *testing.T) {
+func TestStdOutRun(t *testing.T) {
 	n := NewStdOut()
 
 	jsonData := `{
@@ -51,7 +51,7 @@ func TestNewStdOutRun(t *testing.T) {
 	readersData := make(map[string][]byte)
 	readersData["/load-avg"] = []byte(jsonData)
 
-	n.SetReadersData(readersData)
+	n.SetReadersDataInBytes(readersData)
 
 	err := n.Run()
 	if err != nil {

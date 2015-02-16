@@ -4,7 +4,9 @@ package writers
 import (
 	"encoding/json"
 	"errors"
+	resourced_config "github.com/resourced/resourced/config"
 	"github.com/resourced/resourced/libstring"
+	"reflect"
 )
 
 // NewGoStruct instantiates IWriter
@@ -28,10 +30,33 @@ func NewGoStruct(name string) (IWriter, error) {
 	return structInstance, nil
 }
 
+// NewGoStruct instantiates IWriter given Config struct
+func NewGoStructByConfig(config resourced_config.Config) (IWriter, error) {
+	writer, err := NewGoStruct(config.GoStruct)
+	if err != nil {
+		return nil, err
+	}
+
+	// Populate IWriter fields dynamically
+	if len(config.GoStructFields) > 0 {
+		for structFieldInString, value := range config.GoStructFields {
+			goStructField := reflect.ValueOf(writer).Elem().FieldByName(structFieldInString)
+
+			if goStructField.IsValid() && goStructField.CanSet() {
+				valueOfValue := reflect.ValueOf(value)
+				goStructField.Set(valueOfValue)
+			}
+		}
+	}
+
+	return writer, err
+}
+
 // IWriter is general interface for writer.
 type IWriter interface {
 	Run() error
-	SetReadersData(map[string][]byte)
+	SetReadersDataInBytes(map[string][]byte)
+	SetReadersData(map[string]interface{})
 	GetReadersData() map[string]interface{}
 	GetJsonProcessor() string
 	ToJson() ([]byte, error)
@@ -48,8 +73,8 @@ func (b *Base) Run() error {
 	return nil
 }
 
-// SetReadersData pulls readers data and store them on ReadersData field.
-func (b *Base) SetReadersData(readersJsonBytes map[string][]byte) {
+// SetReadersDataInBytes pulls readers data and store them on ReadersData field.
+func (b *Base) SetReadersDataInBytes(readersJsonBytes map[string][]byte) {
 	if b.ReadersData == nil {
 		b.ReadersData = make(map[string]interface{})
 	}
@@ -61,6 +86,11 @@ func (b *Base) SetReadersData(readersJsonBytes map[string][]byte) {
 			b.ReadersData[key] = data
 		}
 	}
+}
+
+// SetReadersData assigns ReadersData field.
+func (b *Base) SetReadersData(readersData map[string]interface{}) {
+	b.ReadersData = readersData
 }
 
 // GetReadersData returns ReadersData field.

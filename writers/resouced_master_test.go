@@ -27,12 +27,12 @@ func newWriterForResourcedMasterTest() *ResourcedMaster {
 	readersData := make(map[string][]byte)
 	readersData["/load-avg"] = jsonReadersDataForResourcedMasterTest()
 
-	n.SetReadersData(readersData)
+	n.SetReadersDataInBytes(readersData)
 
 	return n
 }
 
-func TestNewResourcedMasterSetReadersData(t *testing.T) {
+func TestNewResourcedMasterSetReadersDataInBytes(t *testing.T) {
 	n := newWriterForResourcedMasterTest()
 
 	key := "/load-avg"
