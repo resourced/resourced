@@ -41,7 +41,7 @@ func TestNewReaderConfig(t *testing.T) {
 }
 
 func TestNewWriterConfigWithJsonProcessor(t *testing.T) {
-	config, err := NewConfig("$GOPATH/src/github.com/resourced/resourced/tests/data/config-writer/gostruct-stdout.toml", "reader")
+	config, err := NewConfig("$GOPATH/src/github.com/resourced/resourced/tests/data/config-writer/gostruct-stdout.toml", "writer")
 	if err != nil {
 		t.Fatalf("Initializing Config should work. Error: %v", err)
 	}
