@@ -204,12 +204,20 @@ func (a *Agent) processJson(config resourced_config.Config, writer resourced_wri
 
 	cmd.Stdin = bytes.NewReader(readersDataJsonBytes)
 
-	newJsonData, err := cmd.Output()
+	newJsonDataBytes, err := cmd.Output()
 	if err != nil {
 		return err
 	}
 
-	// TODO: still mising logic to set ReadersData.
+	var newJsonData map[string]interface{}
+	err = json.Unmarshal(newJsonDataBytes, newJsonData)
+	if err != nil {
+		return err
+	}
+
+	writer.SetReadersData(newJsonData)
+
+	return err
 }
 
 // initGoStructReader initialize and return IReader.
@@ -237,22 +245,9 @@ func (a *Agent) initGoStructReader(config resourced_config.Config) (resourced_re
 
 // initGoStructWriter initialize and return IWriter.
 func (a *Agent) initGoStructWriter(config resourced_config.Config) (resourced_writers.IWriter, error) {
-	// Initialize IWriter
-	writer, err := resourced_writers.NewGoStruct(config.GoStruct)
+	writer, err := resourced_writers.NewGoStructByConfig(config)
 	if err != nil {
 		return nil, err
-	}
-
-	// Populate IWriter fields dynamically
-	if len(config.GoStructFields) > 0 {
-		for structFieldInString, value := range config.GoStructFields {
-			goStructField := reflect.ValueOf(writer).Elem().FieldByName(structFieldInString)
-
-			if goStructField.IsValid() && goStructField.CanSet() {
-				valueOfValue := reflect.ValueOf(value)
-				goStructField.Set(valueOfValue)
-			}
-		}
 	}
 
 	// Get readers data.
@@ -265,7 +260,7 @@ func (a *Agent) initGoStructWriter(config resourced_config.Config) (resourced_wr
 		}
 	}
 
-	writer.SetReadersData(readersData)
+	writer.SetReadersDataInBytes(readersData)
 
 	return writer, err
 }
