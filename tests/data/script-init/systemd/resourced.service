@@ -1,0 +1,12 @@
+[Unit]
+Description=ResourceD Agent
+
+[Service]
+User=root
+Environment=RESOURCED_CONFIG_READER_DIR=/go/src/github.com/resourced/resourced/tests/data/config-reader RESOURCED_CONFIG_WRITER_DIR=/go/src/github.com/resourced/resourced/tests/data/config-writer
+ExecStart=/go/bin/resourced
+ExecReload=/bin/kill -s HUP $MAINPID
+Restart=on-abort
+
+[Install]
+WantedBy=multi-user.target
