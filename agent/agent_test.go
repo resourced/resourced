@@ -144,6 +144,21 @@ func TestPathWithReaderPrefix(t *testing.T) {
 	}
 }
 
+func TestPathWithWriterPrefix(t *testing.T) {
+	agent := createAgentForAgentTest(t)
+	defer agent.Db.Close()
+
+	toBeTested := agent.pathWithWriterPrefix("/stuff")
+	if toBeTested != "/w/stuff" {
+		t.Errorf("Path is prefixed incorrectly. toBeTested: %v", toBeTested)
+	}
+
+	toBeTested = agent.pathWithWriterPrefix("/w/stuff")
+	if toBeTested != "/w/stuff" {
+		t.Errorf("Path is prefixed incorrectly. toBeTested: %v", toBeTested)
+	}
+}
+
 func TestInitGoStructReader(t *testing.T) {
 	agent := createAgentForAgentTest(t)
 	defer agent.Db.Close()

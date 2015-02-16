@@ -106,34 +106,31 @@ func (a *Agent) pathWithPrefix(config resourced_config.Config) string {
 	return config.Path
 }
 
-// pathWithReaderPrefix conveniently assign /r prefix to path.
-func (a *Agent) pathWithReaderPrefix(input interface{}) string {
+// pathWithReaderOrWriterPrefix is common function called by pathWithReaderPrefix or pathWithWriterPrefix
+func (a *Agent) pathWithReaderOrWriterPrefix(rOrW string, input interface{}) string {
+	prefix := "/" + rOrW
+
 	switch v := input.(type) {
 	case resourced_config.Config:
-		return "/r" + v.Path
+		return prefix + v.Path
 	case string:
-		if strings.HasPrefix(v, "/r/") {
+		if strings.HasPrefix(v, prefix+"/") {
 			return v
 		} else {
-			return "/r" + v
+			return prefix + v
 		}
 	}
 	return ""
 }
 
+// pathWithReaderPrefix conveniently assign /r prefix to path.
+func (a *Agent) pathWithReaderPrefix(input interface{}) string {
+	return a.pathWithReaderOrWriterPrefix("r", input)
+}
+
 // pathWithWriterPrefix conveniently assign /w prefix to path.
 func (a *Agent) pathWithWriterPrefix(input interface{}) string {
-	switch v := input.(type) {
-	case resourced_config.Config:
-		return "/w" + v.Path
-	case string:
-		if strings.HasPrefix(v, "/w/") {
-			return v
-		} else {
-			return "/w" + v
-		}
-	}
-	return ""
+	return a.pathWithReaderOrWriterPrefix("w", input)
 }
 
 // Run executes a reader/writer config.
@@ -186,7 +183,7 @@ func (a *Agent) runCommand(config resourced_config.Config) ([]byte, error) {
 	return cmd.Output()
 }
 
-// processJson shells out external program to mangle JSON and save the new JSON on writer.
+// processJson shells out external program to mangle JSON and save the new JSON on writer's ReadersData field.
 func (a *Agent) processJson(config resourced_config.Config, writer resourced_writers.IWriter) error {
 	processorPath := writer.GetJsonProcessor()
 	if processorPath == "" {
@@ -212,7 +209,6 @@ func (a *Agent) processJson(config resourced_config.Config, writer resourced_wri
 	var newJsonData map[string]interface{}
 	err = json.Unmarshal(newJsonDataBytes, &newJsonData)
 	if err != nil {
-		println("is unmarshalling yield error? " + err.Error())
 		return err
 	}
 
