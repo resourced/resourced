@@ -35,7 +35,7 @@ ResourceD accepts a few environment variables as configuration:
 
 ResourceD data collector is called a reader. The quickest way to configure a reader is to use a script.
 
-1. Write your script following this one requirement: **You must output the JSON data through STDOUT**
+1. Write your script following this one requirement: **Output the JSON data through STDOUT**
 
 2. Write ResourceD config file. [See examples here](https://github.com/resourced/resourced/tree/master/tests/data/config-reader).
 
