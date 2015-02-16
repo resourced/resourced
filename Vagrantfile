@@ -15,7 +15,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   end
 
   config.vm.define "centos" do |centos|
-    centos.vm.box = "chef/centos-7.0"
+    centos.vm.box = "metcalfc/centos70-docker"
     centos.vm.provision :shell, path: "tests/data/provisioning/vagrant-centos.sh"
   end
 

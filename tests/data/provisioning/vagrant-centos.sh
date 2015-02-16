@@ -1,11 +1,5 @@
 #!/bin/bash
 
-yum update
-
-# Install Docker
-yum install -y docker
-
-# Install Go
 yum install -y golang
 
 # Setup Go
@@ -13,6 +7,9 @@ export GOPATH=/go
 rm -rf $GOPATH/pkg/linux_amd64
 echo 'GOPATH=/go' > /etc/profile.d/go.sh
 echo 'PATH=$GOPATH/bin:$PATH' >> /etc/profile.d/go.sh
+
+# Install supervisord
+yum install -y supervisor
 
 # Install ResourceD
 mkdir -p $GOPATH/src/github.com/resourced/resourced && cd $GOPATH/src/github.com/resourced/resourced
