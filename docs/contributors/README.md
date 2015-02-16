@@ -7,6 +7,17 @@ Welcome (future/)contributors!
 You need Go programming language with version > 1.2.
 
 
+**Q: How to run the daemon?**
+
+Below is an example on how to run ResourceD as foreground process.
+
+```bash
+RESOURCED_CONFIG_READER_DIR=$GOPATH/src/github.com/resourced/resourced/tests/data/config-reader \
+RESOURCED_CONFIG_WRITER_DIR=$GOPATH/src/github.com/resourced/resourced/tests/data/config-writer \
+go run $GOPATH/src/github.com/resourced/resourced/resourced.go
+```
+
+
 **Q: How to run tests?**
 
 There are a few ways to run tests:

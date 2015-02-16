@@ -14,26 +14,7 @@
 2. Use supervisor/upstart/systemd to run ResourceD. You can follow examples [here](https://github.com/resourced/resourced/tree/master/tests/data/script-init).
 
 
-## Collecting Data and Running ResourceD
-
-**1. Configuring readers and writers**
-
-ResourceD data collector is called a reader. The quickest way to configure a reader is to use a script.
-
-1. Write your script. There is only one requirement to your script: **You must output the JSON data through STDOUT**
-
-2. Write ResourceD config file. [See examples here](https://github.com/resourced/resourced/tree/master/tests/data/config-reader).
-
-
-**2. Running ResourceD**
-
-Below is an example on how to run ResourceD as foreground process.
-
-```bash
-RESOURCED_CONFIG_READER_DIR=$GOPATH/src/github.com/resourced/resourced/tests/data/config-reader \
-RESOURCED_CONFIG_WRITER_DIR=$GOPATH/src/github.com/resourced/resourced/tests/data/config-writer \
-go run $GOPATH/src/github.com/resourced/resourced/resourced.go
-```
+## Configuration
 
 ResourceD accepts a few environment variables as configuration:
 
@@ -47,16 +28,26 @@ ResourceD accepts a few environment variables as configuration:
 
 * **RESOURCED_CONFIG_WRITER_DIR:** Path to writers config directory. Default: ""
 
-* **RESOURCED_TAGS:** Comma separated tags. Default: []
+* **RESOURCED_TAGS:** Comma separated tags. Default: ""
+
+
+## Collecting Data
+
+ResourceD data collector is called a reader. The quickest way to configure a reader is to use a script.
+
+1. Write your script following this one requirement: **You must output the JSON data through STDOUT**
+
+2. Write ResourceD config file. [See examples here](https://github.com/resourced/resourced/tree/master/tests/data/config-reader).
 
 
 ## Reading Data from HTTP Interface
 
-If you run ResourceD server as described above, you should be able to GET load average data via cURL:
+If you follow the install instruction above, you should be able to GET load average data via cURL:
 
 ```bash
 curl -X GET -H "Content-type: application/json" http://localhost:55555/r/load-avg
 ```
+
 
 ### RESTful Endpoints
 
@@ -73,10 +64,10 @@ curl -X GET -H "Content-type: application/json" http://localhost:55555/r/load-av
 * **GET** `/w/paths` Displays paths to all writers data.
 
 
-
 ## Third Party Data Source
 
-Here are list of 3rd party data source that ResourceD use. Big thanks to these authors, without whom this project would not be possible.
+Here are list of 3rd party data source that ResourceD use.
+Big thanks to these authors, without whom this project would not be possible.
 
 * https://github.com/cloudfoundry/gosigar
 
