@@ -3,14 +3,21 @@
 
 from __future__ import print_function
 
-import sys
-import json
+import argparse
 import collections
+import json
+import select
+import sys
+
+def args_parser():
+    parser = argparse.ArgumentParser(description='Reads JSON from STDIN and flatten everything from first level children.')
+    parser.add_argument('-sep', '--separator', dest='separator', default='.', help='JSON key separator after flattened (default: ".")')
+    return parser
 
 def read():
     return json.loads(sys.stdin.read())
 
-def flatten(d, parent_key='', sep='_'):
+def flatten(d, parent_key='', sep='.'):
     items = []
 
     for k, v in d.items():
@@ -23,4 +30,13 @@ def flatten(d, parent_key='', sep='_'):
     return dict(items)
 
 if __name__ == '__main__':
-    print(json.dumps(flatten(read())))
+    parser = args_parser()
+
+    if not select.select([sys.stdin,],[],[],0.0)[0]:
+        parser.print_help()
+        sys.exit(0)
+
+    args = parser.parse_args()
+    output = dict((path, flatten(data, sep=args.separator)) for path, data in read().items())
+
+    print(json.dumps(output))
