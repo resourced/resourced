@@ -13,7 +13,6 @@ import (
 	resourced_readers "github.com/resourced/resourced/readers"
 	resourced_writers "github.com/resourced/resourced/writers"
 	"os"
-	"reflect"
 	"strings"
 	"time"
 )
@@ -224,25 +223,7 @@ func (a *Agent) processJson(config resourced_config.Config, writer resourced_wri
 
 // initGoStructReader initialize and return IReader.
 func (a *Agent) initGoStructReader(config resourced_config.Config) (resourced_readers.IReader, error) {
-	// Initialize IReader
-	reader, err := resourced_readers.NewGoStruct(config.GoStruct)
-	if err != nil {
-		return nil, err
-	}
-
-	// Populate IReader fields dynamically
-	if len(config.GoStructFields) > 0 {
-		for structFieldInString, value := range config.GoStructFields {
-			goStructField := reflect.ValueOf(reader).Elem().FieldByName(structFieldInString)
-
-			if goStructField.IsValid() && goStructField.CanSet() {
-				valueOfValue := reflect.ValueOf(value)
-				goStructField.Set(valueOfValue)
-			}
-		}
-	}
-
-	return reader, err
+	return resourced_readers.NewGoStructByConfig(config)
 }
 
 // initGoStructWriter initialize and return IWriter.

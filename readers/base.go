@@ -3,7 +3,9 @@ package readers
 
 import (
 	"errors"
+	resourced_config "github.com/resourced/resourced/config"
 	readers_procfs "github.com/resourced/resourced/readers/procfs"
+	"reflect"
 )
 
 // NewGoStruct instantiates IReader
@@ -88,6 +90,28 @@ func NewGoStruct(name string) (IReader, error) {
 	}
 
 	return structInstance, nil
+}
+
+// NewGoStructByConfig instantiates IReader given Config struct
+func NewGoStructByConfig(config resourced_config.Config) (IReader, error) {
+	reader, err := NewGoStruct(config.GoStruct)
+	if err != nil {
+		return nil, err
+	}
+
+	// Populate IReader fields dynamically
+	if len(config.GoStructFields) > 0 {
+		for structFieldInString, value := range config.GoStructFields {
+			goStructField := reflect.ValueOf(reader).Elem().FieldByName(structFieldInString)
+
+			if goStructField.IsValid() && goStructField.CanSet() {
+				valueOfValue := reflect.ValueOf(value)
+				goStructField.Set(valueOfValue)
+			}
+		}
+	}
+
+	return reader, err
 }
 
 // IReader is generic interface for all readers.

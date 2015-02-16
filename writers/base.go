@@ -30,7 +30,7 @@ func NewGoStruct(name string) (IWriter, error) {
 	return structInstance, nil
 }
 
-// NewGoStruct instantiates IWriter given Config struct
+// NewGoStructByConfig instantiates IWriter given Config struct
 func NewGoStructByConfig(config resourced_config.Config) (IWriter, error) {
 	writer, err := NewGoStruct(config.GoStruct)
 	if err != nil {
