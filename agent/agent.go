@@ -1,3 +1,4 @@
+// Package agent runs readers, writers, and HTTP server.
 package agent
 
 import (
