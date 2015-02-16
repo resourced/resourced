@@ -11,7 +11,7 @@
 
 1. Download the binary release [here](https://github.com/resourced/resourced/releases).
 
-2. Use supervisor/upstart/systemd to run ResourceD. You can see examples on how to write the init scripts [here](https://github.com/resourced/resourced/tree/master/tests/data/script-init).
+2. Use supervisor/upstart/systemd to run ResourceD. You can follow examples [here](https://github.com/resourced/resourced/tree/master/tests/data/script-init).
 
 
 ## Collecting Data and Running ResourceD
