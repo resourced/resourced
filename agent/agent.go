@@ -17,7 +17,7 @@ import (
 	"time"
 )
 
-// NewAgent is the constructor fot Agent struct.
+// NewAgent is the constructor for Agent struct.
 func NewAgent() (*Agent, error) {
 	agent := &Agent{}
 
