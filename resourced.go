@@ -3,10 +3,15 @@ package main
 import (
 	resourced_agent "github.com/resourced/resourced/agent"
 	"os"
+	"runtime"
 )
 
 // main runs the web server for resourced.
 func main() {
+	if os.Getenv("GOMAXPROCS") == "" {
+		runtime.GOMAXPROCS(runtime.NumCPU())
+	}
+
 	agent, err := resourced_agent.NewAgent()
 	if err != nil {
 		panic(err)
