@@ -277,7 +277,10 @@ func (a *Agent) HttpRouter() *httprouter.Router {
 	}
 
 	// Profiler
-	router.GET("/debug/pprof/:name", func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	router.GET("/debug/pprof/profile", func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+		pprof.Profile(w, r)
+	})
+	router.GET("/debug/pprof/heap", func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 		pprof.Index(w, r)
 	})
 
