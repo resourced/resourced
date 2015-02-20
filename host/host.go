@@ -27,5 +27,5 @@ func NewHost(name string) *Host {
 type Host struct {
 	Name              string
 	Tags              []string
-	NetworkInterfaces map[string]map[string]interface{}
+	NetworkInterfaces map[string]map[string]interface{} `json:",omitempty"`
 }

@@ -315,21 +315,23 @@ func (a *Agent) hostData() (*resourced_host.Host, error) {
 
 	host.Tags = a.Tags
 
-	interfacesReader := resourced_readers.NewNetInterfaces()
-	if interfacesReader.Run() == nil {
-		host.NetworkInterfaces = make(map[string]map[string]interface{})
+	// Capture net/interfaces data
+	// TODO(didip): This is not trivial size of data. Comment it for now.
+	// interfacesReader := resourced_readers.NewNetInterfaces()
+	// if interfacesReader.Run() == nil {
+	// 	host.NetworkInterfaces = make(map[string]map[string]interface{})
 
-		for iface, stats := range interfacesReader.Data {
-			host.NetworkInterfaces[iface] = make(map[string]interface{})
-			host.NetworkInterfaces[iface]["HardwareAddress"] = stats.HardwareAddr
-			host.NetworkInterfaces[iface]["IPAddresses"] = make([]string, len(stats.Addrs))
+	// 	for iface, stats := range interfacesReader.Data {
+	// 		host.NetworkInterfaces[iface] = make(map[string]interface{})
+	// 		host.NetworkInterfaces[iface]["HardwareAddress"] = stats.HardwareAddr
+	// 		host.NetworkInterfaces[iface]["IPAddresses"] = make([]string, len(stats.Addrs))
 
-			for i, addr := range stats.Addrs {
-				ipAddresses := host.NetworkInterfaces[iface]["IPAddresses"].([]string)
-				ipAddresses[i] = addr.Addr
-			}
-		}
-	}
+	// 		for i, addr := range stats.Addrs {
+	// 			ipAddresses := host.NetworkInterfaces[iface]["IPAddresses"].([]string)
+	// 			ipAddresses[i] = addr.Addr
+	// 		}
+	// 	}
+	// }
 
 	return host, nil
 }
