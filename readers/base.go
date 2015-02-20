@@ -4,6 +4,7 @@ package readers
 import (
 	"errors"
 	resourced_config "github.com/resourced/resourced/config"
+	readers_docker "github.com/resourced/resourced/readers/docker"
 	readers_procfs "github.com/resourced/resourced/readers/procfs"
 	"reflect"
 )
@@ -28,10 +29,10 @@ func NewGoStruct(name string) (IReader, error) {
 		structInstance = NewDiskIO()
 	}
 	if name == "DockerContainersMemory" {
-		structInstance = NewDockerContainersMemory()
+		structInstance = readers_docker.NewDockerContainersMemory()
 	}
 	if name == "DockerContainersCpu" {
-		structInstance = NewDockerContainersCpu()
+		structInstance = readers_docker.NewDockerContainersCpu()
 	}
 	if name == "Free" {
 		structInstance = NewFree()

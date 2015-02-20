@@ -37,7 +37,7 @@ There are a few ways to run tests:
     # Inside Vagrant
     export GOPATH=/go
     cd $GOPATH/src/github.com/resourced/resourced
-    docker build -t resourced . && docker run -t resourced
+    sudo docker build -t resourced . && sudo docker run -t resourced
     go test ./...
     ```
 

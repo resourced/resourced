@@ -1,6 +1,6 @@
 // +build linux
 
-package readers
+package docker
 
 import (
 	"encoding/json"

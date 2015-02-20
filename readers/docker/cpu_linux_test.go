@@ -1,4 +1,4 @@
-package readers
+package docker
 
 import (
 	"runtime"

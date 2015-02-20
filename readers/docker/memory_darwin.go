@@ -1,28 +1,28 @@
 // +build darwin
 
-package readers
+package docker
 
 import (
 	"encoding/json"
 )
 
-func NewDockerContainersCpu() *DockerContainersCpu {
-	m := &DockerContainersCpu{}
+func NewDockerContainersMemory() *DockerContainersMemory {
+	m := &DockerContainersMemory{}
 	m.Data = make(map[string]string)
 	return m
 }
 
-type DockerContainersCpu struct {
+type DockerContainersMemory struct {
 	Data           map[string]string
 	CgroupBasePath string
 }
 
-func (m *DockerContainersCpu) Run() error {
+func (m *DockerContainersMemory) Run() error {
 	m.Data["Error"] = "Docker cgroup memory data is only available on Linux."
 	return nil
 }
 
 // ToJson serialize Data field to JSON.
-func (m *DockerContainersCpu) ToJson() ([]byte, error) {
+func (m *DockerContainersMemory) ToJson() ([]byte, error) {
 	return json.Marshal(m.Data)
 }
