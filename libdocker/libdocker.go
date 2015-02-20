@@ -8,6 +8,13 @@ import (
 	"sync"
 )
 
+type CompleteDockerContainer struct {
+	NiceImageName string `json:"NiceImageName,omitempty" yaml:"NiceImageName,omitempty"`
+	Command       string `json:"Command,omitempty" yaml:"Command,omitempty"`
+	Status        string `json:"Status,omitempty" yaml:"Status,omitempty"`
+	dockerclient.Container
+}
+
 type CompleteDockerImage struct {
 	RepoTags    []string `json:"RepoTags,omitempty" yaml:"RepoTags,omitempty"`
 	VirtualSize int64    `json:"VirtualSize,omitempty" yaml:"VirtualSize,omitempty"`
@@ -47,7 +54,7 @@ func AllContainers(endpoint string) ([]dockerclient.APIContainers, error) {
 }
 
 // AllInspectedContainers is a convenience function to fetch a slice of all inspected containers data.
-func AllInspectedContainers(endpoint string) ([]*dockerclient.Container, error) {
+func AllInspectedContainers(endpoint string) ([]*CompleteDockerContainer, error) {
 	client, err := DockerClient(endpoint)
 	if err != nil {
 		return nil, err
@@ -58,23 +65,46 @@ func AllInspectedContainers(endpoint string) ([]*dockerclient.Container, error) 
 		return nil, err
 	}
 
-	containersChan := make(chan *dockerclient.Container)
+	containersChan := make(chan *CompleteDockerContainer)
 	var wg sync.WaitGroup
 
 	for _, shortDescContainer := range shortDescContainers {
+		container := &CompleteDockerContainer{}
+		container.NiceImageName = shortDescContainer.Image
+		container.Command = shortDescContainer.Command
+		container.Status = shortDescContainer.Status
+
 		wg.Add(1)
 
-		go func(shortDescContainer dockerclient.APIContainers) {
+		go func(container *CompleteDockerContainer) {
 			defer wg.Done()
 
 			fullDescContainer, err := client.InspectContainer(shortDescContainer.ID)
 			if err == nil && fullDescContainer != nil {
-				containersChan <- fullDescContainer
+				container.ID = fullDescContainer.ID
+				container.Created = fullDescContainer.Created
+				container.Path = fullDescContainer.Path
+				container.Args = fullDescContainer.Args
+				container.Config = fullDescContainer.Config
+				container.State = fullDescContainer.State
+				container.Image = fullDescContainer.Image
+				container.NetworkSettings = fullDescContainer.NetworkSettings
+				container.SysInitPath = fullDescContainer.SysInitPath
+				container.ResolvConfPath = fullDescContainer.ResolvConfPath
+				container.HostnamePath = fullDescContainer.HostnamePath
+				container.HostsPath = fullDescContainer.HostsPath
+				container.Name = fullDescContainer.Name
+				container.Driver = fullDescContainer.Driver
+				container.Volumes = fullDescContainer.Volumes
+				container.VolumesRW = fullDescContainer.VolumesRW
+				container.HostConfig = fullDescContainer.HostConfig
+
+				containersChan <- container
 			}
-		}(shortDescContainer)
+		}(container)
 	}
 
-	containers := make([]*dockerclient.Container, 0)
+	containers := make([]*CompleteDockerContainer, 0)
 
 	go func() {
 		for container := range containersChan {

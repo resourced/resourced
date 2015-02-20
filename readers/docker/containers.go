@@ -2,19 +2,18 @@ package docker
 
 import (
 	"encoding/json"
-	dockerclient "github.com/fsouza/go-dockerclient"
 	"github.com/resourced/resourced/libdocker"
 )
 
 func NewDockerContainers() *DockerContainers {
 	dc := &DockerContainers{}
-	dc.Data = make(map[string]*dockerclient.Container)
+	dc.Data = make(map[string]*libdocker.CompleteDockerContainer)
 	return dc
 }
 
 // DockerContainers gathers docker containers data.
 type DockerContainers struct {
-	Data       map[string]*dockerclient.Container
+	Data       map[string]*libdocker.CompleteDockerContainer
 	DockerHost string
 }
 
@@ -25,8 +24,8 @@ func (dc *DockerContainers) Run() error {
 	}
 
 	for _, container := range containers {
-		if container.ID != "" && container.Config != nil && container.Config.Image != "" {
-			dc.Data[container.Config.Image+"-"+container.ID] = container
+		if container.ID != "" && container.NiceImageName != "" {
+			dc.Data[container.NiceImageName+"-"+container.ID] = container
 		}
 	}
 
