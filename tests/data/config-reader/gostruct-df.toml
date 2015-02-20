@@ -1,3 +1,7 @@
 GoStruct = "Df"
 Path = "/df"
 Interval = "3s"
+
+[GoStructFields]
+# FSPaths is comma separated string of paths.
+FSPaths = "/tmp"

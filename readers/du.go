@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"github.com/cloudfoundry/gosigar"
 	gopsutil_disk "github.com/shirou/gopsutil/disk"
+	"strings"
 )
 
 func NewDu() *Du {
@@ -17,11 +18,12 @@ func NewDu() *Du {
 // * https://github.com/cloudfoundry/gosigar/tree/master
 // * https://github.com/shirou/gopsutil/tree/master/disk
 type Du struct {
-	Data map[string]map[string]interface{}
+	Data    map[string]map[string]interface{}
+	FSPaths string
 }
 
 // Run gathers du information from gosigar.
-func (d *Du) Run() error {
+func (d *Du) runDefault() error {
 	fslist := sigar.FileSystemList{}
 	err := fslist.Get()
 	if err != nil {
@@ -32,6 +34,7 @@ func (d *Du) Run() error {
 		duStat, err := gopsutil_disk.DiskUsage(fs.DirName)
 		if err == nil {
 			d.Data[fs.DirName] = make(map[string]interface{})
+			d.Data[fs.DirName]["DeviceName"] = fs.DevName
 			d.Data[fs.DirName]["Path"] = duStat.Path
 			d.Data[fs.DirName]["Total"] = duStat.Total
 			d.Data[fs.DirName]["Free"] = duStat.Free
@@ -50,6 +53,47 @@ func (d *Du) Run() error {
 		}
 	}
 	return nil
+}
+
+func (d *Du) runCustomPaths() error {
+	for _, path := range strings.Split(d.FSPaths, ",") {
+		path = strings.TrimSpace(path)
+
+		duStat, err := gopsutil_disk.DiskUsage(path)
+		if err == nil {
+			d.Data[path] = make(map[string]interface{})
+			d.Data[path]["Path"] = duStat.Path
+			d.Data[path]["Total"] = duStat.Total
+			d.Data[path]["Free"] = duStat.Free
+			d.Data[path]["InodesTotal"] = duStat.InodesTotal
+			d.Data[path]["InodesFree"] = duStat.InodesFree
+			d.Data[path]["InodesUsed"] = duStat.InodesUsed
+			d.Data[path]["Used"] = duStat.Used
+
+			if duStat.InodesTotal != 0 {
+				d.Data[path]["InodesUsedPercent"] = duStat.InodesUsedPercent
+			}
+
+			if duStat.Total != 0 {
+				d.Data[path]["UsedPercent"] = duStat.UsedPercent
+			}
+		}
+	}
+	return nil
+}
+
+// Run gathers du information.
+func (d *Du) Run() error {
+	err := d.runDefault()
+	if err != nil {
+		return err
+	}
+
+	if d.FSPaths != "" {
+		err = d.runCustomPaths()
+	}
+
+	return err
 }
 
 // ToJson serialize Data field to JSON.
