@@ -11,7 +11,17 @@
 
 1. Download the binary release [here](https://github.com/resourced/resourced/releases).
 
-2. Use supervisor/upstart/systemd to run ResourceD. You can follow examples [here](https://github.com/resourced/resourced/tree/master/tests/data/script-init).
+2. Use supervisor/upstart/systemd to daemonize. You can follow examples [here](https://github.com/resourced/resourced/tree/master/tests/data/script-init).
+
+
+## Running in Development Environment
+
+To find out what ResourceD has to offer, run the following command:
+```bash
+RESOURCED_CONFIG_READER_DIR=$GOPATH/src/github.com/resourced/resourced/tests/data/config-reader \
+RESOURCED_CONFIG_WRITER_DIR=$GOPATH/src/github.com/resourced/resourced/tests/data/config-writer \
+go run $GOPATH/src/github.com/resourced/resourced/resourced.go
+```
 
 
 ## Configuration
