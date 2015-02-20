@@ -1,0 +1,6 @@
+GoStruct = "DockerImages"
+Path = "/docker/images"
+Interval = "5s"
+
+[GoStructFields]
+DockerHost = "tcp://localhost:2375"

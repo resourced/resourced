@@ -25,9 +25,8 @@ type DockerContainersCpu struct {
 }
 
 // Run gathers cgroup CPU information from cgroup itself.
-// TODO(didip): In newer version of docker we can get this information from docker itself.
 func (m *DockerContainersCpu) Run() error {
-	containers, err := libdocker.AllContainers()
+	containers, err := libdocker.AllContainers("")
 	if err != nil {
 		return nil
 	}

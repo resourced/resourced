@@ -8,11 +8,20 @@ import (
 	"sync"
 )
 
+type CompleteDockerImage struct {
+	RepoTags    []string `json:"RepoTags,omitempty" yaml:"RepoTags,omitempty"`
+	VirtualSize int64    `json:"VirtualSize,omitempty" yaml:"VirtualSize,omitempty"`
+	ParentID    string   `json:"ParentId,omitempty" yaml:"ParentId,omitempty"`
+	dockerclient.Image
+}
+
 // DockerClient returns dockerclient.Client which handles Docker connection.
-func DockerClient() (*dockerclient.Client, error) {
-	dockerHost := os.Getenv("DOCKER_HOST")
-	if dockerHost == "" {
-		dockerHost = "unix:///var/run/docker.sock"
+func DockerClient(endpoint string) (*dockerclient.Client, error) {
+	if endpoint == "" {
+		endpoint = os.Getenv("DOCKER_HOST")
+		if endpoint == "" {
+			endpoint = "unix:///var/run/docker.sock"
+		}
 	}
 
 	dockerCertPath := os.Getenv("DOCKER_CERT_PATH")
@@ -21,15 +30,15 @@ func DockerClient() (*dockerclient.Client, error) {
 		key := path.Join(dockerCertPath, "key.pem")
 		ca := path.Join(dockerCertPath, "ca.pem")
 
-		return dockerclient.NewTLSClient(dockerHost, cert, key, ca)
+		return dockerclient.NewTLSClient(endpoint, cert, key, ca)
 	} else {
-		return dockerclient.NewClient(dockerHost)
+		return dockerclient.NewClient(endpoint)
 	}
 }
 
 // AllContainers is a convenience function to fetch a slice of all containers data.
-func AllContainers() ([]dockerclient.APIContainers, error) {
-	client, err := DockerClient()
+func AllContainers(endpoint string) ([]dockerclient.APIContainers, error) {
+	client, err := DockerClient(endpoint)
 	if err != nil {
 		return nil, err
 	}
@@ -38,8 +47,8 @@ func AllContainers() ([]dockerclient.APIContainers, error) {
 }
 
 // AllInspectedContainers is a convenience function to fetch a slice of all inspected containers data.
-func AllInspectedContainers() ([]*dockerclient.Container, error) {
-	client, err := DockerClient()
+func AllInspectedContainers(endpoint string) ([]*dockerclient.Container, error) {
+	client, err := DockerClient(endpoint)
 	if err != nil {
 		return nil, err
 	}
@@ -79,8 +88,8 @@ func AllInspectedContainers() ([]*dockerclient.Container, error) {
 }
 
 // AllImages is a convenience function to fetch a slice of all images data.
-func AllImages() ([]dockerclient.APIImages, error) {
-	client, err := DockerClient()
+func AllImages(endpoint string) ([]dockerclient.APIImages, error) {
+	client, err := DockerClient(endpoint)
 	if err != nil {
 		return nil, err
 	}
@@ -89,8 +98,8 @@ func AllImages() ([]dockerclient.APIImages, error) {
 }
 
 // AllInspectedImages is a convenience function to fetch a slice of all inspected images data.
-func AllInspectedImages() ([]*dockerclient.Image, error) {
-	client, err := DockerClient()
+func AllInspectedImages(endpoint string) ([]*CompleteDockerImage, error) {
+	client, err := DockerClient(endpoint)
 	if err != nil {
 		return nil, err
 	}
@@ -100,23 +109,40 @@ func AllInspectedImages() ([]*dockerclient.Image, error) {
 		return nil, err
 	}
 
-	imagesChan := make(chan *dockerclient.Image)
+	imagesChan := make(chan *CompleteDockerImage)
 	var wg sync.WaitGroup
 
 	for _, shortDescImage := range shortDescImages {
+		img := &CompleteDockerImage{}
+		img.ID = shortDescImage.ID
+		img.RepoTags = shortDescImage.RepoTags
+		img.VirtualSize = shortDescImage.VirtualSize
+		img.ParentID = shortDescImage.ParentID
+
 		wg.Add(1)
 
-		go func(shortDescImage dockerclient.APIImages) {
+		go func(img *CompleteDockerImage) {
 			defer wg.Done()
 
-			fullDescImage, err := client.InspectImage(shortDescImage.ID)
+			fullDescImage, err := client.InspectImage(img.ID)
 			if err == nil && fullDescImage != nil {
-				imagesChan <- fullDescImage
+				img.Parent = fullDescImage.Parent
+				img.Comment = fullDescImage.Comment
+				img.Created = fullDescImage.Created
+				img.Container = fullDescImage.Container
+				img.ContainerConfig = fullDescImage.ContainerConfig
+				img.DockerVersion = fullDescImage.DockerVersion
+				img.Author = fullDescImage.Author
+				img.Config = fullDescImage.Config
+				img.Architecture = fullDescImage.Architecture
+				img.Size = fullDescImage.Size
+
+				imagesChan <- img
 			}
-		}(shortDescImage)
+		}(img)
 	}
 
-	images := make([]*dockerclient.Image, 0)
+	images := make([]*CompleteDockerImage, 0)
 
 	go func() {
 		for image := range imagesChan {

@@ -1,0 +1,6 @@
+GoStruct = "DockerContainers"
+Path = "/docker/containers"
+Interval = "5s"
+
+[GoStructFields]
+DockerHost = "tcp://localhost:2375"

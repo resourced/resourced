@@ -28,6 +28,12 @@ func NewGoStruct(name string) (IReader, error) {
 	if name == "DiskIO" {
 		structInstance = NewDiskIO()
 	}
+	if name == "DockerContainers" {
+		structInstance = readers_docker.NewDockerContainers()
+	}
+	if name == "DockerImages" {
+		structInstance = readers_docker.NewDockerImages()
+	}
 	if name == "DockerContainersMemory" {
 		structInstance = readers_docker.NewDockerContainersMemory()
 	}
