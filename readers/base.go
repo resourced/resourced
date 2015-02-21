@@ -5,6 +5,7 @@ import (
 	"errors"
 	resourced_config "github.com/resourced/resourced/config"
 	readers_docker "github.com/resourced/resourced/readers/docker"
+	readers_mysql "github.com/resourced/resourced/readers/mysql"
 	readers_procfs "github.com/resourced/resourced/readers/procfs"
 	"reflect"
 )
@@ -87,6 +88,9 @@ func NewGoStruct(name string) (IReader, error) {
 	}
 	if name == "ProcVmStat" {
 		structInstance = readers_procfs.NewProcVmStat()
+	}
+	if name == "MysqlProcesslist" {
+		structInstance = readers_mysql.NewMysqlProcesslist()
 	}
 	if name == "Uptime" {
 		structInstance = NewUptime()
