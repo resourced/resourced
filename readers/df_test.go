@@ -12,7 +12,7 @@ func TestNewDf(t *testing.T) {
 	}
 }
 
-func TestNewDfRun(t *testing.T) {
+func TestDfRun(t *testing.T) {
 	n := NewDf()
 	err := n.Run()
 	if err != nil {
@@ -20,7 +20,7 @@ func TestNewDfRun(t *testing.T) {
 	}
 }
 
-func TestNewDfToJson(t *testing.T) {
+func TestDfToJson(t *testing.T) {
 	n := NewDf()
 	err := n.Run()
 	if err != nil {
@@ -44,5 +44,20 @@ func TestNewDfToJson(t *testing.T) {
 		if !strings.Contains(jsonDataString, key) {
 			t.Errorf("jsonDataString does not contain '%v' key. jsonDataString: %v", key, jsonDataString)
 		}
+	}
+}
+
+func TestDfFSPaths(t *testing.T) {
+	n := NewDf()
+	n.FSPaths = "/tmp,/bin"
+
+	err := n.Run()
+	if err != nil {
+		t.Errorf("Parsing df data should always be successful. Error: %v", err)
+	}
+
+	if len(n.Data) == 0 {
+		inJson, _ := n.ToJson()
+		t.Errorf("df data should not be empty. Data: %v", string(inJson))
 	}
 }

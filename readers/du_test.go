@@ -12,7 +12,7 @@ func TestNewDu(t *testing.T) {
 	}
 }
 
-func TestNewDuRun(t *testing.T) {
+func TestDuRun(t *testing.T) {
 	n := NewDu()
 	err := n.Run()
 	if err != nil {
@@ -20,7 +20,7 @@ func TestNewDuRun(t *testing.T) {
 	}
 }
 
-func TestNewDuToJson(t *testing.T) {
+func TestDuToJson(t *testing.T) {
 	n := NewDu()
 	err := n.Run()
 	if err != nil {
@@ -44,5 +44,20 @@ func TestNewDuToJson(t *testing.T) {
 		if !strings.Contains(jsonDataString, key) {
 			t.Errorf("jsonDataString does not contain '%v' key. jsonDataString: %v", key, jsonDataString)
 		}
+	}
+}
+
+func TestDuFSPaths(t *testing.T) {
+	n := NewDf()
+	n.FSPaths = "/tmp,/bin"
+
+	err := n.Run()
+	if err != nil {
+		t.Errorf("Parsing du data should always be successful. Error: %v", err)
+	}
+
+	if len(n.Data) == 0 {
+		inJson, _ := n.ToJson()
+		t.Errorf("du data should not be empty. Data: %v", string(inJson))
 	}
 }
