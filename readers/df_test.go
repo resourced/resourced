@@ -60,4 +60,12 @@ func TestDfFSPaths(t *testing.T) {
 		inJson, _ := n.ToJson()
 		t.Errorf("df data should not be empty. Data: %v", string(inJson))
 	}
+	if len(n.Data["/tmp"]) == 0 {
+		inJson, _ := n.ToJson()
+		t.Errorf("df /tmp data should not be empty. Data: %v", string(inJson))
+	}
+	if len(n.Data["/bin"]) == 0 {
+		inJson, _ := n.ToJson()
+		t.Errorf("df /bin data should not be empty. Data: %v", string(inJson))
+	}
 }

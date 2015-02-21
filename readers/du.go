@@ -2,8 +2,11 @@ package readers
 
 import (
 	"encoding/json"
+	"errors"
+	"fmt"
 	"github.com/cloudfoundry/gosigar"
 	gopsutil_disk "github.com/shirou/gopsutil/disk"
+	"os"
 	"strings"
 )
 
@@ -22,7 +25,40 @@ type Du struct {
 	FSPaths string
 }
 
-// Run gathers du information from gosigar.
+func (d *Du) buildData(path string) error {
+	path = strings.TrimSpace(path)
+
+	pathStat, err := os.Stat(path)
+	if err != nil {
+		return err
+	}
+
+	if !pathStat.IsDir() {
+		return errors.New(fmt.Sprintf("%v is not a directory.", path))
+	}
+
+	duStat, err := gopsutil_disk.DiskUsage(path)
+	if err == nil {
+		d.Data[path] = make(map[string]interface{})
+		d.Data[path]["Path"] = duStat.Path
+		d.Data[path]["Total"] = duStat.Total
+		d.Data[path]["Free"] = duStat.Free
+		d.Data[path]["InodesTotal"] = duStat.InodesTotal
+		d.Data[path]["InodesFree"] = duStat.InodesFree
+		d.Data[path]["InodesUsed"] = duStat.InodesUsed
+		d.Data[path]["Used"] = duStat.Used
+
+		if duStat.InodesTotal != 0 {
+			d.Data[path]["InodesUsedPercent"] = duStat.InodesUsedPercent
+		}
+
+		if duStat.Total != 0 {
+			d.Data[path]["UsedPercent"] = duStat.UsedPercent
+		}
+	}
+	return err
+}
+
 func (d *Du) runDefault() error {
 	fslist := sigar.FileSystemList{}
 	err := fslist.Get()
@@ -31,25 +67,9 @@ func (d *Du) runDefault() error {
 	}
 
 	for _, fs := range fslist.List {
-		duStat, err := gopsutil_disk.DiskUsage(fs.DirName)
+		err := d.buildData(fs.DirName)
 		if err == nil {
-			d.Data[fs.DirName] = make(map[string]interface{})
 			d.Data[fs.DirName]["DeviceName"] = fs.DevName
-			d.Data[fs.DirName]["Path"] = duStat.Path
-			d.Data[fs.DirName]["Total"] = duStat.Total
-			d.Data[fs.DirName]["Free"] = duStat.Free
-			d.Data[fs.DirName]["InodesTotal"] = duStat.InodesTotal
-			d.Data[fs.DirName]["InodesFree"] = duStat.InodesFree
-			d.Data[fs.DirName]["InodesUsed"] = duStat.InodesUsed
-			d.Data[fs.DirName]["Used"] = duStat.Used
-
-			if duStat.InodesTotal != 0 {
-				d.Data[fs.DirName]["InodesUsedPercent"] = duStat.InodesUsedPercent
-			}
-
-			if duStat.Total != 0 {
-				d.Data[fs.DirName]["UsedPercent"] = duStat.UsedPercent
-			}
 		}
 	}
 	return nil
@@ -57,27 +77,7 @@ func (d *Du) runDefault() error {
 
 func (d *Du) runCustomPaths() error {
 	for _, path := range strings.Split(d.FSPaths, ",") {
-		path = strings.TrimSpace(path)
-
-		duStat, err := gopsutil_disk.DiskUsage(path)
-		if err == nil {
-			d.Data[path] = make(map[string]interface{})
-			d.Data[path]["Path"] = duStat.Path
-			d.Data[path]["Total"] = duStat.Total
-			d.Data[path]["Free"] = duStat.Free
-			d.Data[path]["InodesTotal"] = duStat.InodesTotal
-			d.Data[path]["InodesFree"] = duStat.InodesFree
-			d.Data[path]["InodesUsed"] = duStat.InodesUsed
-			d.Data[path]["Used"] = duStat.Used
-
-			if duStat.InodesTotal != 0 {
-				d.Data[path]["InodesUsedPercent"] = duStat.InodesUsedPercent
-			}
-
-			if duStat.Total != 0 {
-				d.Data[path]["UsedPercent"] = duStat.UsedPercent
-			}
-		}
+		d.buildData(path)
 	}
 	return nil
 }

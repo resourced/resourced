@@ -2,7 +2,10 @@ package readers
 
 import (
 	"encoding/json"
+	"errors"
+	"fmt"
 	"github.com/cloudfoundry/gosigar"
+	"os"
 	"strings"
 )
 
@@ -20,6 +23,31 @@ type Df struct {
 	FSPaths string
 }
 
+func (d *Df) buildData(path string) error {
+	path = strings.TrimSpace(path)
+
+	pathStat, err := os.Stat(path)
+	if err != nil {
+		return err
+	}
+
+	if !pathStat.IsDir() {
+		return errors.New(fmt.Sprintf("%v is not a directory.", path))
+	}
+
+	usage := sigar.FileSystemUsage{}
+	err = usage.Get(path)
+
+	if err == nil {
+		d.Data[path] = make(map[string]interface{})
+		d.Data[path]["Total"] = usage.Total
+		d.Data[path]["Available"] = usage.Avail
+		d.Data[path]["Used"] = usage.Used
+		d.Data[path]["UsePercent"] = usage.UsePercent()
+	}
+	return err
+}
+
 func (d *Df) runDefault() error {
 	fslist := sigar.FileSystemList{}
 	err := fslist.Get()
@@ -28,16 +56,9 @@ func (d *Df) runDefault() error {
 	}
 
 	for _, fs := range fslist.List {
-		usage := sigar.FileSystemUsage{}
-		err := usage.Get(fs.DirName)
-
+		err := d.buildData(fs.DirName)
 		if err == nil {
-			d.Data[fs.DirName] = make(map[string]interface{})
 			d.Data[fs.DirName]["DeviceName"] = fs.DevName
-			d.Data[fs.DirName]["Total"] = usage.Total
-			d.Data[fs.DirName]["Available"] = usage.Avail
-			d.Data[fs.DirName]["Used"] = usage.Used
-			d.Data[fs.DirName]["UsePercent"] = usage.UsePercent()
 		}
 	}
 	return nil
@@ -45,18 +66,7 @@ func (d *Df) runDefault() error {
 
 func (d *Df) runCustomPaths() error {
 	for _, path := range strings.Split(d.FSPaths, ",") {
-		path = strings.TrimSpace(path)
-
-		usage := sigar.FileSystemUsage{}
-		err := usage.Get(path)
-
-		if err == nil {
-			d.Data[path] = make(map[string]interface{})
-			d.Data[path]["Total"] = usage.Total
-			d.Data[path]["Available"] = usage.Avail
-			d.Data[path]["Used"] = usage.Used
-			d.Data[path]["UsePercent"] = usage.UsePercent()
-		}
+		d.buildData(path)
 	}
 	return nil
 }
