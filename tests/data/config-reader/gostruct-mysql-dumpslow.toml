@@ -1,0 +1,7 @@
+GoStruct = "MysqlDumpSlow"
+Path = "/mysql/dumpslow"
+Interval = "1m"
+
+[GoStructFields]
+Options = "-t 10 -s at"
+FilePath = "/tmp/mysql-slow.log"

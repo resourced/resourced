@@ -8,8 +8,6 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
-var connections map[string]*sqlx.DB
-
 func NewMysqlProcesslist() *MysqlProcesslist {
 	m := &MysqlProcesslist{}
 	m.Data = make(map[string][]Processlist)
