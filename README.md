@@ -23,7 +23,7 @@ RESOURCED_CONFIG_WRITER_DIR=$GOPATH/src/github.com/resourced/resourced/tests/dat
 go run $GOPATH/src/github.com/resourced/resourced/resourced.go
 ```
 
-Then open this URL: http://localhost:55555/paths.
+Then open this URL: [http://localhost:55555/paths](http://localhost:55555/paths).
 
 
 ## Configuration

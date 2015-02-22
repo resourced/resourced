@@ -7,6 +7,7 @@ import (
 	readers_docker "github.com/resourced/resourced/readers/docker"
 	readers_mysql "github.com/resourced/resourced/readers/mysql"
 	readers_procfs "github.com/resourced/resourced/readers/procfs"
+	readers_redis "github.com/resourced/resourced/readers/redis"
 	"reflect"
 )
 
@@ -53,8 +54,14 @@ func NewGoStruct(name string) (IReader, error) {
 	if name == "LoadAvg" {
 		structInstance = NewLoadAvg()
 	}
-	if name == "Ps" {
-		structInstance = NewPs()
+	if name == "MysqlProcesslist" {
+		structInstance = readers_mysql.NewMysqlProcesslist()
+	}
+	if name == "MysqlInformationSchemaTables" {
+		structInstance = readers_mysql.NewMysqlInformationSchemaTables()
+	}
+	if name == "MysqlDumpSlow" {
+		structInstance = readers_mysql.NewMysqlDumpSlow()
 	}
 	if name == "NetIO" {
 		structInstance = NewNetIO()
@@ -89,14 +96,11 @@ func NewGoStruct(name string) (IReader, error) {
 	if name == "ProcVmStat" {
 		structInstance = readers_procfs.NewProcVmStat()
 	}
-	if name == "MysqlProcesslist" {
-		structInstance = readers_mysql.NewMysqlProcesslist()
+	if name == "RedisInfo" {
+		structInstance = readers_redis.NewRedisInfo()
 	}
-	if name == "MysqlInformationSchemaTables" {
-		structInstance = readers_mysql.NewMysqlInformationSchemaTables()
-	}
-	if name == "MysqlDumpSlow" {
-		structInstance = readers_mysql.NewMysqlDumpSlow()
+	if name == "Ps" {
+		structInstance = NewPs()
 	}
 	if name == "Uptime" {
 		structInstance = NewUptime()
