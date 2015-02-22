@@ -1,0 +1,6 @@
+GoStruct = "MysqlInformationSchemaTables"
+Path = "/mysql/information-schema/tables"
+Interval = "5s"
+
+[GoStructFields]
+HostAndPort = "localhost:3306"

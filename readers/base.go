@@ -92,6 +92,9 @@ func NewGoStruct(name string) (IReader, error) {
 	if name == "MysqlProcesslist" {
 		structInstance = readers_mysql.NewMysqlProcesslist()
 	}
+	if name == "MysqlInformationSchemaTables" {
+		structInstance = readers_mysql.NewMysqlInformationSchemaTables()
+	}
 	if name == "MysqlDumpSlow" {
 		structInstance = readers_mysql.NewMysqlDumpSlow()
 	}
