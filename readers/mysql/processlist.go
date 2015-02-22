@@ -29,13 +29,13 @@ type MysqlProcesslist struct {
 
 type Processlist struct {
 	Id      int            `db:"Id"`
-	User    sql.NullString `db:"User"`
-	Host    sql.NullString `db:"Host"`
+	User    string         `db:"User"`
+	Host    string         `db:"Host"`
 	Db      sql.NullString `db:"db"`
-	Command sql.NullString `db:"Command"`
+	Command string         `db:"Command"`
 	Time    int            `db:"Time"`
-	State   sql.NullString `db:"State"`
-	Info    sql.NullString `db:"Info"`
+	State   string         `db:"State"`
+	Info    string         `db:"Info"`
 }
 
 func (m *MysqlProcesslist) initConnection() error {
@@ -71,10 +71,10 @@ func (m *MysqlProcesslist) Run() error {
 
 		err := rows.StructScan(&plist)
 		if err == nil {
-			if m.Data[plist.Host.String] == nil {
-				m.Data[plist.Host.String] = make([]Processlist, 0)
+			if m.Data[plist.Host] == nil {
+				m.Data[plist.Host] = make([]Processlist, 0)
 			}
-			m.Data[plist.Host.String] = append(m.Data[plist.Host.String], plist)
+			m.Data[plist.Host] = append(m.Data[plist.Host], plist)
 		}
 	}
 
