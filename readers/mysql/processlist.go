@@ -3,26 +3,20 @@ package mysql
 import (
 	"database/sql"
 	"encoding/json"
-	"fmt"
 	_ "github.com/go-sql-driver/mysql"
-	"github.com/jmoiron/sqlx"
 )
 
 func NewMysqlProcesslist() *MysqlProcesslist {
 	m := &MysqlProcesslist{}
 	m.Data = make(map[string][]Processlist)
 
-	if connections == nil {
-		connections = make(map[string]*sqlx.DB)
-	}
-
 	return m
 }
 
 // MysqlProcesslist is a reader that fetch SHOW FULL PROCESSLIST data.
 type MysqlProcesslist struct {
-	Data        map[string][]Processlist
-	HostAndPort string
+	Data map[string][]Processlist
+	Base
 }
 
 type Processlist struct {
@@ -36,16 +30,6 @@ type Processlist struct {
 	Info    string         `db:"Info"`
 }
 
-func (m *MysqlProcesslist) initConnection() error {
-	var err error
-
-	if _, ok := connections[m.HostAndPort]; !ok {
-		connections[m.HostAndPort], err = sqlx.Open("mysql", fmt.Sprintf("root:@(%v)/?parseTime=true", m.HostAndPort))
-	}
-
-	return err
-}
-
 func (m *MysqlProcesslist) Run() error {
 	err := m.initConnection()
 	if err != nil {
@@ -53,11 +37,6 @@ func (m *MysqlProcesslist) Run() error {
 	}
 
 	connection := connections[m.HostAndPort]
-
-	err = connection.Ping()
-	if err != nil {
-		return err
-	}
 
 	rows, err := connection.Queryx("SHOW FULL PROCESSLIST")
 	if err != nil {
