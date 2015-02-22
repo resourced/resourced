@@ -19,7 +19,7 @@ func TestMysqlProcesslistRun(t *testing.T) {
 		t.Errorf("Fetching processlist data should always be successful. Error: %v", err)
 	}
 
-	if len(m.Data["Processes"]) == 0 {
+	if len(m.Data) == 0 {
 		jsonData, _ := m.ToJson()
 		t.Errorf("Processlist data should never be empty. Data: %v", string(jsonData))
 	}
