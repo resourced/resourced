@@ -8,9 +8,16 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
+var connections map[string]*sqlx.DB
+
 func NewMysqlProcesslist() *MysqlProcesslist {
 	m := &MysqlProcesslist{}
 	m.Data = make(map[string][]Processlist)
+
+	if connections == nil {
+		connections = make(map[string]*sqlx.DB)
+	}
+
 	return m
 }
 
@@ -31,19 +38,30 @@ type Processlist struct {
 	Info    sql.NullString `db:"Info"`
 }
 
+func (m *MysqlProcesslist) initConnection() error {
+	var err error
+
+	if _, ok := connections[m.HostAndPort]; !ok {
+		connections[m.HostAndPort], err = sqlx.Open("mysql", fmt.Sprintf("root:@(%v)/?parseTime=true", m.HostAndPort))
+	}
+
+	return err
+}
+
 func (m *MysqlProcesslist) Run() error {
-	sqlSession, err := sqlx.Open("mysql", fmt.Sprintf("root:@(%v)/?parseTime=true", m.HostAndPort))
+	err := m.initConnection()
 	if err != nil {
 		return err
 	}
 
-	err = sqlSession.Ping()
+	connection := connections[m.HostAndPort]
+
+	err = connection.Ping()
 	if err != nil {
 		return err
 	}
 
-	query := "SHOW FULL PROCESSLIST"
-	rows, err := sqlSession.Queryx(query)
+	rows, err := connection.Queryx("SHOW FULL PROCESSLIST")
 	if err != nil {
 		return err
 	}
