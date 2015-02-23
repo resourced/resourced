@@ -105,6 +105,9 @@ func NewGoStruct(name string) (IReader, error) {
 	if name == "Uptime" {
 		structInstance = NewUptime()
 	}
+	if name == "DMI" {
+		structInstance = NewDMI()
+	}
 
 	if structInstance == nil {
 		return nil, errors.New("GoStruct is undefined.")
