@@ -1,0 +1,3 @@
+GoStruct = "DMI"
+Path = "/dmi"
+Interval = "300s"
