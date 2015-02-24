@@ -21,8 +21,14 @@ func (r *Base) initConnection() error {
 		r.HostAndPort = ":6379"
 	}
 
+	// Does the connection exist?
 	if _, ok := connections[r.HostAndPort]; !ok {
-		connections[r.HostAndPort], err = redis.Dial("tcp", r.HostAndPort)
+		// Are we able to establish a connection to it?
+		if conn, redisErr := redis.Dial("tcp", r.HostAndPort); redisErr == nil {
+			connections[r.HostAndPort] = conn
+		} else {
+			err = redisErr
+		}
 	}
 
 	return err
