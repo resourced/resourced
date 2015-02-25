@@ -3,12 +3,15 @@ package mysql
 import (
 	"fmt"
 	"github.com/jmoiron/sqlx"
+	"math"
+	"time"
 )
 
 var connections map[string]*sqlx.DB
 
 type Base struct {
 	HostAndPort string
+	Retries     int
 }
 
 func (m *Base) initConnection() error {
@@ -18,11 +21,41 @@ func (m *Base) initConnection() error {
 		connections = make(map[string]*sqlx.DB)
 	}
 
-	if _, ok := connections[m.HostAndPort]; !ok {
-		connections[m.HostAndPort], err = sqlx.Open("mysql", fmt.Sprintf("root:@(%v)/?parseTime=true", m.HostAndPort))
+	if m.Retries <= 0 {
+		m.Retries = 10
 	}
 
-	err = connections[m.HostAndPort].Ping()
+	createConnection := func() error {
+		// Do not create connection if one already exist.
+		if existingConnection, ok := connections[m.HostAndPort]; ok && existingConnection != nil {
+			return nil
+		}
+
+		conn, connectionError := sqlx.Open("mysql", fmt.Sprintf("root:@(%v)/?parseTime=true", m.HostAndPort))
+		if connectionError == nil && conn != nil {
+			connections[m.HostAndPort] = conn
+		}
+
+		return connectionError
+	}
+
+	for i := 0; i < m.Retries; i++ {
+		connectionError := createConnection()
+
+		if connectionError != nil {
+			time.Sleep(time.Duration(math.Pow(2, float64(i))) * time.Second)
+			continue
+		}
+
+		pingError := connections[m.HostAndPort].Ping()
+		if pingError != nil {
+			connectionError = createConnection()
+			time.Sleep(time.Duration(math.Pow(2, float64(i))) * time.Second)
+		} else {
+			break
+		}
+
+	}
 
 	return err
 }
