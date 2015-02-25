@@ -25,7 +25,11 @@ func (di *DockerImages) Run() error {
 
 	for _, image := range images {
 		if image.ID != "" {
-			di.Data[image.ID] = image
+			if len(image.RepoTags) > 0 {
+				di.Data[image.RepoTags[0]+"-"+image.ID] = image
+			} else {
+				di.Data[image.ID] = image
+			}
 		}
 	}
 
