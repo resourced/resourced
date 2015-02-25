@@ -8,6 +8,8 @@ import (
 	"sync"
 )
 
+var connections map[string]*dockerclient.Client
+
 type CompleteDockerContainer struct {
 	NiceImageName string `json:"NiceImageName,omitempty" yaml:"NiceImageName,omitempty"`
 	Command       string `json:"Command,omitempty" yaml:"Command,omitempty"`
@@ -24,11 +26,23 @@ type CompleteDockerImage struct {
 
 // DockerClient returns dockerclient.Client which handles Docker connection.
 func DockerClient(endpoint string) (*dockerclient.Client, error) {
+	var conn *dockerclient.Client
+	var err error
+
 	if endpoint == "" {
 		endpoint = os.Getenv("DOCKER_HOST")
 		if endpoint == "" {
 			endpoint = "unix:///var/run/docker.sock"
 		}
+	}
+
+	if connections == nil {
+		connections = make(map[string]*dockerclient.Client)
+	}
+
+	// Do not create connection if one already exist.
+	if existingConnection, ok := connections[endpoint]; ok && existingConnection != nil {
+		return existingConnection, nil
 	}
 
 	dockerCertPath := os.Getenv("DOCKER_CERT_PATH")
@@ -37,10 +51,16 @@ func DockerClient(endpoint string) (*dockerclient.Client, error) {
 		key := path.Join(dockerCertPath, "key.pem")
 		ca := path.Join(dockerCertPath, "ca.pem")
 
-		return dockerclient.NewTLSClient(endpoint, cert, key, ca)
+		conn, err = dockerclient.NewTLSClient(endpoint, cert, key, ca)
 	} else {
-		return dockerclient.NewClient(endpoint)
+		conn, err = dockerclient.NewClient(endpoint)
 	}
+
+	if err == nil && conn != nil {
+		connections[endpoint] = conn
+	}
+
+	return conn, err
 }
 
 // AllContainers is a convenience function to fetch a slice of all containers data.
