@@ -40,17 +40,17 @@ func (m *Base) initConnection() error {
 	}
 
 	for i := 0; i < m.Retries; i++ {
-		connectionError := createConnection()
+		err = createConnection()
 
-		if connectionError != nil {
+		if err != nil {
 			time.Sleep(time.Duration(math.Pow(2, float64(i))) * time.Second)
 			continue
 		}
 
-		pingError := connections[m.HostAndPort].Ping()
-		if pingError != nil {
-			connectionError = createConnection()
+		err = connections[m.HostAndPort].Ping()
+		if err != nil {
 			time.Sleep(time.Duration(math.Pow(2, float64(i))) * time.Second)
+			continue
 		} else {
 			break
 		}
