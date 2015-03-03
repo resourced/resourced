@@ -133,6 +133,7 @@ func AllInspectedContainers(endpoint string) ([]*CompleteDockerContainer, error)
 	}()
 
 	wg.Wait()
+	close(containersChan)
 
 	return containers, nil
 }
@@ -201,6 +202,7 @@ func AllInspectedImages(endpoint string) ([]*CompleteDockerImage, error) {
 	}()
 
 	wg.Wait()
+	close(imagesChan)
 
 	return images, nil
 }
