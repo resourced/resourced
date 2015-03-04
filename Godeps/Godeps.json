@@ -1,6 +1,6 @@
 {
 	"ImportPath": "github.com/resourced/resourced",
-	"GoVersion": "go1.4",
+	"GoVersion": "go1.3",
 	"Deps": [
 		{
 			"ImportPath": "github.com/BurntSushi/toml",
@@ -25,36 +25,6 @@
 		{
 			"ImportPath": "github.com/julienschmidt/httprouter",
 			"Rev": "91101d17f079ca3c05c6e00354e914a35aa0d3e7"
-		},
-		{
-			"ImportPath": "github.com/shirou/gopsutil/common",
-			"Comment": "1.0.0-4-g1f5941f",
-			"Rev": "1f5941f396229aff41e88c31570da4646cc6c7df"
-		},
-		{
-			"ImportPath": "github.com/shirou/gopsutil/cpu",
-			"Comment": "1.0.0-4-g1f5941f",
-			"Rev": "1f5941f396229aff41e88c31570da4646cc6c7df"
-		},
-		{
-			"ImportPath": "github.com/shirou/gopsutil/disk",
-			"Comment": "1.0.0-4-g1f5941f",
-			"Rev": "1f5941f396229aff41e88c31570da4646cc6c7df"
-		},
-		{
-			"ImportPath": "github.com/shirou/gopsutil/host",
-			"Comment": "1.0.0-4-g1f5941f",
-			"Rev": "1f5941f396229aff41e88c31570da4646cc6c7df"
-		},
-		{
-			"ImportPath": "github.com/shirou/gopsutil/net",
-			"Comment": "1.0.0-4-g1f5941f",
-			"Rev": "1f5941f396229aff41e88c31570da4646cc6c7df"
-		},
-		{
-			"ImportPath": "github.com/shirou/gopsutil/process",
-			"Comment": "1.0.0-4-g1f5941f",
-			"Rev": "1f5941f396229aff41e88c31570da4646cc6c7df"
 		}
 	]
 }

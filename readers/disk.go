@@ -2,7 +2,7 @@ package readers
 
 import (
 	"encoding/json"
-	gopsutil_disk "github.com/shirou/gopsutil/disk"
+	gopsutil_disk "github.com/resourced/resourced/vendor/gopsutil/disk"
 )
 
 // NewDiskPartitions is DiskPartitions constructor.

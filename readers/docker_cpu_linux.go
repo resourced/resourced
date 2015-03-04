@@ -5,8 +5,8 @@ package readers
 import (
 	"encoding/json"
 	"github.com/resourced/resourced/libdocker"
-	gopsutil_cpu "github.com/shirou/gopsutil/cpu"
-	gopsutil_docker "github.com/shirou/gopsutil/docker"
+	gopsutil_cpu "github.com/resourced/resourced/vendor/gopsutil/cpu"
+	gopsutil_docker "github.com/resourced/resourced/vendor/gopsutil/docker"
 )
 
 func NewDockerContainersCpu() *DockerContainersCpu {

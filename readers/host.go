@@ -2,7 +2,7 @@ package readers
 
 import (
 	"encoding/json"
-	gopsutil_host "github.com/shirou/gopsutil/host"
+	gopsutil_host "github.com/resourced/resourced/vendor/gopsutil/host"
 )
 
 func NewHostInfo() *HostInfo {

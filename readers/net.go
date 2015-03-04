@@ -2,7 +2,7 @@ package readers
 
 import (
 	"encoding/json"
-	gopsutil_net "github.com/shirou/gopsutil/net"
+	gopsutil_net "github.com/resourced/resourced/vendor/gopsutil/net"
 )
 
 func NewNetIO() *NetIO {

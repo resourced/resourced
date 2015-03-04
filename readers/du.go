@@ -3,7 +3,7 @@ package readers
 import (
 	"encoding/json"
 	"github.com/cloudfoundry/gosigar"
-	gopsutil_disk "github.com/shirou/gopsutil/disk"
+	gopsutil_disk "github.com/resourced/resourced/vendor/gopsutil/disk"
 )
 
 func NewDu() *Du {

@@ -2,7 +2,7 @@ package readers
 
 import (
 	"encoding/json"
-	gopsutil_cpu "github.com/shirou/gopsutil/cpu"
+	gopsutil_cpu "github.com/resourced/resourced/vendor/gopsutil/cpu"
 )
 
 // NewCpuInfo is CpuInfo constructor.

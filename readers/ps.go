@@ -3,7 +3,7 @@ package readers
 import (
 	"encoding/json"
 	"github.com/cloudfoundry/gosigar"
-	gopsutil_process "github.com/shirou/gopsutil/process"
+	gopsutil_process "github.com/resourced/resourced/vendor/gopsutil/process"
 	"strconv"
 )
 

@@ -5,7 +5,7 @@ package readers
 import (
 	"encoding/json"
 	"github.com/resourced/resourced/libdocker"
-	gopsutil_docker "github.com/shirou/gopsutil/docker"
+	gopsutil_docker "github.com/resourced/resourced/vendor/gopsutil/docker"
 )
 
 func NewDockerContainersMemory() *DockerContainersMemory {
