@@ -120,8 +120,3 @@ func TestNetInterfaces(t *testing.T) {
 		}
 	}
 }
-
-func TestProcNetDev(t *testing.T) {
-	NetIOCounters(false)
-	ProcNetDev()
-}
