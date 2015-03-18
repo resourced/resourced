@@ -1,0 +1,3 @@
+GoStruct = "ProcNetDevPid"
+Path = "/proc/pid/net/dev"
+Interval = "3s"

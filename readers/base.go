@@ -87,6 +87,9 @@ func NewGoStruct(name string) (IReader, error) {
 	if name == "ProcNetDev" {
 		structInstance = readers_procfs.NewProcNetDev()
 	}
+	if name == "ProcNetDevPid" {
+		structInstance = readers_procfs.NewProcNetDevPid()
+	}
 	if name == "ProcStat" {
 		structInstance = readers_procfs.NewProcStat()
 	}
