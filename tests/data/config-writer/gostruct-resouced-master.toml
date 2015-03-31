@@ -1,12 +1,12 @@
-ReaderPaths = ["/load-avg", "/uptime", "/free"]
-Path = "/go/loadavg-uptime-free/resourced-master"
+ReaderPaths = ["/load-avg", "/uptime", "/free", "/net/interfaces"]
+Path = "/go/resourced-master"
 GoStruct = "ResourcedMaster"
 Interval = "3s"
 
 [GoStructFields]
-Url = "http://localhost:55655/api/app/1422768391479155523/hosts/my-hostname"
+Url = "http://localhost:55655/api/hosts"
 Method = "POST"
-Username = "abc123="
+Username = "juVYXPeJKZAxEdSzwHL89ac7O_ZjkiIpnD95SYTQ3l0="
 
 # Headers data structure is comma delimited string because:
 # * TOML map does not support dash as key.
