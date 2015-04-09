@@ -13,6 +13,7 @@ import (
 	resourced_readers "github.com/resourced/resourced/readers"
 	resourced_writers "github.com/resourced/resourced/writers"
 	"os"
+	"os/user"
 	"strings"
 	"time"
 )
@@ -65,11 +66,16 @@ func (a *Agent) setTags() {
 func (a *Agent) setDb() error {
 	var err error
 
+	usr, err := user.Current()
+	if err != nil {
+		return err
+	}
+
 	dbPath := os.Getenv("RESOURCED_DB")
 	if dbPath == "" {
-		dbPath = "~/resourced/db"
+		dbPath = usr.HomeDir + "/resourced/db"
 
-		err = os.MkdirAll(libstring.ExpandTildeAndEnv("~/resourced"), 0755)
+		err = os.MkdirAll(libstring.ExpandTildeAndEnv(usr.HomeDir+"/resourced"), 0755)
 		if err != nil {
 			return err
 		}
