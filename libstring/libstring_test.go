@@ -7,6 +7,15 @@ import (
 	"testing"
 )
 
+func TestReplaceTildeWithRoot(t *testing.T) {
+	path := "~/resourced"
+	toBeTested := strings.Replace(path, "~", "/root", 1)
+
+	if toBeTested != "/root/resourced" {
+		t.Errorf("~ is not expanded correctly. Path: %v", toBeTested)
+	}
+}
+
 func TestExpandTildeAndEnv(t *testing.T) {
 	toBeTested := ExpandTildeAndEnv("~/resourced")
 

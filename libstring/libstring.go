@@ -11,15 +11,18 @@ import (
 
 // ExpandTilde is a convenience function that expands ~ to full path.
 func ExpandTilde(path string) string {
-	usr, err := user.Current()
-	if err != nil || usr == nil {
-		return path
-	}
-
-	homeDir := usr.HomeDir
-
 	if path[:2] == "~/" {
-		path = strings.Replace(path, "~", homeDir, 1)
+		usr, err := user.Current()
+		if err != nil || usr == nil {
+			return path
+		}
+
+		if usr.Name == "root" {
+			path = strings.Replace(path, "~", "/root", 1)
+		} else {
+			path = strings.Replace(path, "~", usr.HomeDir, 1)
+		}
+
 	}
 	return path
 }
