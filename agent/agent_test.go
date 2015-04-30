@@ -177,7 +177,7 @@ func TestInitGoStructReader(t *testing.T) {
 	}
 
 	goStructField := reflect.ValueOf(reader).Elem().FieldByName("CgroupBasePath")
-	if goStructField.String() != "/sys/fs/cgroup/cpuacct/docker" {
+	if goStructField.String() != "/sys/fs/cgroup/memory/docker" {
 		t.Errorf("reader.CgroupBasePath is not set through the config. CgroupBasePath: %v", goStructField.String())
 	}
 }

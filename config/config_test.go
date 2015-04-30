@@ -20,7 +20,7 @@ func TestNewConfigStorage(t *testing.T) {
 }
 
 func TestNewReaderConfig(t *testing.T) {
-	config, err := NewConfig("$GOPATH/src/github.com/resourced/resourced/tests/data/config-reader/gostruct-docker-container-memory.toml", "reader")
+	config, err := NewConfig("$GOPATH/src/github.com/resourced/resourced/tests/data/config-reader/gostruct-docker-containers-memory.toml", "reader")
 	if err != nil {
 		t.Fatalf("Initializing Config should work. Error: %v", err)
 	}
@@ -34,7 +34,7 @@ func TestNewReaderConfig(t *testing.T) {
 	if config.Interval != "3s" {
 		t.Fatalf("Config is initialized incorrectly. config.Interval: %v", config.Interval)
 	}
-	if config.GoStructFields["CgroupBasePath"] != "/sys/fs/cgroup/cpuacct/docker" {
+	if config.GoStructFields["CgroupBasePath"] != "/sys/fs/cgroup/memory/docker" {
 		inJson, _ := json.Marshal(config.GoStructFields)
 		t.Fatalf("Config is initialized incorrectly. config.GoStructFields: %v", string(inJson))
 	}

@@ -19,6 +19,7 @@ func NewDockerContainersMemory() *DockerContainersMemory {
 // Data source: https://github.com/shirou/gopsutil/blob/master/docker/docker_linux.go
 type DockerContainersMemory struct {
 	Data           map[string]*gopsutil_docker.CgroupMemStat
+	DockerHost     string
 	CgroupBasePath string
 }
 
@@ -26,7 +27,7 @@ type DockerContainersMemory struct {
 // If you use container via systemd.slice, you could use
 // containerid = docker-<container id>.scope and base=/sys/fs/cgroup/memory/system.slice/
 func (m *DockerContainersMemory) Run() error {
-	containers, err := libdocker.AllContainers("")
+	containers, err := libdocker.AllContainers(m.DockerHost)
 	if err != nil {
 		return nil
 	}

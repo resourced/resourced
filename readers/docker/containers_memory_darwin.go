@@ -14,6 +14,7 @@ func NewDockerContainersMemory() *DockerContainersMemory {
 
 type DockerContainersMemory struct {
 	Data           map[string]string
+	DockerHost     string
 	CgroupBasePath string
 }
 

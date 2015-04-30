@@ -14,6 +14,7 @@ func NewDockerContainersNetDev() *DockerContainersNetDev {
 
 type DockerContainersNetDev struct {
 	Data           map[string]string
+	DockerHost     string
 	CgroupBasePath string
 }
 

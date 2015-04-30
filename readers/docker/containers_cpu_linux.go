@@ -22,6 +22,7 @@ func NewDockerContainersCpu() *DockerContainersCpu {
 // * https://github.com/shirou/gopsutil/blob/master/docker/docker_linux.go
 type DockerContainersCpu struct {
 	Data           map[string]*gopsutil_cpu.CPUTimesStat
+	DockerHost     string
 	CgroupBasePath string
 }
 
@@ -29,7 +30,7 @@ type DockerContainersCpu struct {
 // If you use container via systemd.slice, you could use
 // containerid = docker-<container id>.scope and base=/sys/fs/cgroup/cpuacct/system.slice/
 func (m *DockerContainersCpu) Run() error {
-	containers, err := libdocker.AllContainers("")
+	containers, err := libdocker.AllContainers(m.DockerHost)
 	if err != nil {
 		return nil
 	}

@@ -19,6 +19,7 @@ func NewDockerContainersNetDev() *DockerContainersNetDev {
 // Data source: https://github.com/shirou/gopsutil/blob/master/docker/docker_linux.go
 type DockerContainersNetDev struct {
 	Data           map[string]map[string]linuxproc.NetworkStat
+	DockerHost     string
 	CgroupBasePath string
 }
 
@@ -26,7 +27,7 @@ type DockerContainersNetDev struct {
 // If you use container via systemd.slice, you could use
 // containerid = docker-<container id>.scope and base=/sys/fs/cgroup/memory/system.slice/
 func (m *DockerContainersNetDev) Run() error {
-	containers, err := libdocker.AllInspectedContainers("")
+	containers, err := libdocker.AllInspectedContainers(m.DockerHost)
 	if err != nil {
 		return nil
 	}

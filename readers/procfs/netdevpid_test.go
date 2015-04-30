@@ -6,13 +6,6 @@ import (
 	"testing"
 )
 
-func TestNewProcNetDevPid(t *testing.T) {
-	p := NewProcNetDevPid()
-	if p.Data == nil {
-		t.Error("Reader data should never be nil.")
-	}
-}
-
 func TestNewProcNetDevPidRun(t *testing.T) {
 	p := NewProcNetDevPid()
 
