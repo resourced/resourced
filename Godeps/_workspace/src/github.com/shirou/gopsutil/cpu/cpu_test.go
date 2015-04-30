@@ -40,7 +40,7 @@ func TestCPUTimeStat_String(t *testing.T) {
 		System: 200.1,
 		Idle:   300.1,
 	}
-	e := `{"cpu":"cpu0","user":100.1,"system":200.1,"idle":300.1,"nice":0,"iowait":0,"irq":0,"softirq":0,"steal":0,"guest":0,"guest_nice":0,"stolen":0}`
+	e := `{"cpu":"cpu0","user":100.1,"system":200.1,"idle":300.1,"nice":0.0,"iowait":0.0,"irq":0.0,"softirq":0.0,"steal":0.0,"guest":0.0,"guest_nice":0.0,"stolen":0.0}`
 	if e != fmt.Sprintf("%v", v) {
 		t.Errorf("CPUTimesStat string is invalid: %v", v)
 	}
@@ -51,6 +51,9 @@ func TestCpuInfo(t *testing.T) {
 	if err != nil {
 		t.Errorf("error %v", err)
 	}
+	if len(v) == 0 {
+		t.Errorf("could not get CPU Info")
+	}
 	for _, vv := range v {
 		if vv.ModelName == "" {
 			t.Errorf("could not get CPU Info: %v", vv)
@@ -59,22 +62,27 @@ func TestCpuInfo(t *testing.T) {
 }
 
 func testCPUPercent(t *testing.T, percpu bool) {
-	v, err := CPUPercent(time.Millisecond, percpu)
-	if err != nil {
-		t.Errorf("error %v", err)
-	}
 	numcpu := runtime.NumCPU()
-	if (percpu && len(v) != numcpu) || (!percpu && len(v) != 1) {
-		t.Fatalf("wrong number of entries from CPUPercent: %v", v)
+	testCount := 3
+
+	if runtime.GOOS != "windows" {
+		testCount = 100
+		v, err := CPUPercent(time.Millisecond, percpu)
+		if err != nil {
+			t.Errorf("error %v", err)
+		}
+		if (percpu && len(v) != numcpu) || (!percpu && len(v) != 1) {
+			t.Fatalf("wrong number of entries from CPUPercent: %v", v)
+		}
 	}
-	for i := 0; i < 100; i++ {
+	for i := 0; i < testCount; i++ {
 		duration := time.Duration(10) * time.Microsecond
 		v, err := CPUPercent(duration, percpu)
 		if err != nil {
 			t.Errorf("error %v", err)
 		}
 		for _, percent := range v {
-			if percent < 0.0 || percent > 100.0*float32(numcpu) {
+			if percent < 0.0 || percent > 100.0*float64(numcpu) {
 				t.Fatalf("CPUPercent value is invalid: %f", percent)
 			}
 		}

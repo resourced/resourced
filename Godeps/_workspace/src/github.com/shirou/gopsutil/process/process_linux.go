@@ -132,7 +132,8 @@ func (p *Process) NumCtxSwitches() (*NumCtxSwitchesStat, error) {
 	return p.numCtxSwitches, nil
 }
 func (p *Process) NumFDs() (int32, error) {
-	return 0, common.NotImplementedError
+	numFds, _, err := p.fillFromfd()
+	return numFds, err
 }
 func (p *Process) NumThreads() (int32, error) {
 	return p.numThreads, nil
@@ -147,9 +148,6 @@ func (p *Process) CPUTimes() (*cpu.CPUTimesStat, error) {
 		return nil, err
 	}
 	return cpuTimes, nil
-}
-func (p *Process) CPUPercent() (int32, error) {
-	return 0, common.NotImplementedError
 }
 func (p *Process) CPUAffinity() ([]int32, error) {
 	return nil, common.NotImplementedError
@@ -453,7 +451,7 @@ func (p *Process) fillFromStatus() error {
 		case "State":
 			// get between "(" and ")"
 			s := strings.Index(value, "(") + 1
-			e := strings.Index(value, "(") + 1
+			e := strings.Index(value, ")")
 			p.status = value[s:e]
 		case "Uid":
 			p.uids = make([]int32, 0, 4)
@@ -545,6 +543,7 @@ func (p *Process) fillFromStat() (string, int32, *cpu.CPUTimesStat, int64, int32
 	if err != nil {
 		return "", 0, nil, 0, 0, err
 	}
+
 	stime, err := strconv.ParseFloat(fields[14], 64)
 	if err != nil {
 		return "", 0, nil, 0, 0, err
@@ -552,8 +551,8 @@ func (p *Process) fillFromStat() (string, int32, *cpu.CPUTimesStat, int64, int32
 
 	cpuTimes := &cpu.CPUTimesStat{
 		CPU:    "cpu",
-		User:   float32(utime * (1000 / ClockTicks)),
-		System: float32(stime * (1000 / ClockTicks)),
+		User:   float64(utime / ClockTicks),
+		System: float64(stime / ClockTicks),
 	}
 
 	bootTime, _ := host.BootTime()

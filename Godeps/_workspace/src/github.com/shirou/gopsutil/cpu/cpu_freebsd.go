@@ -46,33 +46,33 @@ func CPUTimes(percpu bool) ([]CPUTimesStat, error) {
 
 	for i := 0; i < ncpu; i++ {
 		offset := CPUStates * i
-		user, err := strconv.ParseFloat(cpuTimes[CPUser+offset], 32)
+		user, err := strconv.ParseFloat(cpuTimes[CPUser+offset], 64)
 		if err != nil {
 			return ret, err
 		}
-		nice, err := strconv.ParseFloat(cpuTimes[CPNice+offset], 32)
+		nice, err := strconv.ParseFloat(cpuTimes[CPNice+offset], 64)
 		if err != nil {
 			return ret, err
 		}
-		sys, err := strconv.ParseFloat(cpuTimes[CPSys+offset], 32)
+		sys, err := strconv.ParseFloat(cpuTimes[CPSys+offset], 64)
 		if err != nil {
 			return ret, err
 		}
-		idle, err := strconv.ParseFloat(cpuTimes[CPIdle+offset], 32)
+		idle, err := strconv.ParseFloat(cpuTimes[CPIdle+offset], 64)
 		if err != nil {
 			return ret, err
 		}
-		intr, err := strconv.ParseFloat(cpuTimes[CPIntr+offset], 32)
+		intr, err := strconv.ParseFloat(cpuTimes[CPIntr+offset], 64)
 		if err != nil {
 			return ret, err
 		}
 
 		c := CPUTimesStat{
-			User:   float32(user / ClocksPerSec),
-			Nice:   float32(nice / ClocksPerSec),
-			System: float32(sys / ClocksPerSec),
-			Idle:   float32(idle / ClocksPerSec),
-			Irq:    float32(intr / ClocksPerSec),
+			User:   float64(user / ClocksPerSec),
+			Nice:   float64(nice / ClocksPerSec),
+			System: float64(sys / ClocksPerSec),
+			Idle:   float64(idle / ClocksPerSec),
+			Irq:    float64(intr / ClocksPerSec),
 		}
 		if !percpu {
 			c.CPU = "cpu-total"

@@ -4,9 +4,12 @@ package process
 
 import (
 	"errors"
+	"fmt"
 	"syscall"
+	"time"
 	"unsafe"
 
+	"github.com/StackExchange/wmi"
 	"github.com/shirou/w32"
 
 	common "github.com/shirou/gopsutil/common"
@@ -41,14 +44,56 @@ type MemoryInfoExStat struct {
 type MemoryMapsStat struct {
 }
 
-func Pids() ([]int32, error) {
+type Win32_Process struct {
+	Name           string
+	ExecutablePath *string
+	CommandLine    *string
+	Priority       uint32
+	CreationDate   *time.Time
+	ProcessId      uint32
+	ThreadCount    uint32
 
+	/*
+		CSCreationClassName   string
+		CSName                string
+		Caption               *string
+		CreationClassName     string
+		Description           *string
+		ExecutionState        *uint16
+		HandleCount           uint32
+		KernelModeTime        uint64
+		MaximumWorkingSetSize *uint32
+		MinimumWorkingSetSize *uint32
+		OSCreationClassName   string
+		OSName                string
+		OtherOperationCount   uint64
+		OtherTransferCount    uint64
+		PageFaults            uint32
+		PageFileUsage         uint32
+		ParentProcessId       uint32
+		PeakPageFileUsage     uint32
+		PeakVirtualSize       uint64
+		PeakWorkingSetSize    uint32
+		PrivatePageCount      uint64
+		ReadOperationCount    uint64
+		ReadTransferCount     uint64
+		Status                *string
+		TerminationDate       *time.Time
+		UserModeTime          uint64
+		WorkingSetSize        uint64
+		WriteOperationCount   uint64
+		WriteTransferCount    uint64
+	*/
+}
+
+func Pids() ([]int32, error) {
 	var ret []int32
 
 	procs, err := processes()
 	if err != nil {
 		return ret, nil
 	}
+
 	for _, proc := range procs {
 		ret = append(ret, proc.Pid)
 	}
@@ -64,18 +109,43 @@ func (p *Process) Ppid() (int32, error) {
 	return ret, nil
 }
 func (p *Process) Name() (string, error) {
-	name := ""
-	return name, common.NotImplementedError
-}
-func (p *Process) Exe() (string, error) {
-	_, _, ret, err := p.getFromSnapProcess(p.Pid)
+	var dst []Win32_Process
+	query := fmt.Sprintf("WHERE ProcessId = %d", p.Pid)
+	q := wmi.CreateQuery(&dst, query)
+	err := wmi.Query(q, &dst)
 	if err != nil {
 		return "", err
 	}
-	return ret, nil
+	if len(dst) != 1 {
+		return "", fmt.Errorf("could not get Name")
+	}
+	return dst[0].Name, nil
+}
+func (p *Process) Exe() (string, error) {
+	var dst []Win32_Process
+	query := fmt.Sprintf("WHERE ProcessId = %d", p.Pid)
+	q := wmi.CreateQuery(&dst, query)
+	err := wmi.Query(q, &dst)
+	if err != nil {
+		return "", err
+	}
+	if len(dst) != 1 {
+		return "", fmt.Errorf("could not get ExecutablePath")
+	}
+	return *dst[0].ExecutablePath, nil
 }
 func (p *Process) Cmdline() (string, error) {
-	return "", common.NotImplementedError
+	var dst []Win32_Process
+	query := fmt.Sprintf("WHERE ProcessId = %d", p.Pid)
+	q := wmi.CreateQuery(&dst, query)
+	err := wmi.Query(q, &dst)
+	if err != nil {
+		return "", err
+	}
+	if len(dst) != 1 {
+		return "", fmt.Errorf("could not get CommandLine")
+	}
+	return *dst[0].CommandLine, nil
 }
 func (p *Process) Cwd() (string, error) {
 	return "", common.NotImplementedError
@@ -101,8 +171,20 @@ func (p *Process) Gids() ([]int32, error) {
 func (p *Process) Terminal() (string, error) {
 	return "", common.NotImplementedError
 }
+
+// Nice returnes priority in Windows
 func (p *Process) Nice() (int32, error) {
-	return 0, common.NotImplementedError
+	var dst []Win32_Process
+	query := fmt.Sprintf("WHERE ProcessId = %d", p.Pid)
+	q := wmi.CreateQuery(&dst, query)
+	err := wmi.Query(q, &dst)
+	if err != nil {
+		return 0, err
+	}
+	if len(dst) != 1 {
+		return 0, fmt.Errorf("could not get Priority")
+	}
+	return int32(dst[0].Priority), nil
 }
 func (p *Process) IOnice() (int32, error) {
 	return 0, common.NotImplementedError
@@ -122,11 +204,17 @@ func (p *Process) NumFDs() (int32, error) {
 	return 0, common.NotImplementedError
 }
 func (p *Process) NumThreads() (int32, error) {
-	_, ret, _, err := p.getFromSnapProcess(p.Pid)
+	var dst []Win32_Process
+	query := fmt.Sprintf("WHERE ProcessId = %d", p.Pid)
+	q := wmi.CreateQuery(&dst, query)
+	err := wmi.Query(q, &dst)
 	if err != nil {
 		return 0, err
 	}
-	return ret, nil
+	if len(dst) != 1 {
+		return 0, fmt.Errorf("could not get ThreadCount")
+	}
+	return int32(dst[0].ThreadCount), nil
 }
 func (p *Process) Threads() (map[string]string, error) {
 	ret := make(map[string]string, 0)
@@ -134,9 +222,6 @@ func (p *Process) Threads() (map[string]string, error) {
 }
 func (p *Process) CPUTimes() (*cpu.CPUTimesStat, error) {
 	return nil, common.NotImplementedError
-}
-func (p *Process) CPUPercent() (int32, error) {
-	return 0, common.NotImplementedError
 }
 func (p *Process) CPUAffinity() ([]int32, error) {
 	return nil, common.NotImplementedError
@@ -223,21 +308,21 @@ func (p *Process) getFromSnapProcess(pid int32) (int32, int32, string, error) {
 
 // Get processes
 func processes() ([]*Process, error) {
-	ps := make([]uint32, 255)
-	var read uint32
-	if w32.EnumProcesses(ps, uint32(len(ps)), &read) == false {
-		return nil, syscall.GetLastError()
-	}
 
-	var results []*Process
-	dwardSize := uint32(4)
-	for _, pid := range ps[:read/dwardSize] {
-		if pid == 0 {
-			continue
-		}
-		p, err := NewProcess(int32(pid))
+	var dst []Win32_Process
+	q := wmi.CreateQuery(&dst, "")
+	err := wmi.Query(q, &dst)
+	if err != nil {
+		return []*Process{}, err
+	}
+	if len(dst) == 0 {
+		return []*Process{}, fmt.Errorf("could not get Process")
+	}
+	results := make([]*Process, 0, len(dst))
+	for _, proc := range dst {
+		p, err := NewProcess(int32(proc.ProcessId))
 		if err != nil {
-			break
+			continue
 		}
 		results = append(results, p)
 	}

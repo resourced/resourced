@@ -3,11 +3,27 @@
 package cpu
 
 import (
+	"fmt"
 	"syscall"
+	"time"
 	"unsafe"
+
+	"github.com/StackExchange/wmi"
 
 	common "github.com/shirou/gopsutil/common"
 )
+
+type Win32_Processor struct {
+	LoadPercentage            uint16
+	L2CacheSize               uint32
+	Family                    uint16
+	Manufacturer              string
+	Name                      string
+	NumberOfLogicalProcessors uint32
+	ProcessorId               string
+	Stepping                  *string
+	MaxClockSpeed             uint32
+}
 
 // TODO: Get percpu
 func CPUTimes(percpu bool) ([]CPUTimesStat, error) {
@@ -32,14 +48,50 @@ func CPUTimes(percpu bool) ([]CPUTimesStat, error) {
 	system := (kernel - idle)
 
 	ret = append(ret, CPUTimesStat{
-		Idle:   float32(idle),
-		User:   float32(user),
-		System: float32(system),
+		Idle:   float64(idle),
+		User:   float64(user),
+		System: float64(system),
 	})
 	return ret, nil
 }
 
 func CPUInfo() ([]CPUInfoStat, error) {
 	var ret []CPUInfoStat
+	var dst []Win32_Processor
+	q := wmi.CreateQuery(&dst, "")
+	err := wmi.Query(q, &dst)
+	if err != nil {
+		return ret, err
+	}
+	for i, l := range dst {
+		cpu := CPUInfoStat{
+			CPU:        int32(i),
+			Family:     fmt.Sprintf("%d", l.Family),
+			CacheSize:  int32(l.L2CacheSize),
+			VendorID:   l.Manufacturer,
+			ModelName:  l.Name,
+			Cores:      int32(l.NumberOfLogicalProcessors),
+			PhysicalID: l.ProcessorId,
+			Mhz:        float64(l.MaxClockSpeed),
+			Flags:      []string{},
+		}
+		ret = append(ret, cpu)
+	}
+
+	return ret, nil
+}
+
+func CPUPercent(interval time.Duration, percpu bool) ([]float64, error) {
+	var ret []float64
+	var dst []Win32_Processor
+	q := wmi.CreateQuery(&dst, "")
+	err := wmi.Query(q, &dst)
+	if err != nil {
+		return ret, err
+	}
+	for _, l := range dst {
+		// use range but windows can only get one percent.
+		ret = append(ret, float64(l.LoadPercentage)/100.0)
+	}
 	return ret, nil
 }

@@ -1,16 +1,21 @@
 {
 	"ImportPath": "github.com/resourced/resourced",
-	"GoVersion": "go1.4",
+	"GoVersion": "go1.4.2",
 	"Deps": [
 		{
 			"ImportPath": "github.com/BurntSushi/toml",
-			"Comment": "v0.1.0-9-g3883ac1",
-			"Rev": "3883ac1ce943878302255f538fce319d23226223"
+			"Comment": "v0.1.0-18-g443a628",
+			"Rev": "443a628bc233f634a75bcbdd71fe5350789f1afa"
+		},
+		{
+			"ImportPath": "github.com/Sirupsen/logrus",
+			"Comment": "v0.7.2-2-ge00ed35",
+			"Rev": "e00ed35f54d331c88f1867a18a7bfc4e4e4685ac"
 		},
 		{
 			"ImportPath": "github.com/boltdb/bolt",
-			"Comment": "v1.0-5-g33e7a07",
-			"Rev": "33e7a074e2c470b6d0b7ee23322a1c4cc759044b"
+			"Comment": "v1.0-59-g8b138fd",
+			"Rev": "8b138fd106636b40b4b6d43786e668ce658aa3d7"
 		},
 		{
 			"ImportPath": "github.com/cloudfoundry/gosigar",
@@ -18,43 +23,105 @@
 			"Rev": "c36220e40949db17f92b2d7eaf0355eada43993a"
 		},
 		{
+			"ImportPath": "github.com/docker/docker/pkg/archive",
+			"Comment": "v1.4.1-3008-g6cba310",
+			"Rev": "6cba3109c2a9c0c20d2541605a9aa7873225a224"
+		},
+		{
+			"ImportPath": "github.com/docker/docker/pkg/fileutils",
+			"Comment": "v1.4.1-3008-g6cba310",
+			"Rev": "6cba3109c2a9c0c20d2541605a9aa7873225a224"
+		},
+		{
+			"ImportPath": "github.com/docker/docker/pkg/ioutils",
+			"Comment": "v1.4.1-3008-g6cba310",
+			"Rev": "6cba3109c2a9c0c20d2541605a9aa7873225a224"
+		},
+		{
+			"ImportPath": "github.com/docker/docker/pkg/pools",
+			"Comment": "v1.4.1-3008-g6cba310",
+			"Rev": "6cba3109c2a9c0c20d2541605a9aa7873225a224"
+		},
+		{
+			"ImportPath": "github.com/docker/docker/pkg/promise",
+			"Comment": "v1.4.1-3008-g6cba310",
+			"Rev": "6cba3109c2a9c0c20d2541605a9aa7873225a224"
+		},
+		{
+			"ImportPath": "github.com/docker/docker/pkg/system",
+			"Comment": "v1.4.1-3008-g6cba310",
+			"Rev": "6cba3109c2a9c0c20d2541605a9aa7873225a224"
+		},
+		{
+			"ImportPath": "github.com/docker/docker/vendor/src/code.google.com/p/go/src/pkg/archive/tar",
+			"Comment": "v1.4.1-3008-g6cba310",
+			"Rev": "6cba3109c2a9c0c20d2541605a9aa7873225a224"
+		},
+		{
+			"ImportPath": "github.com/dselans/dmidecode",
+			"Rev": "08eabb429b4ad1353e56dd634048b05d811ba062"
+		},
+		{
+			"ImportPath": "github.com/fsouza/go-dockerclient",
+			"Comment": "0.2.1-429-gddb122d",
+			"Rev": "ddb122d10f547ee6cfc4ea7debff407d80abdabc"
+		},
+		{
+			"ImportPath": "github.com/garyburd/redigo/internal",
+			"Rev": "535138d7bcd717d6531c701ef5933d98b1866257"
+		},
+		{
+			"ImportPath": "github.com/garyburd/redigo/redis",
+			"Rev": "535138d7bcd717d6531c701ef5933d98b1866257"
+		},
+		{
 			"ImportPath": "github.com/go-fsnotify/fsnotify",
-			"Comment": "v1.1.0-11-g8f4d598",
-			"Rev": "8f4d59892a7165d85442ef9d4d701ef80c4466df"
+			"Comment": "v1.2.0",
+			"Rev": "96c060f6a6b7e0d6f75fddd10efeaca3e5d1bcb0"
+		},
+		{
+			"ImportPath": "github.com/go-sql-driver/mysql",
+			"Comment": "v1.2-88-ga197e5d",
+			"Rev": "a197e5d40516f2e9f74dcee085a5f2d4604e94df"
+		},
+		{
+			"ImportPath": "github.com/jmoiron/sqlx",
+			"Comment": "sqlx-v1.0-67-g69738bd",
+			"Rev": "69738bd209812c5a381786011aff17944a384554"
 		},
 		{
 			"ImportPath": "github.com/julienschmidt/httprouter",
-			"Rev": "91101d17f079ca3c05c6e00354e914a35aa0d3e7"
+			"Rev": "999ba04938b528fb4fb859231ee929958b8db4a6"
 		},
 		{
 			"ImportPath": "github.com/shirou/gopsutil/common",
-			"Comment": "1.0.0-4-g1f5941f",
-			"Rev": "1f5941f396229aff41e88c31570da4646cc6c7df"
+			"Comment": "1.0.0-64-g64357f0",
+			"Rev": "64357f04e785f61a86d993e486b0f9be54d44cb7"
 		},
 		{
 			"ImportPath": "github.com/shirou/gopsutil/cpu",
-			"Comment": "1.0.0-4-g1f5941f",
-			"Rev": "1f5941f396229aff41e88c31570da4646cc6c7df"
+			"Comment": "1.0.0-64-g64357f0",
+			"Rev": "64357f04e785f61a86d993e486b0f9be54d44cb7"
 		},
 		{
 			"ImportPath": "github.com/shirou/gopsutil/disk",
-			"Comment": "1.0.0-4-g1f5941f",
-			"Rev": "1f5941f396229aff41e88c31570da4646cc6c7df"
+			"Comment": "1.0.0-64-g64357f0",
+			"Rev": "64357f04e785f61a86d993e486b0f9be54d44cb7"
 		},
 		{
 			"ImportPath": "github.com/shirou/gopsutil/host",
-			"Comment": "1.0.0-4-g1f5941f",
-			"Rev": "1f5941f396229aff41e88c31570da4646cc6c7df"
+			"Comment": "1.0.0-64-g64357f0",
+			"Rev": "64357f04e785f61a86d993e486b0f9be54d44cb7"
 		},
 		{
 			"ImportPath": "github.com/shirou/gopsutil/net",
-			"Comment": "1.0.0-4-g1f5941f",
-			"Rev": "1f5941f396229aff41e88c31570da4646cc6c7df"
+			"Comment": "1.0.0-64-g64357f0",
+			"Rev": "64357f04e785f61a86d993e486b0f9be54d44cb7"
 		},
 		{
 			"ImportPath": "github.com/shirou/gopsutil/process",
-			"Comment": "1.0.0-4-g1f5941f",
-			"Rev": "1f5941f396229aff41e88c31570da4646cc6c7df"
+			"Comment": "1.0.0-64-g64357f0",
+			"Rev": "64357f04e785f61a86d993e486b0f9be54d44cb7"
 		}
 	]
 }

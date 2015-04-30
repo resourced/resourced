@@ -123,16 +123,29 @@ type Router struct {
 	// handle is registered for it.
 	// First superfluous path elements like ../ or // are removed.
 	// Afterwards the router does a case-insensitive lookup of the cleaned path.
-	// If a handle can be found for this route, the router makes a  redirection
+	// If a handle can be found for this route, the router makes a redirection
 	// to the corrected path with status code 301 for GET requests and 307 for
 	// all other request methods.
 	// For example /FOO and /..//Foo could be redirected to /foo.
 	// RedirectTrailingSlash is independent of this option.
 	RedirectFixedPath bool
 
+	// If enabled, the router checks if another method is allowed for the
+	// current route, if the current request can not be routed.
+	// If this is the case, the request is answered with 'Method Not Allowed'
+	// and HTTP status code 405.
+	// If no other Method is allowed, the request is delegated to the NotFound
+	// handler.
+	HandleMethodNotAllowed bool
+
 	// Configurable http.HandlerFunc which is called when no matching route is
 	// found. If it is not set, http.NotFound is used.
 	NotFound http.HandlerFunc
+
+	// Configurable http.HandlerFunc which is called when a request
+	// cannot be routed and HandleMethodNotAllowed is true.
+	// If it is not set, http.Error with http.StatusMethodNotAllowed is used.
+	MethodNotAllowed http.HandlerFunc
 
 	// Function to handle panics recovered from http handlers.
 	// It should be used to generate a error page and return the http error code
@@ -149,8 +162,9 @@ var _ http.Handler = New()
 // Path auto-correction, including trailing slashes, is enabled by default.
 func New() *Router {
 	return &Router{
-		RedirectTrailingSlash: true,
-		RedirectFixedPath:     true,
+		RedirectTrailingSlash:  true,
+		RedirectFixedPath:      true,
+		HandleMethodNotAllowed: true,
 	}
 }
 
@@ -162,6 +176,11 @@ func (r *Router) GET(path string, handle Handle) {
 // HEAD is a shortcut for router.Handle("HEAD", path, handle)
 func (r *Router) HEAD(path string, handle Handle) {
 	r.Handle("HEAD", path, handle)
+}
+
+// OPTIONS is a shortcut for router.Handle("OPTIONS", path, handle)
+func (r *Router) OPTIONS(path string, handle Handle) {
+	r.Handle("OPTIONS", path, handle)
 }
 
 // POST is a shortcut for router.Handle("POST", path, handle)
@@ -223,11 +242,7 @@ func (r *Router) Handler(method, path string, handler http.Handler) {
 // HandlerFunc is an adapter which allows the usage of an http.HandlerFunc as a
 // request handle.
 func (r *Router) HandlerFunc(method, path string, handler http.HandlerFunc) {
-	r.Handle(method, path,
-		func(w http.ResponseWriter, req *http.Request, _ Params) {
-			handler(w, req)
-		},
-	)
+	r.Handler(method, path, handler)
 }
 
 // ServeFiles serves files from the given file system root.
@@ -261,6 +276,9 @@ func (r *Router) recv(w http.ResponseWriter, req *http.Request) {
 
 // Lookup allows the manual lookup of a method + path combo.
 // This is e.g. useful to build a framework around this router.
+// If the path was found, it returns the handle function and the path parameter
+// values. Otherwise the third return value indicates whether a redirection to
+// the same path with an extra / without the trailing slash should be performed.
 func (r *Router) Lookup(method, path string) (Handle, Params, bool) {
 	if root := r.trees[method]; root != nil {
 		return root.getValue(path)
@@ -309,6 +327,29 @@ func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 					http.Redirect(w, req, req.URL.String(), code)
 					return
 				}
+			}
+		}
+	}
+
+	// Handle 405
+	if r.HandleMethodNotAllowed {
+		for method := range r.trees {
+			// Skip the requested method - we already tried this one
+			if method == req.Method {
+				continue
+			}
+
+			handle, _, _ := r.trees[method].getValue(req.URL.Path)
+			if handle != nil {
+				if r.MethodNotAllowed != nil {
+					r.MethodNotAllowed(w, req)
+				} else {
+					http.Error(w,
+						http.StatusText(http.StatusMethodNotAllowed),
+						http.StatusMethodNotAllowed,
+					)
+				}
+				return
 			}
 		}
 	}

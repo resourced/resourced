@@ -54,14 +54,16 @@ func ReadLinesOffsetN(filename string, offset uint, n int) ([]string, error) {
 
 func IntToString(orig []int8) string {
 	ret := make([]byte, len(orig))
-	size := 0
+	size := -1
 	for i, o := range orig {
 		if o == 0 {
 			size = i
 			break
 		}
-
 		ret[i] = byte(o)
+	}
+	if size == -1 {
+		size = len(orig)
 	}
 
 	return string(ret[0:size])
@@ -111,7 +113,7 @@ func mustParseFloat64(val string) float64 {
 // Check the target string slice containes src or not
 func StringContains(target []string, src string) bool {
 	for _, t := range target {
-		if t == src {
+		if strings.TrimSpace(t) == src {
 			return true
 		}
 	}
