@@ -42,6 +42,9 @@ func NewGoStruct(name string) (IReader, error) {
 	if name == "DockerContainersCpu" {
 		structInstance = readers_docker.NewDockerContainersCpu()
 	}
+	if name == "DockerContainersNetDev" {
+		structInstance = readers_docker.NewDockerContainersNetDev()
+	}
 	if name == "Free" {
 		structInstance = NewFree()
 	}
