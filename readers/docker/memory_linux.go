@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"github.com/resourced/resourced/libdocker"
 	gopsutil_docker "github.com/shirou/gopsutil/docker"
+	"strings"
 )
 
 func NewDockerContainersMemory() *DockerContainersMemory {
@@ -22,17 +23,30 @@ type DockerContainersMemory struct {
 }
 
 // Run gathers cgroup memory information from cgroup itself.
+// If you use container via systemd.slice, you could use
+// containerid = docker-<container id>.scope and base=/sys/fs/cgroup/memory/system.slice/
 func (m *DockerContainersMemory) Run() error {
 	containers, err := libdocker.AllContainers("")
 	if err != nil {
 		return nil
 	}
 
+	// Check if using systemd.
+	useSystemd := false
+	if strings.Contains(m.CgroupBasePath, "/system.slice") {
+		useSystemd = true
+	}
+
 	for _, container := range containers {
 		if container.ID != "" {
-			data, err := gopsutil_docker.CgroupMem(container.ID, m.CgroupBasePath)
+			containerDir := container.ID
+			if useSystemd {
+				containerDir = "docker-" + container.ID + ".scope"
+			}
+
+			data, err := gopsutil_docker.CgroupMem(containerDir, m.CgroupBasePath)
 			if err == nil {
-				m.Data[container.ID] = data
+				m.Data[container.Image+"-"+container.ID] = data
 			}
 		}
 	}
