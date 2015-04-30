@@ -29,7 +29,7 @@ if ! grep -Fxq "# Go and ResourceD Evironment Variables" /home/vagrant/.bashrc ;
 fi
 
 # Install ResourceD
-mkdir -p $GOPATH/src/github.com/resourced/resourced && cd $GOPATH/src/github.com/resourced/resourced
+cd $GOPATH/src/github.com/resourced/resourced
 GOPATH=/go go get ./... && GOPATH=/go go install github.com/resourced/resourced
 mkdir -p /resourced && echo 'RESOURCED_DB=/resourced/db' > /etc/profile.d/resourced.sh
 
