@@ -85,6 +85,10 @@
 			"Rev": "a197e5d40516f2e9f74dcee085a5f2d4604e94df"
 		},
 		{
+			"ImportPath": "github.com/jmoiron/jsonq",
+			"Rev": "7c27c8eb9f6831555a4209f6a7d579159e766a3c"
+		},
+		{
 			"ImportPath": "github.com/jmoiron/sqlx",
 			"Comment": "sqlx-v1.0-67-g69738bd",
 			"Rev": "69738bd209812c5a381786011aff17944a384554"
@@ -92,6 +96,10 @@
 		{
 			"ImportPath": "github.com/julienschmidt/httprouter",
 			"Rev": "999ba04938b528fb4fb859231ee929958b8db4a6"
+		},
+		{
+			"ImportPath": "github.com/nytlabs/gojsonexplode",
+			"Rev": "8b76b95ceb6cb96cd4797a42a0201dbd618de9c2"
 		},
 		{
 			"ImportPath": "github.com/shirou/gopsutil/common",
