@@ -48,7 +48,10 @@ func TestSetReadersDataInBytes(t *testing.T) {
         "LoadAvg5m": 1.68798828125
     },
     "GoStruct": "LoadAvg",
-    "Hostname": "example.com",
+    "Host": {
+        "Name":"MacBook-Pro.local",
+        "Tags":[]
+    },
     "Interval": "1s",
     "Path": "/load-avg",
     "Tags": [ ],
