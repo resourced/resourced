@@ -2,7 +2,6 @@ package writers
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/jmoiron/jsonq"
 	"github.com/nytlabs/gojsonexplode"
 )
