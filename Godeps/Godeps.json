@@ -18,6 +18,10 @@
 			"Rev": "8b138fd106636b40b4b6d43786e668ce658aa3d7"
 		},
 		{
+			"ImportPath": "github.com/c9s/goprocinfo/linux",
+			"Rev": "40745db0a4b9834cfee6dcdf34ffde47cf262d48"
+		},
+		{
 			"ImportPath": "github.com/cloudfoundry/gosigar",
 			"Comment": "scotty_09012012-24-gc36220e",
 			"Rev": "c36220e40949db17f92b2d7eaf0355eada43993a"
@@ -49,6 +53,11 @@
 		},
 		{
 			"ImportPath": "github.com/docker/docker/pkg/system",
+			"Comment": "v1.4.1-3008-g6cba310",
+			"Rev": "6cba3109c2a9c0c20d2541605a9aa7873225a224"
+		},
+		{
+			"ImportPath": "github.com/docker/docker/pkg/units",
 			"Comment": "v1.4.1-3008-g6cba310",
 			"Rev": "6cba3109c2a9c0c20d2541605a9aa7873225a224"
 		},
@@ -85,6 +94,10 @@
 			"Rev": "a197e5d40516f2e9f74dcee085a5f2d4604e94df"
 		},
 		{
+			"ImportPath": "github.com/guillermo/go.procmeminfo",
+			"Rev": "be4355a9fb0e5340ebee5b05aafe85948eaccd1b"
+		},
+		{
 			"ImportPath": "github.com/jmoiron/jsonq",
 			"Rev": "7c27c8eb9f6831555a4209f6a7d579159e766a3c"
 		},
@@ -98,10 +111,6 @@
 			"Rev": "999ba04938b528fb4fb859231ee929958b8db4a6"
 		},
 		{
-			"ImportPath": "github.com/nytlabs/gojsonexplode",
-			"Rev": "8b76b95ceb6cb96cd4797a42a0201dbd618de9c2"
-		},
-		{
 			"ImportPath": "github.com/shirou/gopsutil/common",
 			"Comment": "1.0.0-64-g64357f0",
 			"Rev": "64357f04e785f61a86d993e486b0f9be54d44cb7"
@@ -113,6 +122,11 @@
 		},
 		{
 			"ImportPath": "github.com/shirou/gopsutil/disk",
+			"Comment": "1.0.0-64-g64357f0",
+			"Rev": "64357f04e785f61a86d993e486b0f9be54d44cb7"
+		},
+		{
+			"ImportPath": "github.com/shirou/gopsutil/docker",
 			"Comment": "1.0.0-64-g64357f0",
 			"Rev": "64357f04e785f61a86d993e486b0f9be54d44cb7"
 		},
