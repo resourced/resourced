@@ -53,7 +53,7 @@ def run_tests():
 
 if __name__ == '__main__':
     if len(sys.argv) == 2:
-        if sys.argv[1] in ["test", "tests"]:
+        if sys.argv[1].startswith('test'):
             run_tests()
     else:
         in_json = read()
