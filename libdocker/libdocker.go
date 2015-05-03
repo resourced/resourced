@@ -3,8 +3,10 @@ package libdocker
 
 import (
 	dockerclient "github.com/fsouza/go-dockerclient"
+	"github.com/resourced/resourced/libstring"
 	"os"
 	"path"
+	"strconv"
 	"sync"
 )
 
@@ -61,6 +63,82 @@ func DockerClient(endpoint string) (*dockerclient.Client, error) {
 	}
 
 	return conn, err
+}
+
+// InfoAndVersion is a convenience function to fetch info and version data.
+func InfoAndVersion(endpoint string) (map[string]interface{}, error) {
+	client, err := DockerClient(endpoint)
+	if err != nil {
+		return nil, err
+	}
+
+	version, err := client.Version()
+	if err != nil {
+		return nil, err
+	}
+
+	info, err := client.Info()
+	if err != nil {
+		return nil, err
+	}
+
+	versionAsMap := version.Map()
+	infoAsMap := info.Map()
+
+	data := make(map[string]interface{})
+
+	for key, value := range versionAsMap {
+		data[key] = value
+	}
+
+	data["Driver"] = make(map[string]interface{})
+
+	for key, value := range infoAsMap {
+		if libstring.StringInSlice(key, []string{"NGoroutines", "Containers", "Images", "MemTotal"}) {
+			data[key] = info.GetInt64(key)
+
+		} else if key == "NFd" {
+			data["NumFileDescriptors"] = info.GetInt64(key)
+
+		} else if key == "NEventsListener" {
+			data["NumEventsListeners"] = info.GetInt64(key)
+
+		} else if key == "NCPU" {
+			data["NumCPUs"] = info.GetInt64(key)
+
+		} else if libstring.StringInSlice(key, []string{"Debug", "IPv4Forwarding", "MemoryLimit", "SwapLimit"}) {
+			data[key] = info.GetBool(key)
+
+		} else if key == "Driver" {
+			driverMap := data["Driver"].(map[string]interface{})
+			driverMap["Name"] = value
+
+		} else if key == "DriverStatus" {
+			tupleSlice := make([][]string, 2)
+			info.GetJSON(key, &tupleSlice)
+
+			for _, tuple := range tupleSlice {
+				tupleKey := tuple[0]
+				tupleValue := tuple[1]
+
+				driverMap := data["Driver"].(map[string]interface{})
+
+				if tupleKey == "Root Dir" {
+					driverMap["RootDir"] = tupleValue
+				}
+				if tupleKey == "Dirs" {
+					tupleValueInt64, err := strconv.ParseInt(tupleValue, 10, 64)
+					if err == nil {
+						driverMap[tupleKey] = tupleValueInt64
+					}
+				}
+			}
+		} else {
+			data[key] = value
+		}
+	}
+
+	return data, nil
 }
 
 // AllContainers is a convenience function to fetch a slice of all containers data.

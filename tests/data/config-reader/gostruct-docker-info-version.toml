@@ -1,0 +1,3 @@
+GoStruct = "DockerInfoVersion"
+Path = "/docker/info-version"
+Interval = "3s"

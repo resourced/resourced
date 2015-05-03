@@ -50,3 +50,13 @@ func GeneratePassword(size int) (string, error) {
 
 	return base64.URLEncoding.EncodeToString(rb), nil
 }
+
+// StringInSlice search exact match in a slice of strings.
+func StringInSlice(beingSearched string, list []string) bool {
+	for _, b := range list {
+		if b == beingSearched {
+			return true
+		}
+	}
+	return false
+}

@@ -30,6 +30,9 @@ func NewGoStruct(name string) (IReader, error) {
 	if name == "DiskIO" {
 		structInstance = NewDiskIO()
 	}
+	if name == "DockerInfoVersion" {
+		structInstance = readers_docker.NewDockerInfoVersion()
+	}
 	if name == "DockerContainers" {
 		structInstance = readers_docker.NewDockerContainers()
 	}
