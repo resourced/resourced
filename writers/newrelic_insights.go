@@ -3,7 +3,6 @@ package writers
 import (
 	"encoding/json"
 	"github.com/jmoiron/jsonq"
-	"github.com/nytlabs/gojsonexplode"
 )
 
 // NewNewrelicInsights is NewrelicInsights constructor.
@@ -18,7 +17,7 @@ type NewrelicInsights struct {
 	EventType string
 }
 
-func (nr *NewrelicInsights) flattenDataBeforeToJson(data map[string]interface{}) map[string]interface{} {
+func (nr *NewrelicInsights) reformatDataBeforeToJson(data map[string]interface{}) map[string]interface{} {
 	newReadersData := make(map[string]interface{})
 
 	hasOnlyOneReadersData := len(data) == 1
@@ -51,10 +50,5 @@ func (nr *NewrelicInsights) flattenDataBeforeToJson(data map[string]interface{})
 
 // ToJson serialize Data field to JSON.
 func (nr *NewrelicInsights) ToJson() ([]byte, error) {
-	rawJson, err := json.Marshal(nr.flattenDataBeforeToJson(nr.Data))
-	if err != nil {
-		return rawJson, err
-	}
-
-	return gojsonexplode.Explodejson(rawJson, ".")
+	return json.Marshal(nr.reformatDataBeforeToJson(nr.Data))
 }

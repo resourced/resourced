@@ -53,7 +53,7 @@ func TestNewNewrelicInsightsToJson(t *testing.T) {
 		t.Errorf("jsonDataString shouldn't return error: %v", jsonDataString)
 	}
 
-	keysToTest := []string{"LoadAvg15m", "LoadAvg1m", "LoadAvg5m"}
+	keysToTest := []string{"LoadAvg15m", "LoadAvg1m", "LoadAvg5m", "Hostname", "eventType"}
 
 	for _, key := range keysToTest {
 		if !strings.Contains(jsonDataString, key) {
