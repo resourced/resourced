@@ -1,10 +1,22 @@
 package main
 
 import (
+	"github.com/Sirupsen/logrus"
 	resourced_agent "github.com/resourced/resourced/agent"
 	"os"
 	"runtime"
 )
+
+func init() {
+	logLevelString := os.Getenv("RESOURCED_LOG_LEVEL")
+	if logLevelString == "" {
+		logLevelString = "info"
+	}
+	logLevel, err := logrus.ParseLevel(logLevelString)
+	if err == nil {
+		logrus.SetLevel(logLevel)
+	}
+}
 
 // main runs the web server for resourced.
 func main() {

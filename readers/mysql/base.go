@@ -1,3 +1,4 @@
+// Package mysql gathers MySQL related data from a host.
 package mysql
 
 import (

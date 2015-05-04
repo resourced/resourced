@@ -34,6 +34,8 @@ ResourceD accepts a few environment variables as configuration:
 
 * **RESOURCED_CONFIG_WRITER_DIR:** Path to writers config directory (Required). Default: ""
 
+* **RESOURCED_LOG_LEVEL:** Log level. Default: "info"
+
 * **RESOURCED_ADDR:** The HTTP server host and port. Default: ":55555"
 
 * **RESOURCED_CERT_FILE:** Path to cert file. Default: ""

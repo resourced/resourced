@@ -1,3 +1,4 @@
+// Package redis gathers Redis related data from a host.
 package redis
 
 import (
