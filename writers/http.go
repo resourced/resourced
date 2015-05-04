@@ -73,9 +73,11 @@ func (h *Http) NewHttpRequest(dataJson []byte) (*http.Request, error) {
 
 // Run executes the writer.
 func (h *Http) Run() error {
-	h.Data = h.GetReadersData()
-	dataJson, err := h.ToJson()
+	if h.Data == nil {
+		return errors.New("Data field is nil.")
+	}
 
+	dataJson, err := h.ToJson()
 	if err != nil {
 		return err
 	}

@@ -2,9 +2,11 @@
 package writers
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	resourced_config "github.com/resourced/resourced/config"
+	"github.com/resourced/resourced/libprocess"
 	"github.com/resourced/resourced/libstring"
 	"reflect"
 )
@@ -61,13 +63,16 @@ type IWriter interface {
 	SetReadersDataInBytes(map[string][]byte)
 	SetReadersData(map[string]interface{})
 	GetReadersData() map[string]interface{}
+	SetData(interface{})
+	GetData() interface{}
 	GetJsonProcessor() string
+	GenerateData() error
 	ToJson() ([]byte, error)
 }
 
 type Base struct {
 	ReadersData   map[string]interface{}
-	Data          map[string]interface{}
+	Data          interface{}
 	JsonProcessor string
 }
 
@@ -101,6 +106,16 @@ func (b *Base) GetReadersData() map[string]interface{} {
 	return b.ReadersData
 }
 
+// SetData assigns Data field.
+func (b *Base) SetData(data interface{}) {
+	b.Data = data
+}
+
+// GetData returns Data field.
+func (b *Base) GetData() interface{} {
+	return b.Data
+}
+
 // GetJsonProcessor returns json processor path.
 func (b *Base) GetJsonProcessor() string {
 	path := ""
@@ -108,6 +123,46 @@ func (b *Base) GetJsonProcessor() string {
 		path = libstring.ExpandTildeAndEnv(b.JsonProcessor)
 	}
 	return path
+}
+
+// GenerateData pulls ReadersData field and set it to Data field.
+// If JsonProcessor is defined, use it to mangle JSON and save the new JSON on Data field.
+func (b *Base) GenerateData() error {
+	var err error
+
+	processorPath := b.GetJsonProcessor()
+	if processorPath == "" {
+		// If there's no JsonProcessor
+		b.SetData(b.GetReadersData())
+
+	} else {
+		// If there is a JsonProcessor
+		cmd := libprocess.NewCmd(processorPath)
+
+		readersData := b.GetReadersData()
+
+		readersDataJsonBytes, err := json.Marshal(readersData)
+		if err != nil {
+			return err
+		}
+
+		cmd.Stdin = bytes.NewReader(readersDataJsonBytes)
+
+		postProcessingDataBytes, err := cmd.Output()
+		if err != nil {
+			return err
+		}
+
+		var postProcessingData interface{}
+		err = json.Unmarshal(postProcessingDataBytes, &postProcessingData)
+		if err != nil {
+			return err
+		}
+
+		b.SetData(postProcessingData)
+	}
+
+	return err
 }
 
 // ToJson serialize Data field to JSON.

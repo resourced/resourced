@@ -28,19 +28,12 @@ func readersDataForNewrelicInsightsTest() map[string]interface{} {
 	return data
 }
 
-func newWriterForNewrelicInsightsTest() *NewrelicInsights {
+func TestNewNewrelicInsightsToJson(t *testing.T) {
 	n := NewNewrelicInsights()
 
 	readersData := make(map[string]interface{})
 	readersData["/load-avg"] = readersDataForNewrelicInsightsTest()
-
 	n.Data = readersData
-
-	return n
-}
-
-func TestNewNewrelicInsightsToJson(t *testing.T) {
-	n := newWriterForNewrelicInsightsTest()
 
 	jsonData, err := n.ToJson()
 	if err != nil {

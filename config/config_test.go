@@ -14,8 +14,8 @@ func TestNewConfigStorage(t *testing.T) {
 	if len(config.Readers) <= 0 {
 		t.Errorf("Length of reader config should > 0. config.Readers: %v", config.Readers)
 	}
-	if len(config.Writers) != 4 {
-		t.Errorf("Length of reader config should == 3. config.Writers: %v", config.Writers)
+	if len(config.Writers) <= 0 {
+		t.Errorf("Length of reader config should > 0. len(config.Writers): %v", len(config.Writers))
 	}
 }
 

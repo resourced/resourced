@@ -1,6 +1,7 @@
 package writers
 
 import (
+	"errors"
 	"fmt"
 )
 
@@ -17,7 +18,10 @@ type StdOut struct {
 
 // Run puts all readers data to STDOUT.
 func (s *StdOut) Run() error {
-	s.Data = s.GetReadersData()
+	if s.Data == nil {
+		return errors.New("Data field is nil.")
+	}
+
 	inJson, err := s.ToJson()
 
 	if err != nil {

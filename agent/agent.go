@@ -189,40 +189,6 @@ func (a *Agent) runCommand(config resourced_config.Config) ([]byte, error) {
 	return cmd.Output()
 }
 
-// processJson shells out external program to mangle JSON and save the new JSON on writer's ReadersData field.
-func (a *Agent) processJson(config resourced_config.Config, writer resourced_writers.IWriter) error {
-	processorPath := writer.GetJsonProcessor()
-	if processorPath == "" {
-		return nil
-	}
-
-	cmd := libprocess.NewCmd(processorPath)
-
-	readersData := writer.GetReadersData()
-
-	readersDataJsonBytes, err := json.Marshal(readersData)
-	if err != nil {
-		return err
-	}
-
-	cmd.Stdin = bytes.NewReader(readersDataJsonBytes)
-
-	newJsonDataBytes, err := cmd.Output()
-	if err != nil {
-		return err
-	}
-
-	var newJsonData map[string]interface{}
-	err = json.Unmarshal(newJsonDataBytes, &newJsonData)
-	if err != nil {
-		return err
-	}
-
-	writer.SetReadersData(newJsonData)
-
-	return err
-}
-
 // initGoStructReader initialize and return IReader.
 func (a *Agent) initGoStructReader(config resourced_config.Config) (resourced_readers.IReader, error) {
 	return resourced_readers.NewGoStructByConfig(config)
@@ -282,7 +248,7 @@ func (a *Agent) runGoStructWriter(config resourced_config.Config) ([]byte, error
 		return nil, err
 	}
 
-	err = a.processJson(config, writer)
+	err = writer.GenerateData()
 	if err != nil {
 		return nil, err
 	}
