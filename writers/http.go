@@ -3,6 +3,8 @@ package writers
 import (
 	"bytes"
 	"errors"
+	"github.com/Sirupsen/logrus"
+	"io/ioutil"
 	"net/http"
 	"strings"
 )
@@ -89,10 +91,31 @@ func (h *Http) Run() error {
 
 	client := &http.Client{}
 	resp, err := client.Do(req)
+
 	if err != nil {
+		logrus.WithFields(logrus.Fields{
+			"Error":      err.Error(),
+			"Function":   "func (h *Http) Run() error",
+			"req.URL":    req.URL.String(),
+			"req.Method": req.Method,
+		}).Error("Failed to send HTTP request")
+
 		return err
 	}
-	defer resp.Body.Close()
+
+	if resp.Body != nil {
+		respBody, err := ioutil.ReadAll(resp.Body)
+		if err == nil {
+			logrus.WithFields(logrus.Fields{
+				"Function":   "func (h *Http) Run() error",
+				"req.URL":    req.URL.String(),
+				"req.Method": req.Method,
+				"resp.Body":  string(respBody),
+			}).Info("Logging resp.Body")
+		}
+
+		resp.Body.Close()
+	}
 
 	return nil
 }
