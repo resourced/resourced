@@ -1,14 +1,14 @@
 [![GoDoc](https://godoc.org/github.com/resourced/resourced?status.svg)](http://godoc.org/github.com/resourced/resourced)
 [![license](http://img.shields.io/badge/license-MIT-red.svg?style=flat)](https://raw.githubusercontent.com/resourced/resourced/master/LICENSE.md)
 
-**ResourceD** A single binary daemon that collects and report your server data with ease.
+**ResourceD:** A single binary daemon that collects and report your server data with ease.
 
 
 ## Installation
 
 1. Download the binary release [here](https://github.com/resourced/resourced/releases).
 
-2. Use supervisor/upstart/systemd to daemonize [Examples](https://github.com/resourced/resourced/tree/master/tests/data/script-init).
+2. Use supervisor/upstart/systemd to daemonize. [Click here for examples](https://github.com/resourced/resourced/tree/master/tests/data/script-init).
 
 
 ## Running in Development Environment
@@ -49,7 +49,7 @@ ResourceD data collector is called a reader. The quickest way to configure a rea
 
 1. Write the script following this one requirement: **Output the JSON data through STDOUT**
 
-2. Write config file [Examples](https://github.com/resourced/resourced/tree/master/tests/data/config-reader).
+2. Write config file. [Click here for examples](https://github.com/resourced/resourced/tree/master/tests/data/config-reader).
 
 For more info, [follow this link](https://github.com/resourced/resourced/tree/master/docs/users/DATA-COLLECTION.md).
 
