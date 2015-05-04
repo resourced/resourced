@@ -1,44 +1,44 @@
-[![GoDoc](https://godoc.org/github.com/resourced/resourced?status.svg)](http://godoc.org/github.com/resourced/resourced) [![license](http://img.shields.io/badge/license-MIT-red.svg?style=flat)](https://raw.githubusercontent.com/resourced/resourced/master/LICENSE.md)
+[![GoDoc](https://godoc.org/github.com/resourced/resourced?status.svg)](http://godoc.org/github.com/resourced/resourced)
+[![license](http://img.shields.io/badge/license-MIT-red.svg?style=flat)](https://raw.githubusercontent.com/resourced/resourced/master/LICENSE.md)
 
-**ResourceD** collects resources data inside host machine and perform the following:
-
-* Serves the data as HTTP+JSON.
-
-* Sends the data using custom programs.
+**ResourceD** A single binary daemon that collects and report your server data with ease.
 
 
 ## Installation
 
 1. Download the binary release [here](https://github.com/resourced/resourced/releases).
 
-2. Use supervisor/upstart/systemd to daemonize. You can follow examples [here](https://github.com/resourced/resourced/tree/master/tests/data/script-init).
+2. Use supervisor/upstart/systemd to daemonize [Examples](https://github.com/resourced/resourced/tree/master/tests/data/script-init).
 
 
 ## Running in Development Environment
 
-To find out what ResourceD has to offer, run the following command:
+ResourceD requires only 2 environment variables to run.
 ```bash
 RESOURCED_CONFIG_READER_DIR=$GOPATH/src/github.com/resourced/resourced/tests/data/config-reader \
 RESOURCED_CONFIG_WRITER_DIR=$GOPATH/src/github.com/resourced/resourced/tests/data/config-writer \
 go run $GOPATH/src/github.com/resourced/resourced/resourced.go
 ```
 
-Then open this URL: [http://localhost:55555/paths](http://localhost:55555/paths).
+Once you executed the command above, open this URL: [http://localhost:55555/paths](http://localhost:55555/paths).
+```bash
+curl -X GET -H "Content-type: application/json" http://localhost:55555/r/load-avg
+```
 
 
 ## Configuration
 
 ResourceD accepts a few environment variables as configuration:
 
+* **RESOURCED_CONFIG_READER_DIR:** Path to readers config directory (Required). Default: ""
+
+* **RESOURCED_CONFIG_WRITER_DIR:** Path to writers config directory (Required). Default: ""
+
 * **RESOURCED_ADDR:** The HTTP server host and port. Default: ":55555"
 
 * **RESOURCED_CERT_FILE:** Path to cert file. Default: ""
 
 * **RESOURCED_KEY_FILE:** Path to key file. Default: ""
-
-* **RESOURCED_CONFIG_READER_DIR:** Path to readers config directory. Default: ""
-
-* **RESOURCED_CONFIG_WRITER_DIR:** Path to writers config directory. Default: ""
 
 * **RESOURCED_TAGS:** Comma separated tags. Default: ""
 
@@ -47,20 +47,11 @@ ResourceD accepts a few environment variables as configuration:
 
 ResourceD data collector is called a reader. The quickest way to configure a reader is to use a script.
 
-1. Write your script following this one requirement: **Output the JSON data through STDOUT**
+1. Write the script following this one requirement: **Output the JSON data through STDOUT**
 
-2. Write ResourceD config file. [See examples here](https://github.com/resourced/resourced/tree/master/tests/data/config-reader).
+2. Write config file [Examples](https://github.com/resourced/resourced/tree/master/tests/data/config-reader).
 
 For more info, [follow this link](https://github.com/resourced/resourced/tree/master/docs/users/DATA-COLLECTION.md).
-
-
-## Reading Data from HTTP Interface
-
-If you follow the install instruction above, you should be able to GET load average data via cURL:
-
-```bash
-curl -X GET -H "Content-type: application/json" http://localhost:55555/r/load-avg
-```
 
 
 ### RESTful Endpoints
