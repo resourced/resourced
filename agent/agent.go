@@ -4,6 +4,8 @@ package agent
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
+	"github.com/Sirupsen/logrus"
 	"github.com/boltdb/bolt"
 	resourced_config "github.com/resourced/resourced/config"
 	resourced_host "github.com/resourced/resourced/host"
@@ -149,11 +151,21 @@ func (a *Agent) Run(config resourced_config.Config) (output []byte, err error) {
 	} else if config.GoStruct != "" && config.Kind == "writer" {
 		output, err = a.runGoStructWriter(config)
 	}
+
 	if err != nil {
-		return output, err
+		logrus.WithFields(logrus.Fields{
+			"Error":              err.Error(),
+			"Function":           "func (a *Agent) Run(config resourced_config.Config) (output []byte, err error)",
+			"config.Command":     config.Command,
+			"config.GoStruct":    config.GoStruct,
+			"config.Path":        config.Path,
+			"config.Interval":    config.Interval,
+			"config.Kind":        config.Kind,
+			"config.ReaderPaths": fmt.Sprintf("%s", config.ReaderPaths),
+		}).Error("Failed to execute agent.runCommand/runGoStructReader/runGoStructWriter(config)")
 	}
 
-	err = a.saveRun(config, output)
+	err = a.saveRun(config, output, err)
 
 	return output, err
 }
@@ -250,6 +262,17 @@ func (a *Agent) runGoStructWriter(config resourced_config.Config) ([]byte, error
 
 	err = writer.GenerateData()
 	if err != nil {
+		logrus.WithFields(logrus.Fields{
+			"Error":              err.Error(),
+			"Function":           "func (a *Agent) runGoStructWriter(config resourced_config.Config) ([]byte, error)",
+			"config.Command":     config.Command,
+			"config.GoStruct":    config.GoStruct,
+			"config.Path":        config.Path,
+			"config.Interval":    config.Interval,
+			"config.Kind":        config.Kind,
+			"config.ReaderPaths": fmt.Sprintf("%s", config.ReaderPaths),
+		}).Error("Failed to execute writer.GenerateData()")
+
 		return nil, err
 	}
 
@@ -288,7 +311,7 @@ func (a *Agent) hostData() (*resourced_host.Host, error) {
 	host.Tags = a.Tags
 
 	// Capture net/interfaces data
-	// TODO(didip): This is not trivial size of data. Comment it for now.
+	// TODO(didip): This is not trivial size of data. Move it to resourced-master.
 	// interfacesReader := resourced_readers.NewNetInterfaces()
 	// if interfacesReader.Run() == nil {
 	// 	host.NetworkInterfaces = make(map[string]map[string]interface{})
@@ -309,7 +332,7 @@ func (a *Agent) hostData() (*resourced_host.Host, error) {
 }
 
 // saveRun gathers basic, host, and reader/witer information and save them into local storage.
-func (a *Agent) saveRun(config resourced_config.Config, output []byte) error {
+func (a *Agent) saveRun(config resourced_config.Config, output []byte, err error) error {
 	// Do not perform save if config.Path is empty.
 	if config.Path == "" {
 		return nil
@@ -323,12 +346,19 @@ func (a *Agent) saveRun(config resourced_config.Config, output []byte) error {
 	}
 	record["Host"] = host
 
-	runData := make(map[string]interface{})
-	err = json.Unmarshal(output, &runData)
-	if err != nil {
-		return err
+	if err == nil {
+		runData := new(interface{})
+		err = json.Unmarshal(output, &runData)
+		if err != nil {
+			return err
+		}
+		record["Data"] = runData
+
+	} else {
+		errMap := make(map[string]string)
+		errMap["Error"] = err.Error()
+		record["Data"] = errMap
 	}
-	record["Data"] = runData
 
 	recordInJson, err := json.Marshal(record)
 	if err != nil {

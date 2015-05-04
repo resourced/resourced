@@ -1,7 +1,7 @@
 package agent
 
 import (
-	"fmt"
+	"github.com/Sirupsen/logrus"
 	"github.com/go-fsnotify/fsnotify"
 	resourced_config "github.com/resourced/resourced/config"
 	"os"
@@ -44,7 +44,11 @@ func (a *Agent) watchConfigDirectories(readerDir, writerDir string) error {
 		select {
 		case event := <-watcher.Events:
 			if (event.Op&fsnotify.Create == fsnotify.Create) || (event.Op&fsnotify.Remove == fsnotify.Remove) || (event.Op&fsnotify.Write == fsnotify.Write) || (event.Op&fsnotify.Rename == fsnotify.Rename) {
-				fmt.Println("Config files changed. Rebuilding ConfigStorage...")
+
+				logrus.WithFields(logrus.Fields{
+					"Function": "func (a *Agent) watchConfigDirectories(readerDir, writerDir string) error",
+					"event":    event.String(),
+				}).Info("Config files changed. Rebuilding ConfigStorage...")
 
 				configStorage, err := resourced_config.NewConfigStorage(readerDir, writerDir)
 				if err == nil {
@@ -53,7 +57,10 @@ func (a *Agent) watchConfigDirectories(readerDir, writerDir string) error {
 			}
 		case err := <-watcher.Errors:
 			if err != nil {
-				fmt.Printf("Error while watching config files: %v\n", err)
+				logrus.WithFields(logrus.Fields{
+					"Error":    err.Error(),
+					"Function": "func (a *Agent) watchConfigDirectories(readerDir, writerDir string) error",
+				}).Error("Error while watching config files")
 			}
 		}
 	}

@@ -3,6 +3,7 @@ package agent
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/Sirupsen/logrus"
 	"github.com/julienschmidt/httprouter"
 	resourced_config "github.com/resourced/resourced/config"
 	"net/http"
@@ -284,8 +285,12 @@ func (a *Agent) ListenAndServe(addr string) error {
 		addr = ":55555"
 	}
 
-	router := a.HttpRouter()
-	return http.ListenAndServe(addr, router)
+	logrus.WithFields(logrus.Fields{
+		"Function": "func (a *Agent) ListenAndServe(addr string) error",
+		"addr":     addr,
+	}).Info("Running HTTP server")
+
+	return http.ListenAndServe(addr, a.HttpRouter())
 }
 
 // ListenAndServe runs HTTPS server.
@@ -294,6 +299,10 @@ func (a *Agent) ListenAndServeTLS(addr string, certFile string, keyFile string) 
 		addr = ":55555"
 	}
 
-	router := a.HttpRouter()
-	return http.ListenAndServeTLS(addr, certFile, keyFile, router)
+	logrus.WithFields(logrus.Fields{
+		"Function": "func (a *Agent) ListenAndServe(addr string) error",
+		"addr":     addr,
+	}).Info("Running HTTPS server")
+
+	return http.ListenAndServeTLS(addr, certFile, keyFile, a.HttpRouter())
 }
