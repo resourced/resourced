@@ -133,6 +133,14 @@ func InfoAndVersion(endpoint string) (map[string]interface{}, error) {
 					}
 				}
 			}
+
+		} else if key == "RegistryConfig" {
+			registryConfig := make(map[string]interface{})
+			err := info.GetJSON(key, &registryConfig)
+			if err == nil {
+				data[key] = registryConfig
+			}
+
 		} else {
 			data[key] = value
 		}
