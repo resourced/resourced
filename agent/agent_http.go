@@ -7,6 +7,7 @@ import (
 	"github.com/julienschmidt/httprouter"
 	resourced_config "github.com/resourced/resourced/config"
 	"net/http"
+	"net/http/pprof"
 	"strings"
 )
 
@@ -275,6 +276,14 @@ func (a *Agent) HttpRouter() *httprouter.Router {
 	for writerPath, writerHandler := range a.MapWritersGetHandlers() {
 		router.GET(writerPath, writerHandler)
 	}
+
+	// Profiler
+	router.GET("/debug/pprof/profile", func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+		pprof.Profile(w, r)
+	})
+	router.GET("/debug/pprof/heap", func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+		pprof.Index(w, r)
+	})
 
 	return router
 }
