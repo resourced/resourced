@@ -2,6 +2,7 @@ package agent
 
 import (
 	resourced_config "github.com/resourced/resourced/config"
+	"os"
 	"strings"
 	"testing"
 )
@@ -22,7 +23,7 @@ func TestRunGoStructWriterWithJsonFlattener(t *testing.T) {
 	defer agent.Db.Close()
 
 	config := createConfigForAgentWriterTest(t)
-	config.GoStructFields["JsonProcessor"] = "$GOPATH/src/github.com/resourced/resourced/tests/data/script-writer/json-flattener.py"
+	config.GoStructFields["JsonProcessor"] = os.ExpandEnv("$GOPATH/src/github.com/resourced/resourced/tests/data/script-writer/json-flattener.py")
 
 	writerData, err := agent.runGoStructWriter(config)
 	if err != nil {
@@ -45,7 +46,7 @@ func TestRunGoStructWriterWithInsightsDuFormatter(t *testing.T) {
 	defer agent.Db.Close()
 
 	config := createConfigForAgentWriterTest(t)
-	config.GoStructFields["JsonProcessor"] = "$GOPATH/src/github.com/resourced/resourced/tests/data/script-writer/insights/du-formatter.py"
+	config.GoStructFields["JsonProcessor"] = os.ExpandEnv("$GOPATH/src/github.com/resourced/resourced/tests/data/script-writer/insights/du-formatter.py")
 
 	writerData, err := agent.runGoStructWriter(config)
 	if err != nil {
