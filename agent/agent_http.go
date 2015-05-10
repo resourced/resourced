@@ -16,7 +16,12 @@ func (a *Agent) BaseHandler(h httprouter.Handle) httprouter.Handle {
 		if !a.IsAllowed(r.RemoteAddr) {
 			w.WriteHeader(403)
 			w.Write([]byte(fmt.Sprintf(`{"Error": "You are not authorized to connect."}`)))
+			return
 		}
+
+		// Forward request to given handle
+		h(w, r, ps)
+		return
 	}
 }
 
