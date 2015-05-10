@@ -39,3 +39,22 @@ func TestGeneratePassword(t *testing.T) {
 		t.Errorf("Generating password should not fail. err: %v", err)
 	}
 }
+
+func TestGetIP(t *testing.T) {
+	goodAddress := "127.0.0.1:55555"
+	badAddress := "tasty:cakes"
+
+	goodIP := GetIP(goodAddress)
+	if goodIP == nil {
+		t.Error("Should be able to parse '%v'", goodAddress)
+	}
+
+	if goodIP.String() != strings.Split(goodAddress, ":")[0] {
+		t.Error("goodIP.String() should be the same as split goodAddress")
+	}
+
+	badIP := GetIP(badAddress)
+	if badIP != nil {
+		t.Error("Should not be able to parse '%v'", badAddress)
+	}
+}
