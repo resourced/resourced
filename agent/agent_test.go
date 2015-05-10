@@ -13,22 +13,16 @@ import (
 )
 
 func createAgentForAgentTest(t *testing.T) *Agent {
-	os.Setenv("RESOURCED_CONFIG_READER_DIR", "/go/src/github.com/resourced/resourced/tests/data/config-reader")
-	os.Setenv("RESOURCED_CONFIG_WRITER_DIR", "/go/src/github.com/resourced/resourced/tests/data/config-writer")
-	os.Setenv("RESOURCED_ALLOWED_NETWORKS", "0.0.0.0/0")
+	os.Setenv("RESOURCED_CONFIG_READER_DIR", "$GOPATH/src/github.com/resourced/resourced/tests/data/config-reader")
+	os.Setenv("RESOURCED_CONFIG_WRITER_DIR", "$GOPATH/src/github.com/resourced/resourced/tests/data/config-writer")
 
-	allowedNetworks := getNetworksForTest("0.0.0.0/0")
-
-	agent, err := NewAgent(allowedNetworks)
+	// Provide empty slice - allow all to connect
+	agent, err := NewAgent([]*net.IPNet{})
 	if err != nil {
 		t.Fatalf("Initializing agent should work. Error: %v", err)
 	}
-	return agent
-}
 
-func getNetworksForTest(cidr string) []*net.IPNet {
-	_, network, _ := net.ParseCIDR(cidr)
-	return []*net.IPNet{network}
+	return agent
 }
 
 func TestConstructor(t *testing.T) {
@@ -244,7 +238,8 @@ func TestCommonData(t *testing.T) {
 }
 
 func TestIsAllowed(t *testing.T) {
-	allowedNetworks := getNetworksForTest("127.0.0.1/8")
+	_, network, _ := net.ParseCIDR("127.0.0.1/8")
+	allowedNetworks := []*net.IPNet{network}
 
 	agent, err := NewAgent(allowedNetworks)
 	if err != nil {

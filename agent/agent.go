@@ -415,6 +415,11 @@ func (a *Agent) RunAllForever() {
 
 // Check if a given IP:PORT is part of an allowed CIDR
 func (a *Agent) IsAllowed(address string) bool {
+	// Allow all if we allowed networks is not set
+	if len(a.AllowedNetworks) == 0 {
+		return true
+	}
+
 	ip := libstring.GetIP(address)
 	if ip == nil {
 		return false

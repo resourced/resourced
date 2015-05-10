@@ -6,12 +6,11 @@ import (
 	"strings"
 )
 
-// Parse a string with comma separated CIDR's; if given string is empty, return
-// a slice with a single 'default' 0.0.0.0 CIDR. Return slice of net.IPNet objs
+// Parse a string with comma separated CIDR's; return slice of net.IPNet objs;
+// if given string is empty, return an empty slice of net.IPNet objs instead.
 func ParseCIDRs(cidrs string) ([]*net.IPNet, error) {
 	if cidrs == "" {
-		_, defaultCIDR, _ := net.ParseCIDR("0.0.0.0/0")
-		return []*net.IPNet{defaultCIDR}, nil
+		return []*net.IPNet{}, nil
 	}
 
 	// Get rid of spaces
