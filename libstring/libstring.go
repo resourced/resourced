@@ -4,6 +4,7 @@ package libstring
 import (
 	"crypto/rand"
 	"encoding/base64"
+	"net"
 	"os"
 	"os/user"
 	"strings"
@@ -59,4 +60,16 @@ func StringInSlice(beingSearched string, list []string) bool {
 		}
 	}
 	return false
+}
+
+// Split r.RemoteAddr, return an IP object (or nil if ParseIP fails)
+func GetIP(address string) net.IP {
+	// Try to parse it
+	splitAddress := strings.Split(address, ":")
+	if len(splitAddress) == 0 {
+		return nil
+	}
+
+	// Convert to IP object
+	return net.ParseIP(splitAddress[0])
 }
