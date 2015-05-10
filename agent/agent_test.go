@@ -13,8 +13,8 @@ import (
 )
 
 func createAgentForAgentTest(t *testing.T) *Agent {
-	os.Setenv("RESOURCED_CONFIG_READER_DIR", os.ExpandEnv("/go/src/github.com/resourced/resourced/tests/data/config-reader"))
-	os.Setenv("RESOURCED_CONFIG_WRITER_DIR", os.ExpandEnv("/go/src/github.com/resourced/resourced/tests/data/config-writer"))
+	os.Setenv("RESOURCED_CONFIG_READER_DIR", os.ExpandEnv("$GOPATH/src/github.com/resourced/resourced/tests/data/config-reader"))
+	os.Setenv("RESOURCED_CONFIG_WRITER_DIR", os.ExpandEnv("$GOPATH/src/github.com/resourced/resourced/tests/data/config-writer"))
 
 	// Provide empty slice - allow all to connect
 	agent, err := NewAgent([]*net.IPNet{})
