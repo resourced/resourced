@@ -11,6 +11,21 @@ import (
 	"strings"
 )
 
+// BaseHandler wraps all other handlers; returns 403 for clients that aren't authorized to connect.
+func (a *Agent) BaseHandler(h httprouter.Handle) httprouter.Handle {
+	return func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+		if !a.IsAllowed(r.RemoteAddr) {
+			w.WriteHeader(403)
+			w.Write([]byte(fmt.Sprintf(`{"Error": "You are not authorized to connect."}`)))
+			return
+		}
+
+		// Forward request to given handle
+		h(w, r, ps)
+		return
+	}
+}
+
 // RootGetHandler returns function that handles all readers and writers.
 func (a *Agent) RootGetHandler() func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	return func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
@@ -260,21 +275,21 @@ func (a *Agent) MapWritersGetHandlers() map[string]func(w http.ResponseWriter, r
 func (a *Agent) HttpRouter() *httprouter.Router {
 	router := httprouter.New()
 
-	router.GET("/", a.RootGetHandler())
-	router.GET("/paths", a.PathsGetHandler())
+	router.GET("/", a.BaseHandler(a.RootGetHandler()))
+	router.GET("/paths", a.BaseHandler(a.PathsGetHandler()))
 
-	router.GET("/r", a.ReadersGetHandler())
-	router.GET("/r/paths", a.ReaderPathsGetHandler())
+	router.GET("/r", a.BaseHandler(a.ReadersGetHandler()))
+	router.GET("/r/paths", a.BaseHandler(a.ReaderPathsGetHandler()))
 
-	router.GET("/w", a.WritersGetHandler())
-	router.GET("/w/paths", a.WriterPathsGetHandler())
+	router.GET("/w", a.BaseHandler(a.WritersGetHandler()))
+	router.GET("/w/paths", a.BaseHandler(a.WriterPathsGetHandler()))
 
 	for readerPath, readerHandler := range a.MapReadersGetHandlers() {
-		router.GET(readerPath, readerHandler)
+		router.GET(readerPath, a.BaseHandler(readerHandler))
 	}
 
 	for writerPath, writerHandler := range a.MapWritersGetHandlers() {
-		router.GET(writerPath, writerHandler)
+		router.GET(writerPath, a.BaseHandler(writerHandler))
 	}
 
 	// Profiler
@@ -303,7 +318,7 @@ func (a *Agent) ListenAndServe(addr string) error {
 }
 
 // ListenAndServe runs HTTPS server.
-func (a *Agent) ListenAndServeTLS(addr string, certFile string, keyFile string) error {
+func (a *Agent) ListenAndServeTLS(addr, certFile, keyFile string) error {
 	if addr == "" {
 		addr = ":55555"
 	}

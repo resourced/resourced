@@ -2,9 +2,11 @@ package main
 
 import (
 	"github.com/Sirupsen/logrus"
-	resourced_agent "github.com/resourced/resourced/agent"
 	"os"
 	"runtime"
+
+	resourced_agent "github.com/resourced/resourced/agent"
+	resourced_util "github.com/resourced/resourced/util"
 )
 
 func init() {
@@ -24,7 +26,12 @@ func main() {
 		runtime.GOMAXPROCS(runtime.NumCPU())
 	}
 
-	agent, err := resourced_agent.NewAgent()
+	allowedNetworks, cidrErr := resourced_util.ParseCIDRs(os.Getenv("RESOURCED_ALLOWED_NETWORKS"))
+	if cidrErr != nil {
+		panic(cidrErr)
+	}
+
+	agent, err := resourced_agent.NewAgent(allowedNetworks)
 	if err != nil {
 		panic(err)
 	}

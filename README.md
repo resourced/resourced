@@ -44,6 +44,8 @@ ResourceD accepts a few environment variables as configuration:
 
 * **RESOURCED_TAGS:** Comma separated tags. Default: ""
 
+* **RESOURCED_ALLOWED_NETWORKS:** Comma separated list of CIDR's that are allowed to use ResourceD's API endpoint. Default: ""
+
 
 ## Collecting Data
 

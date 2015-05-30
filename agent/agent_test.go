@@ -3,6 +3,7 @@ package agent
 import (
 	resourced_config "github.com/resourced/resourced/config"
 	"io/ioutil"
+	"net"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -12,13 +13,15 @@ import (
 )
 
 func createAgentForTest(t *testing.T) *Agent {
-	os.Setenv("RESOURCED_CONFIG_READER_DIR", "$GOPATH/src/github.com/resourced/resourced/tests/data/config-reader")
-	os.Setenv("RESOURCED_CONFIG_WRITER_DIR", "$GOPATH/src/github.com/resourced/resourced/tests/data/config-writer")
+	os.Setenv("RESOURCED_CONFIG_READER_DIR", os.ExpandEnv("$GOPATH/src/github.com/resourced/resourced/tests/data/config-reader"))
+	os.Setenv("RESOURCED_CONFIG_WRITER_DIR", os.ExpandEnv("$GOPATH/src/github.com/resourced/resourced/tests/data/config-writer"))
 
-	agent, err := NewAgent()
+	// Provide empty slice - allow all to connect
+	agent, err := NewAgent([]*net.IPNet{})
 	if err != nil {
 		t.Fatalf("Initializing agent should work. Error: %v", err)
 	}
+
 	return agent
 }
 
@@ -89,7 +92,7 @@ func TestHttpRouter(t *testing.T) {
 		t.Errorf("Failed to read response body. Error: %v", err)
 	} else {
 		if strings.Contains(string(jsonData), "Error") {
-			t.Errorf("jsonData shouldn't return error: %s", jsonData)
+			t.Errorf("jsonData shouldn't return error: %s, %s", jsonData, req.RemoteAddr)
 		} else if !strings.Contains(string(jsonData), `UnixNano`) {
 			t.Errorf("jsonData does not contain 'UnixNano' key: %s", jsonData)
 		} else if !strings.Contains(string(jsonData), `Command`) && !strings.Contains(string(jsonData), `GoStruct`) {
@@ -211,5 +214,31 @@ func TestCommonData(t *testing.T) {
 		if _, ok := record[key]; !ok {
 			t.Errorf("%v data should never be empty.", key)
 		}
+	}
+}
+
+func TestIsAllowed(t *testing.T) {
+	_, network, _ := net.ParseCIDR("127.0.0.1/8")
+	allowedNetworks := []*net.IPNet{network}
+
+	agent, err := NewAgent(allowedNetworks)
+	if err != nil {
+		t.Fatalf("Initializing agent should work. Error: %v", err)
+	}
+
+	goodIP := "127.0.0.1"
+	badIP := "10.0.0.1"
+	brokenIP := "batman"
+
+	if !agent.IsAllowed(goodIP) {
+		t.Errorf("'%s' should be allowed", goodIP)
+	}
+
+	if agent.IsAllowed(badIP) {
+		t.Errorf("'%s' should not be allowed", badIP)
+	}
+
+	if agent.IsAllowed(brokenIP) {
+		t.Errorf("Invalid IP address '%s' should not be allowed ", brokenIP)
 	}
 }

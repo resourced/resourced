@@ -9,18 +9,22 @@ import (
 	resourced_config "github.com/resourced/resourced/config"
 	resourced_host "github.com/resourced/resourced/host"
 	"github.com/resourced/resourced/libprocess"
+	"github.com/resourced/resourced/libstring"
 	"github.com/resourced/resourced/libtime"
 	resourced_readers "github.com/resourced/resourced/readers"
 	"github.com/resourced/resourced/storage"
 	resourced_writers "github.com/resourced/resourced/writers"
+	"net"
 	"os"
 	"strings"
 	"time"
 )
 
 // NewAgent is the constructor for Agent struct.
-func NewAgent() (*Agent, error) {
+func NewAgent(allowedNetworks []*net.IPNet) (*Agent, error) {
 	agent := &Agent{}
+
+	agent.AllowedNetworks = allowedNetworks
 
 	agent.setTags()
 
@@ -37,10 +41,11 @@ func NewAgent() (*Agent, error) {
 // Agent struct carries most of the functionality of ResourceD.
 // It collects information through readers and serve them up as HTTP+JSON.
 type Agent struct {
-	ConfigStorage *resourced_config.ConfigStorage
-	DbPath        string
-	Db            *storage.Storage
-	Tags          []string
+	ConfigStorage   *resourced_config.ConfigStorage
+	DbPath          string
+	Db              *storage.Storage
+	Tags            []string
+	AllowedNetworks []*net.IPNet
 }
 
 // setTags store RESOURCED_TAGS data to Tags field.
@@ -334,4 +339,26 @@ func (a *Agent) RunAllForever() {
 	for _, config := range a.ConfigStorage.Writers {
 		a.RunForever(config)
 	}
+}
+
+// Check if a given IP:PORT is part of an allowed CIDR
+func (a *Agent) IsAllowed(address string) bool {
+	// Allow all if we allowed networks is not set
+	if len(a.AllowedNetworks) == 0 {
+		return true
+	}
+
+	ip := libstring.GetIP(address)
+	if ip == nil {
+		return false
+	}
+
+	// Check if IP is in one of our allowed networks
+	for _, network := range a.AllowedNetworks {
+		if network.Contains(ip) {
+			return true
+		}
+	}
+
+	return false
 }

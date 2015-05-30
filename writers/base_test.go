@@ -2,6 +2,7 @@ package writers
 
 import (
 	resourced_config "github.com/resourced/resourced/config"
+	"os"
 	"reflect"
 	"testing"
 )
@@ -15,7 +16,7 @@ func NewGoStructForTest(t *testing.T) IWriter {
 }
 
 func NewGoStructByConfigForTest(t *testing.T) IWriter {
-	config, err := resourced_config.NewConfig("$GOPATH/src/github.com/resourced/resourced/tests/data/config-writer/gostruct-stdout.toml", "writer")
+	config, err := resourced_config.NewConfig(os.ExpandEnv("$GOPATH/src/github.com/resourced/resourced/tests/data/config-writer/gostruct-stdout.toml"), "writer")
 	if err != nil {
 		t.Fatalf("Initializing Config should work. Error: %v", err)
 	}
