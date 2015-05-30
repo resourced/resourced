@@ -19,7 +19,6 @@ func createConfigForAgentWriterTest(t *testing.T) resourced_config.Config {
 
 func TestRunGoStructWriterWithJsonFlattener(t *testing.T) {
 	agent := createAgentForAgentTest(t)
-	defer agent.Db.Close()
 
 	config := createConfigForAgentWriterTest(t)
 	config.GoStructFields["JsonProcessor"] = "$GOPATH/src/github.com/resourced/resourced/tests/data/script-writer/json-flattener.py"
@@ -42,7 +41,6 @@ func TestRunGoStructWriterWithJsonFlattener(t *testing.T) {
 
 func TestRunGoStructWriterWithInsightsDuFormatter(t *testing.T) {
 	agent := createAgentForAgentTest(t)
-	defer agent.Db.Close()
 
 	config := createConfigForAgentWriterTest(t)
 	config.GoStructFields["JsonProcessor"] = "$GOPATH/src/github.com/resourced/resourced/tests/data/script-writer/insights/du-formatter.py"

@@ -101,7 +101,9 @@ func (nr *NewrelicInsights) Run() error {
 	if err != nil {
 		return err
 	}
-	defer resp.Body.Close()
+	if resp.Body != nil {
+		resp.Body.Close()
+	}
 
 	return nil
 }

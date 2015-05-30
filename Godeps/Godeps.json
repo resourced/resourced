@@ -13,11 +13,6 @@
 			"Rev": "e00ed35f54d331c88f1867a18a7bfc4e4e4685ac"
 		},
 		{
-			"ImportPath": "github.com/boltdb/bolt",
-			"Comment": "v1.0-59-g8b138fd",
-			"Rev": "8b138fd106636b40b4b6d43786e668ce658aa3d7"
-		},
-		{
 			"ImportPath": "github.com/c9s/goprocinfo/linux",
 			"Rev": "40745db0a4b9834cfee6dcdf34ffde47cf262d48"
 		},

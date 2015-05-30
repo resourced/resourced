@@ -6,16 +6,14 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/Sirupsen/logrus"
-	"github.com/boltdb/bolt"
 	resourced_config "github.com/resourced/resourced/config"
 	resourced_host "github.com/resourced/resourced/host"
 	"github.com/resourced/resourced/libprocess"
-	"github.com/resourced/resourced/libstring"
 	"github.com/resourced/resourced/libtime"
 	resourced_readers "github.com/resourced/resourced/readers"
+	"github.com/resourced/resourced/storage"
 	resourced_writers "github.com/resourced/resourced/writers"
 	"os"
-	"os/user"
 	"strings"
 	"time"
 )
@@ -31,10 +29,7 @@ func NewAgent() (*Agent, error) {
 		return nil, err
 	}
 
-	err = agent.setDb()
-	if err != nil {
-		return nil, err
-	}
+	agent.Db = storage.NewStorage()
 
 	return agent, err
 }
@@ -44,7 +39,7 @@ func NewAgent() (*Agent, error) {
 type Agent struct {
 	ConfigStorage *resourced_config.ConfigStorage
 	DbPath        string
-	Db            *bolt.DB
+	Db            *storage.Storage
 	Tags          []string
 }
 
@@ -61,47 +56,6 @@ func (a *Agent) setTags() {
 			a.Tags[i] = strings.TrimSpace(tag)
 		}
 	}
-}
-
-// setDb configures the local storage.
-// The base path to local storage is defined in RESOURCED_DB.
-func (a *Agent) setDb() error {
-	var err error
-
-	usr, err := user.Current()
-	if err != nil {
-		return err
-	}
-
-	dbPath := os.Getenv("RESOURCED_DB")
-	if dbPath == "" {
-		dbPath = usr.HomeDir + "/resourced/db"
-
-		err = os.MkdirAll(libstring.ExpandTildeAndEnv(usr.HomeDir+"/resourced"), 0755)
-		if err != nil {
-			return err
-		}
-	}
-
-	a.DbPath = libstring.ExpandTildeAndEnv(dbPath)
-
-	a.Db, err = bolt.Open(a.DbPath, 0644, nil)
-	if err != nil {
-		return err
-	}
-
-	// Create "resources" bucket
-	a.Db.Update(func(tx *bolt.Tx) error {
-		tx.CreateBucket([]byte("resources"))
-		return nil
-	})
-
-	return err
-}
-
-// dbBucket returns the boltdb bucket.
-func (a *Agent) dbBucket(tx *bolt.Tx) *bolt.Bucket {
-	return tx.Bucket([]byte("resources"))
 }
 
 // pathWithPrefix prepends the short version of config.Kind to path.
@@ -310,24 +264,6 @@ func (a *Agent) hostData() (*resourced_host.Host, error) {
 
 	host.Tags = a.Tags
 
-	// Capture net/interfaces data
-	// TODO(didip): This is not trivial size of data. Move it to resourced-master.
-	// interfacesReader := resourced_readers.NewNetInterfaces()
-	// if interfacesReader.Run() == nil {
-	// 	host.NetworkInterfaces = make(map[string]map[string]interface{})
-
-	// 	for iface, stats := range interfacesReader.Data {
-	// 		host.NetworkInterfaces[iface] = make(map[string]interface{})
-	// 		host.NetworkInterfaces[iface]["HardwareAddress"] = stats.HardwareAddr
-	// 		host.NetworkInterfaces[iface]["IPAddresses"] = make([]string, len(stats.Addrs))
-
-	// 		for i, addr := range stats.Addrs {
-	// 			ipAddresses := host.NetworkInterfaces[iface]["IPAddresses"].([]string)
-	// 			ipAddresses[i] = addr.Addr
-	// 		}
-	// 	}
-	// }
-
 	return host, nil
 }
 
@@ -365,9 +301,7 @@ func (a *Agent) saveRun(config resourced_config.Config, output []byte, err error
 		return err
 	}
 
-	err = a.Db.Update(func(tx *bolt.Tx) error {
-		return a.dbBucket(tx).Put([]byte(a.pathWithPrefix(config)), recordInJson)
-	})
+	a.Db.Set(a.pathWithPrefix(config), recordInJson)
 
 	return err
 }
@@ -379,14 +313,7 @@ func (a *Agent) GetRun(config resourced_config.Config) ([]byte, error) {
 
 // GetRunByPath returns JSON data stored in local storage given path string.
 func (a *Agent) GetRunByPath(path string) ([]byte, error) {
-	var data []byte
-
-	a.Db.View(func(tx *bolt.Tx) error {
-		data = a.dbBucket(tx).Get([]byte(path))
-		return nil
-	})
-
-	return data, nil
+	return a.Db.Get(path), nil
 }
 
 // RunForever executes Run() in an infinite loop with a sleep of config.Interval.

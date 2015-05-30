@@ -26,17 +26,6 @@ func TestConstructor(t *testing.T) {
 	os.Setenv("RESOURCED_TAGS", "prod, mysql, percona")
 
 	agent := createAgentForAgentTest(t)
-	defer agent.Db.Close()
-
-	if agent.DbPath == "" {
-		t.Errorf("Default DbPath is set incorrectly. agent.DbPath: %v", agent.DbPath)
-	}
-
-	if _, err := os.Stat(agent.DbPath); err != nil {
-		if os.IsNotExist(err) {
-			t.Error("resourced directory does not exist.")
-		}
-	}
 
 	if len(agent.Tags) != 3 {
 		t.Error("agent.Tags should not be empty.")
@@ -51,7 +40,6 @@ func TestConstructor(t *testing.T) {
 
 func TestRun(t *testing.T) {
 	agent := createAgentForAgentTest(t)
-	defer agent.Db.Close()
 
 	_, err := agent.Run(agent.ConfigStorage.Readers[1])
 	if err != nil {
@@ -61,7 +49,6 @@ func TestRun(t *testing.T) {
 
 func TestGetRun(t *testing.T) {
 	agent := createAgentForAgentTest(t)
-	defer agent.Db.Close()
 
 	config := agent.ConfigStorage.Readers[1]
 
@@ -81,7 +68,6 @@ func TestGetRun(t *testing.T) {
 
 func TestHttpRouter(t *testing.T) {
 	agent := createAgentForAgentTest(t)
-	defer agent.Db.Close()
 
 	_, err := agent.Run(agent.ConfigStorage.Readers[1])
 	if err != nil {
@@ -116,7 +102,6 @@ func TestHttpRouter(t *testing.T) {
 
 func TestPathWithPrefix(t *testing.T) {
 	agent := createAgentForAgentTest(t)
-	defer agent.Db.Close()
 
 	config := agent.ConfigStorage.Readers[1]
 
@@ -131,7 +116,6 @@ func TestPathWithPrefix(t *testing.T) {
 
 func TestPathWithReaderPrefix(t *testing.T) {
 	agent := createAgentForAgentTest(t)
-	defer agent.Db.Close()
 
 	toBeTested := agent.pathWithReaderPrefix("/stuff")
 	if toBeTested != "/r/stuff" {
@@ -146,7 +130,6 @@ func TestPathWithReaderPrefix(t *testing.T) {
 
 func TestPathWithWriterPrefix(t *testing.T) {
 	agent := createAgentForAgentTest(t)
-	defer agent.Db.Close()
 
 	toBeTested := agent.pathWithWriterPrefix("/stuff")
 	if toBeTested != "/w/stuff" {
@@ -161,7 +144,6 @@ func TestPathWithWriterPrefix(t *testing.T) {
 
 func TestInitGoStructReader(t *testing.T) {
 	agent := createAgentForAgentTest(t)
-	defer agent.Db.Close()
 
 	var config resourced_config.Config
 	for _, c := range agent.ConfigStorage.Readers {
@@ -184,7 +166,6 @@ func TestInitGoStructReader(t *testing.T) {
 
 func TestInitGoStructWriter(t *testing.T) {
 	agent := createAgentForAgentTest(t)
-	defer agent.Db.Close()
 
 	var config resourced_config.Config
 	for _, c := range agent.ConfigStorage.Writers {
@@ -213,7 +194,6 @@ func TestInitGoStructWriter(t *testing.T) {
 
 func TestCommonData(t *testing.T) {
 	agent := createAgentForAgentTest(t)
-	defer agent.Db.Close()
 
 	var config resourced_config.Config
 	for _, c := range agent.ConfigStorage.Readers {
