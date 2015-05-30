@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"errors"
 	"github.com/Sirupsen/logrus"
-	"io/ioutil"
 	"net/http"
 	"strings"
 )
@@ -104,16 +103,6 @@ func (h *Http) Run() error {
 	}
 
 	if resp.Body != nil {
-		respBody, err := ioutil.ReadAll(resp.Body)
-		if err == nil {
-			logrus.WithFields(logrus.Fields{
-				"Function":   "func (h *Http) Run() error",
-				"req.URL":    req.URL.String(),
-				"req.Method": req.Method,
-				"resp.Body":  string(respBody),
-			}).Info("Logging resp.Body")
-		}
-
 		resp.Body.Close()
 	}
 

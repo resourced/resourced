@@ -59,7 +59,12 @@ func TestStdOutRun(t *testing.T) {
 
 	n.SetReadersDataInBytes(readersData)
 
-	err := n.Run()
+	err := n.GenerateData()
+	if err != nil {
+		t.Errorf("GenerateData() should not fail. Error: %v", err)
+	}
+
+	err = n.Run()
 	if err != nil {
 		t.Errorf("Run() should never fail. Error: %v", err)
 	}

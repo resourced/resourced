@@ -51,7 +51,12 @@ func TestNewResourcedMasterRun(t *testing.T) {
 	n.Url = "http://localhost:55655/"
 	n.Method = "POST"
 
-	err := n.Run()
+	err := n.GenerateData()
+	if err != nil {
+		t.Errorf("GenerateData() should not fail. Error: %v", err)
+	}
+
+	err = n.Run()
 	if err != nil {
 		if strings.Contains(err.Error(), "connection refused") {
 			println("Warning: ResourceD Master is not running locally.")

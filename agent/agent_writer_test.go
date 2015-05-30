@@ -18,45 +18,57 @@ func createConfigForAgentWriterTest(t *testing.T) resourced_config.Config {
 }
 
 func TestRunGoStructWriterWithJsonFlattener(t *testing.T) {
-	agent := createAgentForAgentTest(t)
+	agent := createAgentForTest(t)
 
-	config := createConfigForAgentWriterTest(t)
-	config.GoStructFields["JsonProcessor"] = "$GOPATH/src/github.com/resourced/resourced/tests/data/script-writer/json-flattener.py"
+	for _, readerConfig := range agent.ConfigStorage.Readers {
+		if readerConfig.Path == "/du" {
+			agent.Run(readerConfig)
 
-	writerData, err := agent.runGoStructWriter(config)
-	if err != nil {
-		t.Fatalf("runGoStructWriter should not fail. Error: %v", err)
-	}
+			config := createConfigForAgentWriterTest(t)
+			config.GoStructFields["JsonProcessor"] = "$GOPATH/src/github.com/resourced/resourced/tests/data/script-writer/json-flattener.py"
 
-	writerDataString := string(writerData)
+			writerData, err := agent.runGoStructWriter(config)
+			if err != nil {
+				t.Fatalf("runGoStructWriter should not fail. Error: %v", err)
+			}
 
-	keysToTest := []string{"/du.Data./.DeviceName"}
+			writerDataString := string(writerData)
 
-	for _, key := range keysToTest {
-		if !strings.Contains(writerDataString, key) {
-			t.Errorf("writerDataString does not contain '%v' key. writerDataString: %v", key, writerDataString)
+			keysToTest := []string{"/du.Data./.DeviceName"}
+
+			for _, key := range keysToTest {
+				if !strings.Contains(writerDataString, key) {
+					t.Errorf("writerDataString does not contain '%v' key. writerDataString: %v", key, writerDataString)
+				}
+			}
 		}
 	}
 }
 
 func TestRunGoStructWriterWithInsightsDuFormatter(t *testing.T) {
-	agent := createAgentForAgentTest(t)
+	agent := createAgentForTest(t)
 
-	config := createConfigForAgentWriterTest(t)
-	config.GoStructFields["JsonProcessor"] = "$GOPATH/src/github.com/resourced/resourced/tests/data/script-writer/insights/du-formatter.py"
+	for _, readerConfig := range agent.ConfigStorage.Readers {
+		if readerConfig.Path == "/du" {
+			agent.Run(readerConfig)
 
-	writerData, err := agent.runGoStructWriter(config)
-	if err != nil {
-		t.Fatalf("runGoStructWriter should not fail. Error: %v", err)
-	}
+			config := createConfigForAgentWriterTest(t)
+			config.GoStructFields["JsonProcessor"] = "$GOPATH/src/github.com/resourced/resourced/tests/data/script-writer/insights/du-formatter.py"
 
-	writerDataString := string(writerData)
+			writerData, err := agent.runGoStructWriter(config)
+			if err != nil {
+				t.Fatalf("runGoStructWriter should not fail. Error: %v", err)
+			}
 
-	keysToTest := []string{"Hostname", "DeviceName", "Free", "InodesFree", "InodesTotal", "InodesUsed", "Path", "Total", "Used", "eventType"}
+			writerDataString := string(writerData)
 
-	for _, key := range keysToTest {
-		if !strings.Contains(writerDataString, key) {
-			t.Errorf("writerDataString does not contain '%v' key. writerDataString: %v", key, writerDataString)
+			keysToTest := []string{"Hostname", "DeviceName", "Free", "InodesFree", "InodesTotal", "InodesUsed", "Path", "Total", "Used", "eventType"}
+
+			for _, key := range keysToTest {
+				if !strings.Contains(writerDataString, key) {
+					t.Errorf("writerDataString does not contain '%v' key. writerDataString: %v", key, writerDataString)
+				}
+			}
 		}
 	}
 }

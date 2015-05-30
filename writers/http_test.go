@@ -73,14 +73,3 @@ func TestNewHttpRequest(t *testing.T) {
 		t.Errorf("Failed to create Request struct. Error: %v", err)
 	}
 }
-
-func TestNewHttpRun(t *testing.T) {
-	h := newWriterForHttpTest()
-	h.Url = "http://example.com/"
-	h.Method = "POST"
-
-	err := h.Run()
-	if err != nil {
-		t.Errorf("Run() should never fail. Error: %v", err)
-	}
-}

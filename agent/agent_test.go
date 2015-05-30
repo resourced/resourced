@@ -11,7 +11,7 @@ import (
 	"testing"
 )
 
-func createAgentForAgentTest(t *testing.T) *Agent {
+func createAgentForTest(t *testing.T) *Agent {
 	os.Setenv("RESOURCED_CONFIG_READER_DIR", "$GOPATH/src/github.com/resourced/resourced/tests/data/config-reader")
 	os.Setenv("RESOURCED_CONFIG_WRITER_DIR", "$GOPATH/src/github.com/resourced/resourced/tests/data/config-writer")
 
@@ -25,7 +25,7 @@ func createAgentForAgentTest(t *testing.T) *Agent {
 func TestConstructor(t *testing.T) {
 	os.Setenv("RESOURCED_TAGS", "prod, mysql, percona")
 
-	agent := createAgentForAgentTest(t)
+	agent := createAgentForTest(t)
 
 	if len(agent.Tags) != 3 {
 		t.Error("agent.Tags should not be empty.")
@@ -39,7 +39,7 @@ func TestConstructor(t *testing.T) {
 }
 
 func TestRun(t *testing.T) {
-	agent := createAgentForAgentTest(t)
+	agent := createAgentForTest(t)
 
 	_, err := agent.Run(agent.ConfigStorage.Readers[1])
 	if err != nil {
@@ -48,7 +48,7 @@ func TestRun(t *testing.T) {
 }
 
 func TestGetRun(t *testing.T) {
-	agent := createAgentForAgentTest(t)
+	agent := createAgentForTest(t)
 
 	config := agent.ConfigStorage.Readers[1]
 
@@ -67,7 +67,7 @@ func TestGetRun(t *testing.T) {
 }
 
 func TestHttpRouter(t *testing.T) {
-	agent := createAgentForAgentTest(t)
+	agent := createAgentForTest(t)
 
 	_, err := agent.Run(agent.ConfigStorage.Readers[1])
 	if err != nil {
@@ -101,7 +101,7 @@ func TestHttpRouter(t *testing.T) {
 }
 
 func TestPathWithPrefix(t *testing.T) {
-	agent := createAgentForAgentTest(t)
+	agent := createAgentForTest(t)
 
 	config := agent.ConfigStorage.Readers[1]
 
@@ -115,7 +115,7 @@ func TestPathWithPrefix(t *testing.T) {
 }
 
 func TestPathWithReaderPrefix(t *testing.T) {
-	agent := createAgentForAgentTest(t)
+	agent := createAgentForTest(t)
 
 	toBeTested := agent.pathWithReaderPrefix("/stuff")
 	if toBeTested != "/r/stuff" {
@@ -129,7 +129,7 @@ func TestPathWithReaderPrefix(t *testing.T) {
 }
 
 func TestPathWithWriterPrefix(t *testing.T) {
-	agent := createAgentForAgentTest(t)
+	agent := createAgentForTest(t)
 
 	toBeTested := agent.pathWithWriterPrefix("/stuff")
 	if toBeTested != "/w/stuff" {
@@ -143,7 +143,7 @@ func TestPathWithWriterPrefix(t *testing.T) {
 }
 
 func TestInitGoStructReader(t *testing.T) {
-	agent := createAgentForAgentTest(t)
+	agent := createAgentForTest(t)
 
 	var config resourced_config.Config
 	for _, c := range agent.ConfigStorage.Readers {
@@ -165,7 +165,7 @@ func TestInitGoStructReader(t *testing.T) {
 }
 
 func TestInitGoStructWriter(t *testing.T) {
-	agent := createAgentForAgentTest(t)
+	agent := createAgentForTest(t)
 
 	var config resourced_config.Config
 	for _, c := range agent.ConfigStorage.Writers {
@@ -193,7 +193,7 @@ func TestInitGoStructWriter(t *testing.T) {
 }
 
 func TestCommonData(t *testing.T) {
-	agent := createAgentForAgentTest(t)
+	agent := createAgentForTest(t)
 
 	var config resourced_config.Config
 	for _, c := range agent.ConfigStorage.Readers {
