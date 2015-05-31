@@ -58,7 +58,7 @@ Please use `go fmt` everywhere. If you use SublimeText, feel free to install `Go
 
 **Q: What is the general architecture?**
 
-ResourceD has 3 components: Reader, writer, and HTTP server.
+ResourceD has 3 components: Reader, Writer, and HTTP server.
 
 * Reader scrapes information on your server and returns JSON data. Each reader runs in its own goroutine.
 

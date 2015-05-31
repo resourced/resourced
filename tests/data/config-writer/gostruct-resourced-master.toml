@@ -6,7 +6,7 @@ Interval = "3s"
 [GoStructFields]
 Url = "http://localhost:55655/api/hosts"
 Method = "POST"
-Username = "juVYXPeJKZAxEdSzwHL89ac7O_ZjkiIpnD95SYTQ3l0="
+Username = "{access-token}"
 
 # Headers data structure is comma delimited string because:
 # * TOML map does not support dash as key.

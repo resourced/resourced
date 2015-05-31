@@ -49,13 +49,13 @@ ResourceD accepts a few environment variables as configuration:
 
 ## Data Gathering
 
-ResourceD readers gather data on your server. The easiest way to create a reader is to use scripting language.
+ResourceD readers gather data on your server. The easiest way to create a reader is to use a scripting language.
 
 1. Write the script following this one requirement: **Output the JSON data through STDOUT**
 
 2. Write config file. [Click here for examples](https://github.com/resourced/resourced/tree/master/tests/data/config-reader).
 
-For more info, [follow this link](https://github.com/resourced/resourced/tree/master/docs/users/DATA-COLLECTION.md).
+For more info, [follow this link](https://github.com/resourced/resourced/tree/master/docs/users/DATA-GATHERER.md).
 
 
 ### RESTful Endpoints
