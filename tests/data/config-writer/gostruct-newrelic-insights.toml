@@ -1,14 +1,14 @@
-ReaderPaths = ["/load-avg", "/free"]
-Path = "/nr-insights/load-avg-free"
+ReaderPaths = ["/load-avg"]
+Path = "/newrelic/insights/load-avg"
 GoStruct = "NewrelicInsights"
 Interval = "30s"
 
 [GoStructFields]
-EventType = "ServerLoadAvgAndFree"
+EventType = "ServerLoadAvg"
 Url = "https://insights-collector.newrelic.com/v1/accounts/{account-id}/events"
 Method = "POST"
 
 # Headers data structure is comma delimited string because:
 # * TOML map does not support dash as key.
 # * Slice reflection is a bit pain.
-Headers = "Content-Type=application/json,X-Insert-Key=api-key"
+Headers = "Content-Type=application/json,X-Insert-Key={api-insert-key}"
