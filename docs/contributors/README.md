@@ -1,4 +1,4 @@
-This section is dedicated to current or future contributors to ResourceD project.
+This section is dedicated for current or future ResourceD contributors.
 
 ## FAQ
 
