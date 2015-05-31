@@ -11,13 +11,13 @@
 2. Use supervisor/upstart/systemd to daemonize. [Click here for examples](https://github.com/resourced/resourced/tree/master/tests/data/script-init).
 
 
-## Running in Development Environment
+## Running the Server
 
 ResourceD requires only 2 environment variables to run.
 ```bash
 RESOURCED_CONFIG_READER_DIR=$GOPATH/src/github.com/resourced/resourced/tests/data/config-reader \
 RESOURCED_CONFIG_WRITER_DIR=$GOPATH/src/github.com/resourced/resourced/tests/data/config-writer \
-go run $GOPATH/src/github.com/resourced/resourced/resourced.go
+$GOPATH/bin/resourced
 ```
 
 Once you executed the command above, open this URL: [http://localhost:55555/paths](http://localhost:55555/paths).
@@ -47,9 +47,9 @@ ResourceD accepts a few environment variables as configuration:
 * **RESOURCED_ALLOWED_NETWORKS:** Comma separated list of CIDR's that are allowed to use ResourceD's API endpoint. Default: ""
 
 
-## Collecting Data
+## Data Gathering
 
-ResourceD data collector is called a reader. The quickest way to configure a reader is to use a script.
+ResourceD readers gather data on your server. The easiest way to create a reader is to use scripting language.
 
 1. Write the script following this one requirement: **Output the JSON data through STDOUT**
 
