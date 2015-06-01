@@ -7,7 +7,7 @@ import (
 )
 
 func TestNewConfigStorage(t *testing.T) {
-	config, err := NewConfigStorage(os.ExpandEnv("$GOPATH/src/github.com/resourced/resourced/tests/data/config-reader"), os.ExpandEnv("$GOPATH/src/github.com/resourced/resourced/tests/data/config-writer"))
+	config, err := NewConfigStorage("$GOPATH/src/github.com/resourced/resourced/tests/data/config-reader", "$GOPATH/src/github.com/resourced/resourced/tests/data/config-writer")
 	if err != nil {
 		t.Fatalf("Initializing ConfigStorage should work. Error: %v", err)
 	}
