@@ -7,7 +7,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"os"
 	"os/exec"
 	"strconv"
 	"strings"
@@ -32,11 +31,6 @@ func (mcr *Base) Stats() (map[string]interface{}, error) {
 	for key, value := range statsFromFile {
 		trimmedKey := strings.Replace(key, "libmcrouter.mcrouter.5000.", "", -1)
 		stats[trimmedKey] = value
-	}
-
-	hostname, err := os.Hostname()
-	if err == nil {
-		stats["hostname"] = hostname
 	}
 
 	return stats, nil
