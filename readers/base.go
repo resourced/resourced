@@ -5,6 +5,7 @@ import (
 	"errors"
 	resourced_config "github.com/resourced/resourced/config"
 	readers_docker "github.com/resourced/resourced/readers/docker"
+	readers_mcrouter "github.com/resourced/resourced/readers/mcrouter"
 	readers_mysql "github.com/resourced/resourced/readers/mysql"
 	readers_procfs "github.com/resourced/resourced/readers/procfs"
 	readers_redis "github.com/resourced/resourced/readers/redis"
@@ -59,6 +60,9 @@ func NewGoStruct(name string) (IReader, error) {
 	}
 	if name == "LoadAvg" {
 		structInstance = NewLoadAvg()
+	}
+	if name == "McRouterStats" {
+		structInstance = readers_mcrouter.NewMcRouterStats()
 	}
 	if name == "MysqlProcesslist" {
 		structInstance = readers_mysql.NewMysqlProcesslist()

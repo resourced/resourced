@@ -1,0 +1,8 @@
+# McRouterStats reader needs netcat command line tool.
+GoStruct = "McRouterStats"
+Path = "/mcrouter/stats"
+Interval = "3s"
+
+[GoStructFields]
+HostAndPort = "localhost:5000"
+ConfigFile = "$GOPATH/src/github.com/resourced/resourced/tests/data/config-files/mcrouter.json"
