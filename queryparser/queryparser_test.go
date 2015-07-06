@@ -69,3 +69,20 @@ func TestEvalBooleanExpressions(t *testing.T) {
 		t.Errorf("Failed to parse query correctly. Value: %v", evaluated)
 	}
 }
+
+func TestEvalNestedBooleanExpressions(t *testing.T) {
+	data := make(map[string][]byte)
+	data["/r/load-avg"] = []byte(`{"Data": {"LoadAvg1m": 0.904296875}}`)
+
+	query := []byte(`["&&", ["&&", [">", {"/r/load-avg": "LoadAvg1m"}, 0.5], ["<", {"/r/load-avg": "LoadAvg1m"}, 10]], true]`)
+	qp := New(query)
+
+	evaluated, err := qp.EvalExpressions(data, nil)
+	if err != nil {
+		t.Fatalf("Unable to evaluate query. Error: %v", err)
+	}
+
+	if evaluated != true {
+		t.Errorf("Failed to parse query correctly. Value: %v", evaluated)
+	}
+}
