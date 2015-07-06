@@ -31,40 +31,118 @@ func (qp *QueryParser) JSONQuery() ([]interface{}, error) {
 	return data, nil
 }
 
-func (qp *QueryParser) EvalSingleValue() (bool, error) {
-	jsonQuery, err := qp.JSONQuery()
-	if err != nil {
-		return false, err
+// EvalExpressions evaluates nested expressions and returns boolean given full dataset from storage.
+// Each slice tree has three components: [operator, (expression || data point map), (expression || value)].
+// There is an exception where a slice tree only has one value. That value must be a boolean type.
+// Operator && and || only work when both left and right sides are expressions.
+func (qp *QueryParser) EvalExpressions(data map[string][]byte, jsonQuery []interface{}) (bool, error) {
+	if jsonQuery == nil {
+		var err error
+
+		jsonQuery, err = qp.JSONQuery()
+		if err != nil {
+			return false, err
+		}
 	}
 
+	var operator string
+	var isBooleanOperator bool
+
+	var leftSideDatapointMap map[string]interface{}
+	var isLeftSideDatapointMap bool
+
+	var rightSideValue interface{}
+
+	// Special case, when length of jsonQuery is 1.
 	if len(jsonQuery) == 1 {
-		if value, ok := jsonQuery[0].(bool); ok {
-			return value, nil
-		}
-	}
-	return false, nil
-}
-
-// EvalSingleExpression given full dataset from storage.
-func (qp *QueryParser) EvalSingleExpression(data map[string][]byte) (bool, error) {
-	jsonQuery, err := qp.JSONQuery()
-	if err != nil {
-		return false, err
-	}
-
-	if len(jsonQuery) == 3 {
-		operator, ok := jsonQuery[0].(string)
+		value, ok := jsonQuery[0].(bool)
 		if !ok {
-			return false, errors.New(fmt.Sprintf("Operator %v must be of type string", jsonQuery[0]))
+			return false, errors.New("Single value query must always be boolean")
 		}
 
-		datapointMap := jsonQuery[1].(map[string]interface{})
+		return value, nil
+	}
 
+	// Step 1: For each of the 3 parts, gather all the variables.
+	for i, jsonQueryPart := range jsonQuery {
+		// Part 1 is always the operator
+		if i == 0 {
+			var ok bool
+
+			operator, ok = jsonQueryPart.(string)
+			if !ok {
+				return false, errors.New(fmt.Sprintf("Operator %v must be of type string", jsonQueryPart))
+			}
+
+			if operator == "&&" || operator == "||" {
+				isBooleanOperator = true
+			} else {
+				isBooleanOperator = false
+			}
+		}
+
+		// Part 2 is the left side of the tree.
+		// It can either be another expression or a data point map.
+		// Data point map is used for traversing the JSON data.
+		// If an expression is found, evaulate immediately.
+		if i == 1 {
+			leftSideExpression, isLeftSideExpression := jsonQueryPart.([]interface{})
+
+			if isLeftSideExpression {
+				evaluated, err := qp.EvalExpressions(data, leftSideExpression)
+				if err != nil {
+					return false, err
+				}
+
+				jsonQuery[i] = evaluated
+
+			} else {
+				leftSideDatapointMap, isLeftSideDatapointMap = jsonQueryPart.(map[string]interface{})
+			}
+		}
+
+		if i == 2 {
+			rightSideExpression, isRightSideExpression := jsonQueryPart.([]interface{})
+			if isRightSideExpression {
+				evaluated, err := qp.EvalExpressions(data, rightSideExpression)
+				if err != nil {
+					return false, err
+				}
+
+				jsonQuery[i] = evaluated
+
+			} else {
+				rightSideValue = jsonQueryPart
+			}
+		}
+	}
+
+	if isBooleanOperator {
+		leftAsBool, ok := jsonQuery[1].(bool)
+		if !ok {
+			return false, errors.New(fmt.Sprintf("Boolean operator: %v cannot operate on non boolean", operator))
+		}
+
+		rightAsBool, ok := jsonQuery[2].(bool)
+		if !ok {
+			return false, errors.New(fmt.Sprintf("Boolean operator: %v cannot operate on non boolean", operator))
+		}
+
+		if operator == "&&" {
+			return leftAsBool && rightAsBool, nil
+		} else if operator == "||" {
+			return leftAsBool || rightAsBool, nil
+		}
+	}
+
+	if isLeftSideDatapointMap {
+		// Pulls out the right data
 		var dataJsonBytes []byte
 		var dataJson map[string]interface{}
 		var jsonSelector string
 
-		for key, jsonSelectorInterface := range datapointMap {
+		for key, jsonSelectorInterface := range leftSideDatapointMap {
+			var ok bool
 			jsonSelector, ok = jsonSelectorInterface.(string)
 			if !ok {
 				return false, errors.New(fmt.Sprintf("JSON selector %v must be of type string", jsonSelectorInterface))
@@ -73,7 +151,7 @@ func (qp *QueryParser) EvalSingleExpression(data map[string][]byte) (bool, error
 			break
 		}
 
-		err = json.Unmarshal(dataJsonBytes, &dataJson)
+		err := json.Unmarshal(dataJsonBytes, &dataJson)
 		if err != nil {
 			return false, err
 		}
@@ -83,8 +161,7 @@ func (qp *QueryParser) EvalSingleExpression(data map[string][]byte) (bool, error
 		jsonSelectorChunks := strings.Split(jsonSelector, ".")
 		jsonSelectorChunks = append([]string{"Data"}, jsonSelectorChunks...) // Always query from "Data" sub-structure.
 
-		queryValueInteface := jsonQuery[2]
-		switch queryValue := queryValueInteface.(type) {
+		switch queryValue := rightSideValue.(type) {
 		case int:
 			dataValue, err := jq.Int(jsonSelectorChunks...)
 			if err != nil {
@@ -208,5 +285,6 @@ func (qp *QueryParser) EvalSingleExpression(data map[string][]byte) (bool, error
 			return false, errors.New("Supported types are: int, int64, float32, float64, and string")
 		}
 	}
+
 	return false, nil
 }
