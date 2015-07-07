@@ -53,6 +53,24 @@ func TestEvalSingleExpression(t *testing.T) {
 
 }
 
+func TestEvalFalsySingleExpression(t *testing.T) {
+	data := make(map[string][]byte)
+	data["/r/load-avg"] = []byte(`{"Data": {"LoadAvg1m": 0.904296875}}`)
+
+	query := []byte(`[">", {"/r/load-avg": "LoadAvg1m"}, 100]`)
+	qp := New(query)
+
+	evaluated, err := qp.EvalExpressions(data, nil)
+	if err != nil {
+		t.Fatalf("Unable to evaluate query. Error: %v", err)
+	}
+
+	if evaluated != false {
+		t.Errorf("Failed to parse query correctly. Value: %v", evaluated)
+	}
+
+}
+
 func TestEvalBooleanExpressions(t *testing.T) {
 	data := make(map[string][]byte)
 	data["/r/load-avg"] = []byte(`{"Data": {"LoadAvg1m": 0.904296875}}`)
