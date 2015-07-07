@@ -2,10 +2,11 @@
 package config
 
 import (
-	"github.com/BurntSushi/toml"
-	"github.com/resourced/resourced/libstring"
 	"io/ioutil"
 	"path"
+
+	"github.com/BurntSushi/toml"
+	"github.com/resourced/resourced/libstring"
 )
 
 // NewConfig creates Config struct given fullpath and kind.
@@ -33,6 +34,7 @@ func NewConfigStorage(configReaderDir, configWriterDir string) (*ConfigStorage, 
 	storage := &ConfigStorage{}
 	storage.Readers = make([]Config, 0)
 	storage.Writers = make([]Config, 0)
+	storage.Executors = make([]Config, 0)
 
 	var err error
 
@@ -82,16 +84,22 @@ type Config struct {
 	Path           string
 	Interval       string
 
-	// There are only 2 kinds: reader and writer
+	// There are 3 kinds: reader, writer, and executor
 	Kind string
 
 	// Writer specific fields
 	// ReaderPaths defines input data endpoints for a Writer.
 	ReaderPaths []string
+
+	// Executor specific fields
+	LowTreshold  int64
+	HighTreshold int64
+	Conditions   []interface{}
 }
 
 // ConfigStorage stores all readers and writers configuration.
 type ConfigStorage struct {
-	Readers []Config
-	Writers []Config
+	Readers   []Config
+	Writers   []Config
+	Executors []Config
 }

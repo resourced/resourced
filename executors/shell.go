@@ -6,6 +6,17 @@ import (
 	"github.com/resourced/resourced/libprocess"
 )
 
+func init() {
+	Register("Shell", NewShell)
+}
+
+func NewShell() IExecutor {
+	s := &Shell{}
+	s.Data = make(map[string]interface{})
+
+	return s
+}
+
 type Shell struct {
 	Base
 	Data map[string]interface{}

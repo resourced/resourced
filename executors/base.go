@@ -8,23 +8,29 @@ import (
 	resourced_config "github.com/resourced/resourced/config"
 )
 
-var ConditionMetByPathCounter map[string]int64
+var executorConstructors = make(map[string]func() IExecutor)
 
-func init() {
-	ConditionMetByPathCounter = make(map[string]int64)
+var ConditionMetByPathCounter = make(map[string]int64)
+
+// Register makes any executor constructor available by name.
+func Register(name string, constructor func() IExecutor) {
+	if constructor == nil {
+		panic("executor: Register executor constructor is nil")
+	}
+	if _, dup := executorConstructors[name]; dup {
+		panic("executor: Register called twice for executor constructor " + name)
+	}
+	executorConstructors[name] = constructor
 }
 
 // NewGoStruct instantiates IExecutor
-func NewGoStruct(name string) (IExecutor, error) {
-	return nil, nil
+func NewGoStruct(name string) IExecutor {
+	return executorConstructors[name]()
 }
 
 // NewGoStructByConfig instantiates IExecutor given Config struct
-func NewGoStructByConfig(config resourced_config.Config) (IExecutor, error) {
-	executor, err := NewGoStruct(config.GoStruct)
-	if err != nil {
-		return nil, err
-	}
+func NewGoStructByConfig(config resourced_config.Config) IExecutor {
+	executor := NewGoStruct(config.GoStruct)
 
 	// Populate IExecutor fields dynamically
 	if len(config.GoStructFields) > 0 {
@@ -38,7 +44,7 @@ func NewGoStructByConfig(config resourced_config.Config) (IExecutor, error) {
 		}
 	}
 
-	return executor, err
+	return executor
 }
 
 // IExecutor is generic interface for all executors.
