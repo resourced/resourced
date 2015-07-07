@@ -92,9 +92,9 @@ type Config struct {
 	ReaderPaths []string
 
 	// Executor specific fields
-	LowTreshold  int64
-	HighTreshold int64
-	Conditions   []interface{}
+	LowThreshold  int64
+	HighThreshold int64
+	Conditions    []interface{}
 }
 
 // ConfigStorage stores all readers and writers configuration.

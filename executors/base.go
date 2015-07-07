@@ -52,17 +52,17 @@ type IExecutor interface {
 	Run() error
 	ToJson() ([]byte, error)
 	ConditionMet()
-	LowTresholdExceeded() bool
-	HighTresholdExceeded() bool
+	LowThresholdExceeded() bool
+	HighThresholdExceeded() bool
 }
 
 type Base struct {
-	Command      string
-	Path         string
-	Interval     string
-	LowTreshold  int64
-	HighTreshold int64
-	Conditions   []interface{}
+	Command       string
+	Path          string
+	Interval      string
+	LowThreshold  int64
+	HighThreshold int64
+	Conditions    []interface{}
 	sync.RWMutex
 }
 
@@ -72,10 +72,10 @@ func (b *Base) ConditionMet() {
 	b.Unlock()
 }
 
-func (b *Base) LowTresholdExceeded() bool {
-	return ConditionMetByPathCounter[b.Path] > b.LowTreshold
+func (b *Base) LowThresholdExceeded() bool {
+	return ConditionMetByPathCounter[b.Path] > b.LowThreshold
 }
 
-func (b *Base) HighTresholdExceeded() bool {
-	return ConditionMetByPathCounter[b.Path] > b.HighTreshold
+func (b *Base) HighThresholdExceeded() bool {
+	return ConditionMetByPathCounter[b.Path] > b.HighThreshold
 }
