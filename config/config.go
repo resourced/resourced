@@ -29,8 +29,8 @@ func NewConfig(fullpath, kind string) (Config, error) {
 	return config, err
 }
 
-// NewConfigStorage creates ConfigStorage struct given configReaderDir and configWriterDir.
-func NewConfigStorage(configReaderDir, configWriterDir string) (*ConfigStorage, error) {
+// NewConfigStorage creates ConfigStorage struct given configDir.
+func NewConfigStorage(configDir string) (*ConfigStorage, error) {
 	storage := &ConfigStorage{}
 	storage.Readers = make([]Config, 0)
 	storage.Writers = make([]Config, 0)
@@ -38,34 +38,28 @@ func NewConfigStorage(configReaderDir, configWriterDir string) (*ConfigStorage, 
 
 	var err error
 
-	if configReaderDir != "" {
-		configReaderDir = libstring.ExpandTildeAndEnv(configReaderDir)
+	for _, configKind := range []string{"reader", "writer", "executor"} {
+		configDir = libstring.ExpandTildeAndEnv(configDir)
 
-		readerFiles, err := ioutil.ReadDir(configReaderDir)
+		configKindPlural := configKind + "s"
+
+		configFiles, err := ioutil.ReadDir(path.Join(configDir, configKindPlural))
 
 		if err == nil {
-			for _, f := range readerFiles {
-				fullpath := path.Join(configReaderDir, f.Name())
+			for _, f := range configFiles {
+				fullpath := path.Join(path.Join(configDir, configKindPlural), f.Name())
 
-				readerConfig, err := NewConfig(fullpath, "reader")
+				conf, err := NewConfig(fullpath, configKind)
 				if err == nil {
-					storage.Readers = append(storage.Readers, readerConfig)
-				}
-			}
-		}
-	}
-
-	if configWriterDir != "" {
-		configWriterDir = libstring.ExpandTildeAndEnv(configWriterDir)
-
-		writerFiles, err := ioutil.ReadDir(configWriterDir)
-		if err == nil {
-			for _, f := range writerFiles {
-				fullpath := path.Join(configWriterDir, f.Name())
-
-				writerConfig, err := NewConfig(fullpath, "writer")
-				if err == nil {
-					storage.Writers = append(storage.Writers, writerConfig)
+					if configKind == "reader" {
+						storage.Readers = append(storage.Readers, conf)
+					}
+					if configKind == "writer" {
+						storage.Writers = append(storage.Writers, conf)
+					}
+					if configKind == "executor" {
+						storage.Executors = append(storage.Executors, conf)
+					}
 				}
 			}
 		}
