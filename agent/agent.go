@@ -5,8 +5,14 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"net"
+	"os"
+	"strings"
+	"time"
+
 	"github.com/Sirupsen/logrus"
 	resourced_config "github.com/resourced/resourced/config"
+	resourced_executors "github.com/resourced/resourced/executors"
 	resourced_host "github.com/resourced/resourced/host"
 	"github.com/resourced/resourced/libprocess"
 	"github.com/resourced/resourced/libstring"
@@ -14,10 +20,6 @@ import (
 	resourced_readers "github.com/resourced/resourced/readers"
 	"github.com/resourced/resourced/storage"
 	resourced_writers "github.com/resourced/resourced/writers"
-	"net"
-	"os"
-	"strings"
-	"time"
 )
 
 // NewAgent is the constructor for Agent struct.
@@ -165,8 +167,8 @@ func (a *Agent) initGoStructReader(config resourced_config.Config) (resourced_re
 	return resourced_readers.NewGoStructByConfig(config)
 }
 
-// initGoStructWriter initialize and return IWriter.
-func (a *Agent) initGoStructWriter(config resourced_config.Config) (resourced_writers.IWriter, error) {
+// initGoStructExecutor initialize and return IWriter.
+func (a *Agent) initGoStructExecutor(config resourced_config.Config) (resourced_writers.IWriter, error) {
 	writer, err := resourced_writers.NewGoStructByConfig(config)
 	if err != nil {
 		return nil, err
@@ -185,6 +187,18 @@ func (a *Agent) initGoStructWriter(config resourced_config.Config) (resourced_wr
 	writer.SetReadersDataInBytes(readersData)
 
 	return writer, err
+}
+
+// initGoStructExecutor initialize and return IExecutor.
+func (a *Agent) initGoStructExecutor(config resourced_config.Config) (resourced_executors.IExecutor, error) {
+	executor, err := resourced_executors.NewGoStructByConfig(config)
+	if err != nil {
+		return nil, err
+	}
+
+	executor.SetReadersDataInBytes(a.Db)
+
+	return executor, err
 }
 
 // runGoStruct executes IReader/IWriter and returns the output.
@@ -214,7 +228,7 @@ func (a *Agent) runGoStructReader(config resourced_config.Config) ([]byte, error
 // runGoStructWriter executes IWriter and returns error if exists.
 func (a *Agent) runGoStructWriter(config resourced_config.Config) ([]byte, error) {
 	// Initialize IWriter
-	writer, err := a.initGoStructWriter(config)
+	writer, err := a.initGoStructExecutor(config)
 	if err != nil {
 		return nil, err
 	}

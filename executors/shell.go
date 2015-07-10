@@ -24,13 +24,15 @@ type Shell struct {
 
 // Run shells out external program and store the output on c.Data.
 func (s *Shell) Run() error {
-	output, err := libprocess.NewCmd(s.Command).CombinedOutput()
-	s.Data["Output"] = string(output)
+	if s.IsConditionMet() {
+		output, err := libprocess.NewCmd(s.Command).CombinedOutput()
+		s.Data["Output"] = string(output)
 
-	if err != nil {
-		s.Data["ExitStatus"] = 1
-	} else {
-		s.Data["ExitStatus"] = 0
+		if err != nil {
+			s.Data["ExitStatus"] = 1
+		} else {
+			s.Data["ExitStatus"] = 0
+		}
 	}
 
 	return nil
