@@ -65,11 +65,13 @@ type IExecutor interface {
 	Run() error
 	ToJson() ([]byte, error)
 	SetQueryParser()
+	SetReadersDataInBytes(map[string][]byte)
 	IsConditionMet() bool
 	LowThresholdExceeded() bool
 	HighThresholdExceeded() bool
 	ConditionMetCount() int
-	SetReadersDataInBytes(map[string][]byte)
+	OnLowThresholdExceeded() error
+	OnHighThresholdExceeded() error
 }
 
 type Base struct {
@@ -103,6 +105,11 @@ func (b *Base) SetQueryParser() {
 	b.qp = queryparser.New([]byte(b.Conditions))
 }
 
+// SetReadersDataInBytes pulls readers data and store them on ReadersData field.
+func (b *Base) SetReadersDataInBytes(readersJsonBytes map[string][]byte) {
+	b.ReadersDataBytes = readersJsonBytes
+}
+
 func (b *Base) IsConditionMet() bool {
 	result, err := b.qp.EvalExpressions(b.ReadersDataBytes, nil)
 	if err != nil {
@@ -133,14 +140,23 @@ func (b *Base) ConditionMetCount() int {
 }
 
 func (b *Base) LowThresholdExceeded() bool {
+	if b.LowThreshold == 0 {
+		return false
+	}
 	return ConditionMetByPathCounter[b.Path] > b.LowThreshold
 }
 
 func (b *Base) HighThresholdExceeded() bool {
+	if b.HighThreshold == 0 {
+		return false
+	}
 	return ConditionMetByPathCounter[b.Path] > b.HighThreshold
 }
 
-// SetReadersDataInBytes pulls readers data and store them on ReadersData field.
-func (b *Base) SetReadersDataInBytes(readersJsonBytes map[string][]byte) {
-	b.ReadersDataBytes = readersJsonBytes
+func (b *Base) OnLowThresholdExceeded() error {
+	return nil
+}
+
+func (b *Base) OnHighThresholdExceeded() error {
+	return nil
 }

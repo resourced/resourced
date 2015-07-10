@@ -111,6 +111,8 @@ func (a *Agent) Run(config resourced_config.Config) (output []byte, err error) {
 		output, err = a.runGoStructReader(config)
 	} else if config.GoStruct != "" && config.Kind == "writer" {
 		output, err = a.runGoStructWriter(config)
+	} else if config.GoStruct != "" && config.Kind == "executor" {
+		output, err = a.runGoStructExecutor(config)
 	}
 
 	if err != nil {
@@ -167,8 +169,8 @@ func (a *Agent) initGoStructReader(config resourced_config.Config) (resourced_re
 	return resourced_readers.NewGoStructByConfig(config)
 }
 
-// initGoStructExecutor initialize and return IWriter.
-func (a *Agent) initGoStructExecutor(config resourced_config.Config) (resourced_writers.IWriter, error) {
+// initGoStructWriter initialize and return IWriter.
+func (a *Agent) initGoStructWriter(config resourced_config.Config) (resourced_writers.IWriter, error) {
 	writer, err := resourced_writers.NewGoStructByConfig(config)
 	if err != nil {
 		return nil, err
@@ -191,14 +193,11 @@ func (a *Agent) initGoStructExecutor(config resourced_config.Config) (resourced_
 
 // initGoStructExecutor initialize and return IExecutor.
 func (a *Agent) initGoStructExecutor(config resourced_config.Config) (resourced_executors.IExecutor, error) {
-	executor, err := resourced_executors.NewGoStructByConfig(config)
-	if err != nil {
-		return nil, err
-	}
+	executor := resourced_executors.NewGoStructByConfig(config)
 
-	executor.SetReadersDataInBytes(a.Db)
+	executor.SetReadersDataInBytes(a.Db.Data)
 
-	return executor, err
+	return executor, nil
 }
 
 // runGoStruct executes IReader/IWriter and returns the output.
@@ -228,7 +227,7 @@ func (a *Agent) runGoStructReader(config resourced_config.Config) ([]byte, error
 // runGoStructWriter executes IWriter and returns error if exists.
 func (a *Agent) runGoStructWriter(config resourced_config.Config) ([]byte, error) {
 	// Initialize IWriter
-	writer, err := a.initGoStructExecutor(config)
+	writer, err := a.initGoStructWriter(config)
 	if err != nil {
 		return nil, err
 	}
@@ -250,6 +249,17 @@ func (a *Agent) runGoStructWriter(config resourced_config.Config) ([]byte, error
 	}
 
 	return a.runGoStruct(writer)
+}
+
+// runGoStructExecutor executes IExecutor and returns the output.
+func (a *Agent) runGoStructExecutor(config resourced_config.Config) ([]byte, error) {
+	// Initialize IExecutor
+	executor, err := a.initGoStructExecutor(config)
+	if err != nil {
+		return nil, err
+	}
+
+	return a.runGoStruct(executor)
 }
 
 // commonData gathers common information for every reader and writer.

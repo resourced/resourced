@@ -3,11 +3,12 @@ package agent
 import (
 	"encoding/json"
 	"fmt"
+	"net/http"
+	"strings"
+
 	"github.com/Sirupsen/logrus"
 	"github.com/julienschmidt/httprouter"
 	resourced_config "github.com/resourced/resourced/config"
-	"net/http"
-	"strings"
 )
 
 // BaseHandler wraps all other handlers; returns 403 for clients that aren't authorized to connect.
@@ -56,13 +57,25 @@ func (a *Agent) RootGetHandler() func(w http.ResponseWriter, r *http.Request, ps
 			arrayOfWriterJsonString = "[" + strings.Join(writerJsonBytes, ",") + "]"
 		}
 
-		if arrayOfReaderJsonString == "[]" && arrayOfWriterJsonString == "[]" {
+		arrayOfExecutorJsonString := "[]"
+
+		for _, config := range a.ConfigStorage.Executors {
+			jsonData, err := a.GetRunByPath(a.pathWithPrefix(config))
+			if err == nil && jsonData != nil {
+				writerJsonBytes = append(writerJsonBytes, string(jsonData))
+			}
+		}
+		if len(writerJsonBytes) > 0 {
+			arrayOfExecutorJsonString = "[" + strings.Join(writerJsonBytes, ",") + "]"
+		}
+
+		if arrayOfReaderJsonString == "[]" && arrayOfWriterJsonString == "[]" && arrayOfExecutorJsonString == "[]" {
 			w.WriteHeader(404)
 			w.Write([]byte(fmt.Sprintf(`{"Error": "Run data does not exist."}`)))
 
 		} else {
 			w.WriteHeader(200)
-			w.Write([]byte(fmt.Sprintf(`{"Readers": %v, "Writers": %v}`, arrayOfReaderJsonString, arrayOfWriterJsonString)))
+			w.Write([]byte(fmt.Sprintf(`{"Readers": %v, "Writers": %v, "Executors": &v}`, arrayOfReaderJsonString, arrayOfWriterJsonString, arrayOfExecutorJsonString)))
 		}
 	}
 }
@@ -105,6 +118,35 @@ func (a *Agent) WritersGetHandler() func(w http.ResponseWriter, r *http.Request,
 		arrayOfWriterJsonString := "[]"
 
 		for _, config := range a.ConfigStorage.Writers {
+			jsonData, err := a.GetRunByPath(a.pathWithPrefix(config))
+			if err == nil && jsonData != nil {
+				writerJsonBytes = append(writerJsonBytes, string(jsonData))
+			}
+		}
+		if len(writerJsonBytes) > 0 {
+			arrayOfWriterJsonString = "[" + strings.Join(writerJsonBytes, ",") + "]"
+		}
+
+		if arrayOfWriterJsonString == "[]" {
+			w.WriteHeader(404)
+			w.Write([]byte(fmt.Sprintf(`{"Error": "Run data does not exist."}`)))
+
+		} else {
+			w.WriteHeader(200)
+			w.Write([]byte(arrayOfWriterJsonString))
+		}
+	}
+}
+
+// ExecutorsGetHandler returns function that handles all Executors.
+func (a *Agent) ExecutorsGetHandler() func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	return func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+		w.Header().Set("Content-Type", "application/json")
+
+		writerJsonBytes := make([]string, 0)
+		arrayOfWriterJsonString := "[]"
+
+		for _, config := range a.ConfigStorage.Executors {
 			jsonData, err := a.GetRunByPath(a.pathWithPrefix(config))
 			if err == nil && jsonData != nil {
 				writerJsonBytes = append(writerJsonBytes, string(jsonData))
@@ -282,6 +324,8 @@ func (a *Agent) HttpRouter() *httprouter.Router {
 
 	router.GET("/w", a.BaseHandler(a.WritersGetHandler()))
 	router.GET("/w/paths", a.BaseHandler(a.WriterPathsGetHandler()))
+
+	router.GET("/x", a.BaseHandler(a.ExecutorsGetHandler()))
 
 	for readerPath, readerHandler := range a.MapReadersGetHandlers() {
 		router.GET(readerPath, a.BaseHandler(readerHandler))
