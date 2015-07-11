@@ -2,11 +2,17 @@ package redis
 
 import (
 	"encoding/json"
-	"github.com/garyburd/redigo/redis"
 	"strings"
+
+	"github.com/garyburd/redigo/redis"
+	"github.com/resourced/resourced/readers"
 )
 
-func NewRedisInfo() *RedisInfo {
+func init() {
+	readers.Register("RedisInfo", NewRedisInfo)
+}
+
+func NewRedisInfo() readers.IReader {
 	r := &RedisInfo{}
 	r.Data = make(map[string]string)
 

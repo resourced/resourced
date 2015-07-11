@@ -5,7 +5,8 @@ import (
 )
 
 func TestRedisInfoRun(t *testing.T) {
-	r := NewRedisInfo()
+	r := &RedisInfo{}
+	r.Data = make(map[string]string)
 	if r.initConnection() == nil {
 		err := r.Run()
 		if err != nil {
