@@ -112,16 +112,12 @@ func (a *Agent) Run(config resourced_config.Config) (output []byte, err error) {
 	} else if config.GoStruct != "" && config.Kind == "writer" {
 		output, err = a.runGoStructWriter(config)
 	} else if config.GoStruct != "" && config.Kind == "executor" {
-		println("AM I HERE??????")
-		println(config.Kind)
-
 		output, err = a.runGoStructExecutor(config)
 	}
 
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
 			"Error":              err.Error(),
-			"Function":           "func (a *Agent) Run(config resourced_config.Config) (output []byte, err error)",
 			"config.Command":     config.Command,
 			"config.GoStruct":    config.GoStruct,
 			"config.Path":        config.Path,
@@ -239,7 +235,6 @@ func (a *Agent) runGoStructWriter(config resourced_config.Config) ([]byte, error
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
 			"Error":              err.Error(),
-			"Function":           "func (a *Agent) runGoStructWriter(config resourced_config.Config) ([]byte, error)",
 			"config.Command":     config.Command,
 			"config.GoStruct":    config.GoStruct,
 			"config.Path":        config.Path,

@@ -399,8 +399,7 @@ func (a *Agent) ListenAndServe(addr string) error {
 	}
 
 	logrus.WithFields(logrus.Fields{
-		"Function": "func (a *Agent) ListenAndServe(addr string) error",
-		"addr":     addr,
+		"addr": addr,
 	}).Info("Running HTTP server")
 
 	return http.ListenAndServe(addr, a.HttpRouter())
@@ -413,8 +412,7 @@ func (a *Agent) ListenAndServeTLS(addr, certFile, keyFile string) error {
 	}
 
 	logrus.WithFields(logrus.Fields{
-		"Function": "func (a *Agent) ListenAndServe(addr string) error",
-		"addr":     addr,
+		"addr": addr,
 	}).Info("Running HTTPS server")
 
 	return http.ListenAndServeTLS(addr, certFile, keyFile, a.HttpRouter())

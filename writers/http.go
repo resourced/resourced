@@ -3,9 +3,10 @@ package writers
 import (
 	"bytes"
 	"errors"
-	"github.com/Sirupsen/logrus"
 	"net/http"
 	"strings"
+
+	"github.com/Sirupsen/logrus"
 )
 
 // NewHttp is Http constructor.
@@ -94,7 +95,6 @@ func (h *Http) Run() error {
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
 			"Error":      err.Error(),
-			"Function":   "func (h *Http) Run() error",
 			"req.URL":    req.URL.String(),
 			"req.Method": req.Method,
 		}).Error("Failed to send HTTP request")
