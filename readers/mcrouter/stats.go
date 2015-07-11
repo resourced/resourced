@@ -2,9 +2,14 @@ package mcrouter
 
 import (
 	"encoding/json"
+	"github.com/resourced/resourced/readers"
 )
 
-func NewMcRouterStats() *McRouterStats {
+func init() {
+	readers.Register("McRouterStats", NewMcRouterStats)
+}
+
+func NewMcRouterStats() readers.IReader {
 	r := &McRouterStats{}
 	r.Data = make(map[string]interface{})
 

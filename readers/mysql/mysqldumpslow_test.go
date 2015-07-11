@@ -25,17 +25,11 @@ SELECT * FROM users WHERE name = 'Jesse';
 	return ioutil.WriteFile(testMysqlSlowData, []byte(data), 0644)
 }
 
-func TestNewMysqlDumpSlow(t *testing.T) {
-	m := NewMysqlDumpSlow()
-	if m.Data == nil {
-		t.Error("Reader data should never be nil.")
-	}
-}
-
 func TestMysqlDumpSlowRun(t *testing.T) {
 	generateTestDataFromMysqlDumpSlow()
 
-	m := NewMysqlDumpSlow()
+	m := &MysqlDumpSlow{}
+	m.Data = make(map[string][]DumpSlow)
 	m.Options = "-t 1 -s at"
 	m.FilePath = testMysqlSlowData
 

@@ -1,16 +1,10 @@
 package mysql
 
 import (
+	"encoding/json"
 	"strings"
 	"testing"
 )
-
-func TestNewMysqlInformationSchemaTables(t *testing.T) {
-	m := NewMysqlInformationSchemaTables()
-	if m.Data == nil {
-		t.Error("Reader data should never be nil.")
-	}
-}
 
 func TestMysqlInformationSchemaTablesRun(t *testing.T) {
 	m := NewMysqlInformationSchemaTables()
@@ -19,9 +13,12 @@ func TestMysqlInformationSchemaTablesRun(t *testing.T) {
 		t.Errorf("Fetching information_schema data should always be successful. Error: %v", err)
 	}
 
-	if len(m.Data["Tables"]) == 0 {
-		jsonData, _ := m.ToJson()
-		t.Errorf("Processlist data should never be empty. Data: %v", string(jsonData))
+	var data map[string][]InformationSchemaTables
+	inJson, _ := m.ToJson()
+	json.Unmarshal(inJson, &data)
+
+	if len(data["Tables"]) == 0 {
+		t.Errorf("Processlist data should never be empty. Data: %v", string(inJson))
 	}
 }
 

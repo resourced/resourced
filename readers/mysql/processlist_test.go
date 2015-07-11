@@ -5,15 +5,9 @@ import (
 	"testing"
 )
 
-func TestNewMysqlProcesslist(t *testing.T) {
-	m := NewMysqlProcesslist()
-	if m.Data == nil {
-		t.Error("Reader data should never be nil.")
-	}
-}
-
 func TestMysqlProcesslistRun(t *testing.T) {
-	m := NewMysqlProcesslist()
+	m := &MysqlProcesslist{}
+	m.Data = make(map[string][]Processlist)
 	err := m.Run()
 	if err != nil {
 		t.Errorf("Fetching processlist data should always be successful. Error: %v", err)

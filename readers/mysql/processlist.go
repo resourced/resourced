@@ -4,9 +4,14 @@ import (
 	"database/sql"
 	"encoding/json"
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/resourced/resourced/readers"
 )
 
-func NewMysqlProcesslist() *MysqlProcesslist {
+func init() {
+	readers.Register("MysqlProcesslist", NewMysqlProcesslist)
+}
+
+func NewMysqlProcesslist() readers.IReader {
 	m := &MysqlProcesslist{}
 	m.Data = make(map[string][]Processlist)
 

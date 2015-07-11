@@ -5,11 +5,16 @@ import (
 	"errors"
 	"fmt"
 	"github.com/resourced/resourced/libprocess"
+	"github.com/resourced/resourced/readers"
 	"strconv"
 	"strings"
 )
 
-func NewMysqlDumpSlow() *MysqlDumpSlow {
+func init() {
+	readers.Register("MysqlDumpSlow", NewMysqlDumpSlow)
+}
+
+func NewMysqlDumpSlow() readers.IReader {
 	m := &MysqlDumpSlow{}
 	m.Data = make(map[string][]DumpSlow)
 

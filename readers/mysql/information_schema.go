@@ -4,9 +4,14 @@ import (
 	"database/sql"
 	"encoding/json"
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/resourced/resourced/readers"
 )
 
-func NewMysqlInformationSchemaTables() *MysqlInformationSchemaTables {
+func init() {
+	readers.Register("MysqlInformationSchemaTables", NewMysqlInformationSchemaTables)
+}
+
+func NewMysqlInformationSchemaTables() readers.IReader {
 	m := &MysqlInformationSchemaTables{}
 	m.Data = make(map[string][]InformationSchemaTables)
 
