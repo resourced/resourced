@@ -6,13 +6,6 @@ import (
 	"testing"
 )
 
-func TestNewDockerContainersMemory(t *testing.T) {
-	n := NewDockerContainersMemory()
-	if n.Data == nil {
-		t.Error("Reader data should never be nil.")
-	}
-}
-
 func TestNewDockerContainersMemoryRun(t *testing.T) {
 	n := NewDockerContainersMemory()
 	err := n.Run()

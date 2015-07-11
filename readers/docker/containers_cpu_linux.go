@@ -5,12 +5,17 @@ package docker
 import (
 	"encoding/json"
 	"github.com/resourced/resourced/libdocker"
+	"github.com/resourced/resourced/readers"
 	gopsutil_cpu "github.com/shirou/gopsutil/cpu"
 	gopsutil_docker "github.com/shirou/gopsutil/docker"
 	"strings"
 )
 
-func NewDockerContainersCpu() *DockerContainersCpu {
+func init() {
+	readers.Register("DockerContainersCpu", NewDockerContainersCpu)
+}
+
+func NewDockerContainersCpu() readers.IReader {
 	m := &DockerContainersCpu{}
 	m.Data = make(map[string]*gopsutil_cpu.CPUTimesStat)
 	return m

@@ -5,11 +5,16 @@ package docker
 import (
 	"encoding/json"
 	"github.com/resourced/resourced/libdocker"
+	"github.com/resourced/resourced/readers"
 	gopsutil_docker "github.com/shirou/gopsutil/docker"
 	"strings"
 )
 
-func NewDockerContainersMemory() *DockerContainersMemory {
+func init() {
+	readers.Register("DockerContainersMemory", NewDockerContainersMemory)
+}
+
+func NewDockerContainersMemory() readers.IReader {
 	m := &DockerContainersMemory{}
 	m.Data = make(map[string]*gopsutil_docker.CgroupMemStat)
 	return m

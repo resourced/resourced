@@ -7,9 +7,14 @@ import (
 	"fmt"
 	linuxproc "github.com/c9s/goprocinfo/linux"
 	"github.com/resourced/resourced/libdocker"
+	"github.com/resourced/resourced/readers"
 )
 
-func NewDockerContainersNetDev() *DockerContainersNetDev {
+func init() {
+	readers.Register("DockerContainersNetDev", NewDockerContainersNetDev)
+}
+
+func NewDockerContainersNetDev() readers.IReader {
 	m := &DockerContainersNetDev{}
 	m.Data = make(map[string]map[string]linuxproc.NetworkStat)
 	return m

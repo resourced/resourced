@@ -3,11 +3,15 @@ package docker
 import (
 	"encoding/json"
 	"github.com/resourced/resourced/libdocker"
+	"github.com/resourced/resourced/readers"
 )
 
-func NewDockerInfoVersion() *DockerInfoVersion {
-	dc := &DockerInfoVersion{}
-	return dc
+func init() {
+	readers.Register("DockerInfoVersion", NewDockerInfoVersion)
+}
+
+func NewDockerInfoVersion() readers.IReader {
+	return &DockerInfoVersion{}
 }
 
 // DockerInfoVersion gathers docker containers data.

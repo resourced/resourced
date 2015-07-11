@@ -4,9 +4,14 @@ package docker
 
 import (
 	"encoding/json"
+	"github.com/resourced/resourced/readers"
 )
 
-func NewDockerContainersNetDev() *DockerContainersNetDev {
+func init() {
+	readers.Register("DockerContainersNetDev", NewDockerContainersNetDev)
+}
+
+func NewDockerContainersNetDev() readers.IReader {
 	m := &DockerContainersNetDev{}
 	m.Data = make(map[string]string)
 	return m

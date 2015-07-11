@@ -6,13 +6,6 @@ import (
 	"testing"
 )
 
-func TestNewDockerContainersNetDev(t *testing.T) {
-	n := NewDockerContainersNetDev()
-	if n.Data == nil {
-		t.Error("Reader data should never be nil.")
-	}
-}
-
 func TestNewDockerContainersNetDevRun(t *testing.T) {
 	n := NewDockerContainersNetDev()
 	err := n.Run()

@@ -4,9 +4,14 @@ package docker
 
 import (
 	"encoding/json"
+	"github.com/resourced/resourced/readers"
 )
 
-func NewDockerContainersCpu() *DockerContainersCpu {
+func init() {
+	readers.Register("DockerContainersCpu", NewDockerContainersCpu)
+}
+
+func NewDockerContainersCpu() readers.IReader {
 	m := &DockerContainersCpu{}
 	m.Data = make(map[string]string)
 	return m

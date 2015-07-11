@@ -3,9 +3,15 @@ package docker
 import (
 	"encoding/json"
 	"github.com/resourced/resourced/libdocker"
+	"github.com/resourced/resourced/readers"
 )
 
-func NewDockerContainers() *DockerContainers {
+func init() {
+	readers.Register("DockerContainers", NewDockerContainers)
+}
+
+// NewDockerContainers is DockerContainers constructor.
+func NewDockerContainers() readers.IReader {
 	dc := &DockerContainers{}
 	dc.Data = make(map[string]*libdocker.CompleteDockerContainer)
 	return dc

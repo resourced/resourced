@@ -6,13 +6,6 @@ import (
 	"testing"
 )
 
-func TestNewDockerContainersCpu(t *testing.T) {
-	n := NewDockerContainersCpu()
-	if n.Data == nil {
-		t.Error("Reader data should never be nil.")
-	}
-}
-
 func TestNewDockerContainersCpuRun(t *testing.T) {
 	n := NewDockerContainersCpu()
 	err := n.Run()

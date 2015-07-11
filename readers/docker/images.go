@@ -3,9 +3,14 @@ package docker
 import (
 	"encoding/json"
 	"github.com/resourced/resourced/libdocker"
+	"github.com/resourced/resourced/readers"
 )
 
-func NewDockerImages() *DockerImages {
+func init() {
+	readers.Register("DockerImages", NewDockerImages)
+}
+
+func NewDockerImages() readers.IReader {
 	di := &DockerImages{}
 	di.Data = make(map[string]*libdocker.CompleteDockerImage)
 	return di
