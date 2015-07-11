@@ -117,30 +117,36 @@ func TestPathWithPrefix(t *testing.T) {
 	}
 }
 
-func TestPathWithReaderPrefix(t *testing.T) {
+func TestpathWithKindPrefix(t *testing.T) {
 	agent := createAgentForTest(t)
 
-	toBeTested := agent.pathWithReaderPrefix("/stuff")
+	toBeTested := agent.pathWithKindPrefix("r", "/stuff")
 	if toBeTested != "/r/stuff" {
 		t.Errorf("Path is prefixed incorrectly. toBeTested: %v", toBeTested)
 	}
 
-	toBeTested = agent.pathWithReaderPrefix("/r/stuff")
+	toBeTested = agent.pathWithKindPrefix("r", "/r/stuff")
 	if toBeTested != "/r/stuff" {
 		t.Errorf("Path is prefixed incorrectly. toBeTested: %v", toBeTested)
 	}
-}
 
-func TestPathWithWriterPrefix(t *testing.T) {
-	agent := createAgentForTest(t)
-
-	toBeTested := agent.pathWithWriterPrefix("/stuff")
+	toBeTested = agent.pathWithKindPrefix("w", "/stuff")
 	if toBeTested != "/w/stuff" {
 		t.Errorf("Path is prefixed incorrectly. toBeTested: %v", toBeTested)
 	}
 
-	toBeTested = agent.pathWithWriterPrefix("/w/stuff")
+	toBeTested = agent.pathWithKindPrefix("w", "/w/stuff")
 	if toBeTested != "/w/stuff" {
+		t.Errorf("Path is prefixed incorrectly. toBeTested: %v", toBeTested)
+	}
+
+	toBeTested = agent.pathWithKindPrefix("x", "/stuff")
+	if toBeTested != "/w/stuff" {
+		t.Errorf("Path is prefixed incorrectly. toBeTested: %v", toBeTested)
+	}
+
+	toBeTested = agent.pathWithKindPrefix("x", "/x/stuff")
+	if toBeTested != "/x/stuff" {
 		t.Errorf("Path is prefixed incorrectly. toBeTested: %v", toBeTested)
 	}
 }

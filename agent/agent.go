@@ -68,16 +68,18 @@ func (a *Agent) setTags() {
 // pathWithPrefix prepends the short version of config.Kind to path.
 func (a *Agent) pathWithPrefix(config resourced_config.Config) string {
 	if config.Kind == "reader" {
-		return a.pathWithReaderPrefix(config)
+		return a.pathWithKindPrefix("r", config)
 	} else if config.Kind == "writer" {
-		return a.pathWithWriterPrefix(config)
+		return a.pathWithKindPrefix("w", config)
+	} else if config.Kind == "executor" {
+		return a.pathWithKindPrefix("x", config)
 	}
 	return config.Path
 }
 
-// pathWithReaderOrWriterPrefix is common function called by pathWithReaderPrefix or pathWithWriterPrefix
-func (a *Agent) pathWithReaderOrWriterPrefix(rOrW string, input interface{}) string {
-	prefix := "/" + rOrW
+// pathWithKindPrefix is common function called by pathWithReaderPrefix or pathWithWriterPrefix
+func (a *Agent) pathWithKindPrefix(kind string, input interface{}) string {
+	prefix := "/" + kind
 
 	switch v := input.(type) {
 	case resourced_config.Config:
@@ -92,16 +94,6 @@ func (a *Agent) pathWithReaderOrWriterPrefix(rOrW string, input interface{}) str
 	return ""
 }
 
-// pathWithReaderPrefix conveniently assign /r prefix to path.
-func (a *Agent) pathWithReaderPrefix(input interface{}) string {
-	return a.pathWithReaderOrWriterPrefix("r", input)
-}
-
-// pathWithWriterPrefix conveniently assign /w prefix to path.
-func (a *Agent) pathWithWriterPrefix(input interface{}) string {
-	return a.pathWithReaderOrWriterPrefix("w", input)
-}
-
 // Run executes a reader/writer config.
 // Run will save reader data as JSON in local db.
 func (a *Agent) Run(config resourced_config.Config) (output []byte, err error) {
@@ -113,6 +105,7 @@ func (a *Agent) Run(config resourced_config.Config) (output []byte, err error) {
 		output, err = a.runGoStructWriter(config)
 	} else if config.GoStruct != "" && config.Kind == "executor" {
 		output, err = a.runGoStructExecutor(config)
+		println(string(output))
 	}
 
 	if err != nil {
@@ -141,7 +134,7 @@ func (a *Agent) runCommand(config resourced_config.Config) ([]byte, error) {
 		readersData := make(map[string]interface{})
 
 		for _, readerPath := range config.ReaderPaths {
-			readerJsonBytes, err := a.GetRunByPath(a.pathWithReaderPrefix(readerPath))
+			readerJsonBytes, err := a.GetRunByPath(a.pathWithKindPrefix("r", readerPath))
 
 			if err == nil {
 				var data interface{}
@@ -179,7 +172,7 @@ func (a *Agent) initGoStructWriter(config resourced_config.Config) (resourced_wr
 	readersData := make(map[string][]byte)
 
 	for _, readerPath := range config.ReaderPaths {
-		readerJsonBytes, err := a.GetRunByPath(a.pathWithReaderPrefix(readerPath))
+		readerJsonBytes, err := a.GetRunByPath(a.pathWithKindPrefix("r", readerPath))
 		if err == nil {
 			readersData[readerPath] = readerJsonBytes
 		}
@@ -254,6 +247,7 @@ func (a *Agent) runGoStructExecutor(config resourced_config.Config) ([]byte, err
 	// Initialize IExecutor
 	executor, err := a.initGoStructExecutor(config)
 	if err != nil {
+		println("initGoStructExecutor failed: " + err.Error())
 		return nil, err
 	}
 
@@ -359,6 +353,9 @@ func (a *Agent) RunAllForever() {
 		a.RunForever(config)
 	}
 	for _, config := range a.ConfigStorage.Writers {
+		a.RunForever(config)
+	}
+	for _, config := range a.ConfigStorage.Executors {
 		a.RunForever(config)
 	}
 }
