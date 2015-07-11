@@ -27,6 +27,7 @@ func (s *Shell) Run() error {
 	if s.IsConditionMet() && !s.HighThresholdExceeded() {
 		output, err := libprocess.NewCmd(s.Command).CombinedOutput()
 		s.Data["Output"] = string(output)
+		s.Data["Conditions"] = s.Conditions
 
 		if err != nil {
 			s.Data["ExitStatus"] = 1
