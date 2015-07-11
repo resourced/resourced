@@ -8,10 +8,13 @@ import (
 	"os"
 )
 
+func init() {
+	Register("NewrelicInsights", NewNewrelicInsights)
+}
+
 // NewNewrelicInsights is NewrelicInsights constructor.
-func NewNewrelicInsights() *NewrelicInsights {
-	nr := &NewrelicInsights{}
-	return nr
+func NewNewrelicInsights() IWriter {
+	return &NewrelicInsights{}
 }
 
 // NewrelicInsights is a writer that serialize readers data to New Relic Insights.

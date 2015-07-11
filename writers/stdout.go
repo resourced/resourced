@@ -5,8 +5,12 @@ import (
 	"fmt"
 )
 
+func init() {
+	Register("StdOut", NewStdOut)
+}
+
 // NewStdOut is StdOut constructor.
-func NewStdOut() *StdOut {
+func NewStdOut() IWriter {
 	n := &StdOut{}
 	return n
 }

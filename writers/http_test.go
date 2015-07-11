@@ -26,7 +26,7 @@ func jsonReadersDataForHttpTest() []byte {
 }
 
 func newWriterForHttpTest() *Http {
-	h := NewHttp()
+	h := &Http{}
 
 	readersData := make(map[string][]byte)
 	readersData["/load-avg"] = jsonReadersDataForHttpTest()

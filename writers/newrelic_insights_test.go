@@ -29,7 +29,7 @@ func readersDataForNewrelicInsightsTest() map[string]interface{} {
 }
 
 func TestNewNewrelicInsightsToJson(t *testing.T) {
-	n := NewNewrelicInsights()
+	n := &NewrelicInsights{}
 
 	readersData := make(map[string]interface{})
 	readersData["/load-avg"] = readersDataForNewrelicInsightsTest()

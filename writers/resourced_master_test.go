@@ -26,7 +26,7 @@ func jsonReadersDataForResourcedMasterTest() []byte {
 }
 
 func newWriterForResourcedMasterTest() *ResourcedMaster {
-	n := NewResourcedMaster()
+	n := &ResourcedMaster{}
 
 	readersData := make(map[string][]byte)
 	readersData["/load-avg"] = jsonReadersDataForResourcedMasterTest()

@@ -9,10 +9,13 @@ import (
 	"github.com/Sirupsen/logrus"
 )
 
+func init() {
+	Register("Http", NewHttp)
+}
+
 // NewHttp is Http constructor.
-func NewHttp() *Http {
-	h := &Http{}
-	return h
+func NewHttp() IWriter {
+	return &Http{}
 }
 
 // Http is a writer that simply serialize all readers data to Http.

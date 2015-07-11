@@ -11,28 +11,27 @@ import (
 	"reflect"
 )
 
+var writerConstructors = make(map[string]func() IWriter)
+
+// Register makes any writer constructor available by name.
+func Register(name string, constructor func() IWriter) {
+	if constructor == nil {
+		panic("writer: Register writer constructor is nil")
+	}
+	if _, dup := writerConstructors[name]; dup {
+		panic("writer: Register called twice for writer constructor " + name)
+	}
+	writerConstructors[name] = constructor
+}
+
 // NewGoStruct instantiates IWriter
 func NewGoStruct(name string) (IWriter, error) {
-	var structInstance IWriter
-
-	if name == "StdOut" {
-		structInstance = NewStdOut()
-	}
-	if name == "Http" {
-		structInstance = NewHttp()
-	}
-	if name == "ResourcedMaster" {
-		structInstance = NewResourcedMaster()
-	}
-	if name == "NewrelicInsights" {
-		structInstance = NewNewrelicInsights()
-	}
-
-	if structInstance == nil {
+	constructor, ok := writerConstructors[name]
+	if !ok {
 		return nil, errors.New("GoStruct is undefined.")
 	}
 
-	return structInstance, nil
+	return constructor(), nil
 }
 
 // NewGoStructByConfig instantiates IWriter given Config struct

@@ -1,9 +1,12 @@
 package writers
 
+func init() {
+	Register("ResourcedMaster", NewResourcedMaster)
+}
+
 // NewResourcedMaster is ResourcedMaster constructor.
-func NewResourcedMaster() *ResourcedMaster {
-	rm := &ResourcedMaster{}
-	return rm
+func NewResourcedMaster() IWriter {
+	return &ResourcedMaster{}
 }
 
 // ResourcedMaster is a writer that serialize readers data to ResourcedMaster.
