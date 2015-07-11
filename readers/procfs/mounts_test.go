@@ -6,13 +6,6 @@ import (
 	"testing"
 )
 
-func TestNewProcMounts(t *testing.T) {
-	p := NewProcMounts()
-	if p.Data == nil {
-		t.Error("Reader data should never be nil.")
-	}
-}
-
 func TestNewProcMountsRun(t *testing.T) {
 	p := NewProcMounts()
 

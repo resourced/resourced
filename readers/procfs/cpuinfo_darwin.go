@@ -5,10 +5,15 @@ package procfs
 import (
 	"encoding/json"
 	"errors"
+	"github.com/resourced/resourced/readers"
 )
 
+func init() {
+	readers.Register("ProcCpuInfo", NewProcCpuInfo)
+}
+
 // NewProcCpuInfo is ProcCpuInfo constructor.
-func NewProcCpuInfo() *ProcCpuInfo {
+func NewProcCpuInfo() readers.IReader {
 	p := &ProcCpuInfo{}
 	p.Data = make(map[string][]interface{})
 	return p

@@ -5,10 +5,15 @@ package procfs
 import (
 	"encoding/json"
 	"errors"
+	"github.com/resourced/resourced/readers"
 )
 
+func init() {
+	readers.Register("ProcStat", NewProcStat)
+}
+
 // NewProcStat is ProcStat constructor.
-func NewProcStat() *ProcStat {
+func NewProcStat() readers.IReader {
 	p := &ProcStat{}
 	p.Data = make(map[string][]interface{})
 	return p

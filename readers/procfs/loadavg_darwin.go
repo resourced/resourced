@@ -5,10 +5,15 @@ package procfs
 import (
 	"encoding/json"
 	"errors"
+	"github.com/resourced/resourced/readers"
 )
 
+func init() {
+	readers.Register("ProcLoadAvg", NewProcLoadAvg)
+}
+
 // NewProcLoadAvg is ProcLoadAvg constructor.
-func NewProcLoadAvg() *ProcLoadAvg {
+func NewProcLoadAvg() readers.IReader {
 	p := &ProcLoadAvg{}
 	p.Data = make(map[string][]interface{})
 	return p

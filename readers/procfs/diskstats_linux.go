@@ -5,10 +5,15 @@ package procfs
 import (
 	"encoding/json"
 	linuxproc "github.com/c9s/goprocinfo/linux"
+	"github.com/resourced/resourced/readers"
 )
 
+func init() {
+	readers.Register("ProcDiskStats", NewProcDiskStats)
+}
+
 // NewProcDiskStats is ProcDiskStats constructor.
-func NewProcDiskStats() *ProcDiskStats {
+func NewProcDiskStats() readers.IReader {
 	p := &ProcDiskStats{}
 	p.Data = make(map[string]linuxproc.DiskStat)
 	return p

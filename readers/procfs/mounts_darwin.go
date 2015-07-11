@@ -5,10 +5,15 @@ package procfs
 import (
 	"encoding/json"
 	"errors"
+	"github.com/resourced/resourced/readers"
 )
 
+func init() {
+	readers.Register("NewProcMounts", NewProcMounts)
+}
+
 // NewProcMounts is ProcMounts constructor.
-func NewProcMounts() *ProcMounts {
+func NewProcMounts() readers.IReader {
 	p := &ProcMounts{}
 	p.Data = make(map[string][]interface{})
 	return p

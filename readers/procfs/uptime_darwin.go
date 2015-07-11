@@ -5,10 +5,15 @@ package procfs
 import (
 	"encoding/json"
 	"errors"
+	"github.com/resourced/resourced/readers"
 )
 
+func init() {
+	readers.Register("ProcUptime", NewProcUptime)
+}
+
 // NewProcUptime is ProcUptime constructor.
-func NewProcUptime() *ProcUptime {
+func NewProcUptime() readers.IReader {
 	p := &ProcUptime{}
 	p.Data = make(map[string][]interface{})
 	return p

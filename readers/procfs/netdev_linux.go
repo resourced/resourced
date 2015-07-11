@@ -5,10 +5,15 @@ package procfs
 import (
 	"encoding/json"
 	linuxproc "github.com/c9s/goprocinfo/linux"
+	"github.com/resourced/resourced/readers"
 )
 
+func init() {
+	readers.Register("ProcNetDev", NewProcNetDev)
+}
+
 // NewProcNetDev is ProcNetDev constructor.
-func NewProcNetDev() *ProcNetDev {
+func NewProcNetDev() readers.IReader {
 	p := &ProcNetDev{}
 	p.Data = make(map[string]linuxproc.NetworkStat)
 	return p

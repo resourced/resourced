@@ -6,13 +6,6 @@ import (
 	"testing"
 )
 
-func TestNewProcLoadAvg(t *testing.T) {
-	p := NewProcLoadAvg()
-	if p.Data == nil {
-		t.Error("Reader data should never be nil.")
-	}
-}
-
 func TestNewProcLoadAvgRun(t *testing.T) {
 	p := NewProcLoadAvg()
 

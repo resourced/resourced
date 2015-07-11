@@ -5,10 +5,15 @@ package procfs
 import (
 	"encoding/json"
 	linuxproc "github.com/c9s/goprocinfo/linux"
+	"github.com/resourced/resourced/readers"
 )
 
+func init() {
+	readers.Register("ProcUptime", NewProcUptime)
+}
+
 // NewProcUptime is ProcUptime constructor.
-func NewProcUptime() *ProcUptime {
+func NewProcUptime() readers.IReader {
 	p := &ProcUptime{}
 	return p
 }

@@ -6,13 +6,6 @@ import (
 	"testing"
 )
 
-func TestNewProcDiskStats(t *testing.T) {
-	p := NewProcDiskStats()
-	if p.Data == nil {
-		t.Error("Reader data should never be nil.")
-	}
-}
-
 func TestNewProcDiskStatsRun(t *testing.T) {
 	p := NewProcDiskStats()
 

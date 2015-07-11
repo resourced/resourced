@@ -6,13 +6,6 @@ import (
 	"testing"
 )
 
-func TestNewProcMemInfo(t *testing.T) {
-	p := NewProcMemInfo()
-	if p.Data == nil {
-		t.Error("Reader data should never be nil.")
-	}
-}
-
 func TestNewProcMemInfoRun(t *testing.T) {
 	p := NewProcMemInfo()
 

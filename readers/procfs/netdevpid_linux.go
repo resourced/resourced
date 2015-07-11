@@ -7,10 +7,15 @@ import (
 	"fmt"
 	linuxproc "github.com/c9s/goprocinfo/linux"
 	"github.com/cloudfoundry/gosigar"
+	"github.com/resourced/resourced/readers"
 )
 
+func init() {
+	readers.Register("ProcNetDevPid", NewProcNetDevPid)
+}
+
 // NewProcNetDevPid is ProcNetDevPid constructor.
-func NewProcNetDevPid() *ProcNetDevPid {
+func NewProcNetDevPid() readers.IReader {
 	p := &ProcNetDevPid{}
 	p.Data = make(map[string]map[string]linuxproc.NetworkStat)
 	return p

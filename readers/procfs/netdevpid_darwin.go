@@ -5,10 +5,15 @@ package procfs
 import (
 	"encoding/json"
 	"errors"
+	"github.com/resourced/resourced/readers"
 )
 
+func init() {
+	readers.Register("ProcNetDevPid", NewProcNetDevPid)
+}
+
 // NewProcNetDevPid is ProcNetDevPid constructor.
-func NewProcNetDevPid() *ProcNetDevPid {
+func NewProcNetDevPid() readers.IReader {
 	p := &ProcNetDevPid{}
 	return p
 }

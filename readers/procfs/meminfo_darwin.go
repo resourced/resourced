@@ -5,10 +5,15 @@ package procfs
 import (
 	"encoding/json"
 	"errors"
+	"github.com/resourced/resourced/readers"
 )
 
+func init() {
+	readers.Register("ProcMemInfo", NewProcMemInfo)
+}
+
 // NewProcMemInfo is ProcMemInfo constructor.
-func NewProcMemInfo() *ProcMemInfo {
+func NewProcMemInfo() readers.IReader {
 	p := &ProcMemInfo{}
 	p.Data = make(map[string][]interface{})
 	return p

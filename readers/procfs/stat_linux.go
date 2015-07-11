@@ -5,10 +5,15 @@ package procfs
 import (
 	"encoding/json"
 	linuxproc "github.com/c9s/goprocinfo/linux"
+	"github.com/resourced/resourced/readers"
 )
 
+func init() {
+	readers.Register("ProcStat", NewProcStat)
+}
+
 // NewProcStat is ProcStat constructor.
-func NewProcStat() *ProcStat {
+func NewProcStat() readers.IReader {
 	p := &ProcStat{}
 	return p
 }
