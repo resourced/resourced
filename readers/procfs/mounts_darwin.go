@@ -9,7 +9,7 @@ import (
 )
 
 func init() {
-	readers.Register("NewProcMounts", NewProcMounts)
+	readers.Register("ProcMounts", NewProcMounts)
 }
 
 // NewProcMounts is ProcMounts constructor.

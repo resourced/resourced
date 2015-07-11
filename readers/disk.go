@@ -7,6 +7,7 @@ import (
 
 func init() {
 	Register("DiskPartitions", NewDiskPartitions)
+	Register("DiskIO", NewDiskIO)
 }
 
 // NewDiskPartitions is DiskPartitions constructor.
@@ -48,7 +49,7 @@ func (d *DiskPartitions) ToJson() ([]byte, error) {
 // ----------------------------------------------------------------
 
 // NewDiskIO is DiskIO constructor.
-func NewDiskIO() *DiskIO {
+func NewDiskIO() IReader {
 	d := &DiskIO{}
 	d.Data = make(map[string]gopsutil_disk.DiskIOCountersStat)
 	return d

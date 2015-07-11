@@ -7,6 +7,7 @@ import (
 
 func init() {
 	Register("NetIO", NewNetIO)
+	Register("NetInterfaces", NewNetInterfaces)
 }
 
 func NewNetIO() IReader {
@@ -40,7 +41,7 @@ func (n *NetIO) ToJson() ([]byte, error) {
 
 // ------------------------------------------------------
 
-func NewNetInterfaces() *NetInterfaces {
+func NewNetInterfaces() IReader {
 	n := &NetInterfaces{}
 	n.Data = make(map[string]gopsutil_net.NetInterfaceStat)
 	return n

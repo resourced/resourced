@@ -7,6 +7,7 @@ import (
 
 func init() {
 	Register("HostInfo", NewHostInfo)
+	Register("HostUsers", NewHostUsers)
 }
 
 func NewHostInfo() IReader {
@@ -51,7 +52,7 @@ func (h *HostInfo) ToJson() ([]byte, error) {
 
 // ----------------------------------------------------------------
 
-func NewHostUsers() *HostUsers {
+func NewHostUsers() IReader {
 	h := &HostUsers{}
 	h.Data = make(map[string]gopsutil_host.UserStat)
 	return h
