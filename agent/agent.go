@@ -112,6 +112,9 @@ func (a *Agent) Run(config resourced_config.Config) (output []byte, err error) {
 	} else if config.GoStruct != "" && config.Kind == "writer" {
 		output, err = a.runGoStructWriter(config)
 	} else if config.GoStruct != "" && config.Kind == "executor" {
+		println("AM I HERE??????")
+		println(config.Kind)
+
 		output, err = a.runGoStructExecutor(config)
 	}
 

@@ -57,16 +57,17 @@ func (a *Agent) RootGetHandler() func(w http.ResponseWriter, r *http.Request, ps
 			arrayOfWriterJsonString = "[" + strings.Join(writerJsonBytes, ",") + "]"
 		}
 
+		executorJsonBytes := make([]string, 0)
 		arrayOfExecutorJsonString := "[]"
 
 		for _, config := range a.ConfigStorage.Executors {
 			jsonData, err := a.GetRunByPath(a.pathWithPrefix(config))
 			if err == nil && jsonData != nil {
-				writerJsonBytes = append(writerJsonBytes, string(jsonData))
+				executorJsonBytes = append(executorJsonBytes, string(jsonData))
 			}
 		}
-		if len(writerJsonBytes) > 0 {
-			arrayOfExecutorJsonString = "[" + strings.Join(writerJsonBytes, ",") + "]"
+		if len(executorJsonBytes) > 0 {
+			arrayOfExecutorJsonString = "[" + strings.Join(executorJsonBytes, ",") + "]"
 		}
 
 		if arrayOfReaderJsonString == "[]" && arrayOfWriterJsonString == "[]" && arrayOfExecutorJsonString == "[]" {
@@ -75,7 +76,7 @@ func (a *Agent) RootGetHandler() func(w http.ResponseWriter, r *http.Request, ps
 
 		} else {
 			w.WriteHeader(200)
-			w.Write([]byte(fmt.Sprintf(`{"Readers": %v, "Writers": %v, "Executors": &v}`, arrayOfReaderJsonString, arrayOfWriterJsonString, arrayOfExecutorJsonString)))
+			w.Write([]byte(fmt.Sprintf(`{"Readers": %v, "Writers": %v, "Executors": %v}`, arrayOfReaderJsonString, arrayOfWriterJsonString, arrayOfExecutorJsonString)))
 		}
 	}
 }
@@ -175,6 +176,7 @@ func (a *Agent) PathsGetHandler() func(w http.ResponseWriter, r *http.Request, p
 		payload := make(map[string][]string)
 		payload["Readers"] = make([]string, len(a.ConfigStorage.Readers))
 		payload["Writers"] = make([]string, len(a.ConfigStorage.Writers))
+		payload["Executors"] = make([]string, len(a.ConfigStorage.Executors))
 
 		for i, config := range a.ConfigStorage.Readers {
 			if config.Path != "" {
@@ -188,9 +190,15 @@ func (a *Agent) PathsGetHandler() func(w http.ResponseWriter, r *http.Request, p
 			}
 		}
 
+		for i, config := range a.ConfigStorage.Executors {
+			if config.Path != "" {
+				payload["Executors"][i] = a.pathWithPrefix(config)
+			}
+		}
+
 		payloadBytes, err := json.Marshal(payload)
 
-		if (len(payload["Readers"]) > 0 || len(payload["Writers"]) > 0) && err == nil {
+		if (len(payload["Readers"]) > 0 || len(payload["Writers"]) > 0 || len(payload["Executors"]) > 0) && err == nil {
 			w.WriteHeader(200)
 			w.Write(payloadBytes)
 		} else if err != nil {
@@ -259,8 +267,36 @@ func (a *Agent) WriterPathsGetHandler() func(w http.ResponseWriter, r *http.Requ
 	}
 }
 
-// readerOrWriterGetHandler returns a function that handle reader/writer.
-func (a *Agent) readerOrWriterGetHandler(path string, config resourced_config.Config) func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+// ExecutorPathsGetHandler returns function that shows all the executors paths.
+func (a *Agent) ExecutorPathsGetHandler() func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	return func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+		w.Header().Set("Content-Type", "application/json")
+
+		payload := make([]string, len(a.ConfigStorage.Executors))
+
+		for i, config := range a.ConfigStorage.Executors {
+			if config.Path != "" {
+				payload[i] = a.pathWithPrefix(config)
+			}
+		}
+
+		payloadBytes, err := json.Marshal(payload)
+
+		if len(payload) > 0 && err == nil {
+			w.WriteHeader(200)
+			w.Write(payloadBytes)
+		} else if err != nil {
+			w.WriteHeader(503)
+			w.Write([]byte(fmt.Sprintf(`{"Error": "%v"}`, err)))
+		} else {
+			w.WriteHeader(404)
+			w.Write([]byte(fmt.Sprintf(`{"Error": "There are no writers data at all."}`)))
+		}
+	}
+}
+
+// handlerByPath returns a function that handle reader/writer/executor.
+func (a *Agent) handlerByPath(path string, config resourced_config.Config) func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	if path != "" {
 		return func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 			w.Header().Set("Content-Type", "application/json")
@@ -293,7 +329,7 @@ func (a *Agent) MapReadersGetHandlers() map[string]func(w http.ResponseWriter, r
 	for _, config := range a.ConfigStorage.Readers {
 		if config.Path != "" {
 			path := a.pathWithPrefix(config)
-			handlersMap[path] = a.readerOrWriterGetHandler(path, config)
+			handlersMap[path] = a.handlerByPath(path, config)
 		}
 	}
 	return handlersMap
@@ -306,7 +342,20 @@ func (a *Agent) MapWritersGetHandlers() map[string]func(w http.ResponseWriter, r
 	for _, config := range a.ConfigStorage.Writers {
 		if config.Path != "" {
 			path := a.pathWithPrefix(config)
-			handlersMap[path] = a.readerOrWriterGetHandler(path, config)
+			handlersMap[path] = a.handlerByPath(path, config)
+		}
+	}
+	return handlersMap
+}
+
+// MapExecutorsGetHandlers returns functions that handle executors paths.
+func (a *Agent) MapExecutorsGetHandlers() map[string]func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	handlersMap := make(map[string]func(w http.ResponseWriter, r *http.Request, ps httprouter.Params))
+
+	for _, config := range a.ConfigStorage.Executors {
+		if config.Path != "" {
+			path := a.pathWithPrefix(config)
+			handlersMap[path] = a.handlerByPath(path, config)
 		}
 	}
 	return handlersMap
@@ -326,13 +375,18 @@ func (a *Agent) HttpRouter() *httprouter.Router {
 	router.GET("/w/paths", a.BaseHandler(a.WriterPathsGetHandler()))
 
 	router.GET("/x", a.BaseHandler(a.ExecutorsGetHandler()))
+	router.GET("/x/paths", a.BaseHandler(a.ExecutorPathsGetHandler()))
 
-	for readerPath, readerHandler := range a.MapReadersGetHandlers() {
-		router.GET(readerPath, a.BaseHandler(readerHandler))
+	for path, handler := range a.MapReadersGetHandlers() {
+		router.GET(path, a.BaseHandler(handler))
 	}
 
-	for writerPath, writerHandler := range a.MapWritersGetHandlers() {
-		router.GET(writerPath, a.BaseHandler(writerHandler))
+	for path, handler := range a.MapWritersGetHandlers() {
+		router.GET(path, a.BaseHandler(handler))
+	}
+
+	for path, handler := range a.MapExecutorsGetHandlers() {
+		router.GET(path, a.BaseHandler(handler))
 	}
 
 	return router

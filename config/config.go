@@ -60,6 +60,8 @@ func NewConfigStorage(configDir string) (*ConfigStorage, error) {
 					if configKind == "executor" {
 						storage.Executors = append(storage.Executors, conf)
 					}
+				} else {
+					println(err.Error())
 				}
 			}
 		}

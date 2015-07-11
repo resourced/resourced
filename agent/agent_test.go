@@ -1,7 +1,6 @@
 package agent
 
 import (
-	resourced_config "github.com/resourced/resourced/config"
 	"io/ioutil"
 	"net"
 	"net/http"
@@ -10,11 +9,12 @@ import (
 	"reflect"
 	"strings"
 	"testing"
+
+	resourced_config "github.com/resourced/resourced/config"
 )
 
 func createAgentForTest(t *testing.T) *Agent {
-	os.Setenv("RESOURCED_CONFIG_READER_DIR", os.ExpandEnv("$GOPATH/src/github.com/resourced/resourced/tests/data/config-reader"))
-	os.Setenv("RESOURCED_CONFIG_WRITER_DIR", os.ExpandEnv("$GOPATH/src/github.com/resourced/resourced/tests/data/config-writer"))
+	os.Setenv("RESOURCED_CONFIG_DIR", os.ExpandEnv("$GOPATH/src/github.com/resourced/resourced/tests/data/resourced-configs"))
 
 	// Provide empty slice - allow all to connect
 	agent, err := NewAgent([]*net.IPNet{})

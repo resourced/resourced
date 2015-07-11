@@ -7,7 +7,7 @@ import (
 )
 
 func TestNewConfigStorage(t *testing.T) {
-	config, err := NewConfigStorage("$GOPATH/src/github.com/resourced/resourced/tests/data/config-reader", "$GOPATH/src/github.com/resourced/resourced/tests/data/config-writer")
+	config, err := NewConfigStorage("$GOPATH/src/github.com/resourced/resourced/tests/data/resourced-configs")
 	if err != nil {
 		t.Fatalf("Initializing ConfigStorage should work. Error: %v", err)
 	}
@@ -21,7 +21,7 @@ func TestNewConfigStorage(t *testing.T) {
 }
 
 func TestNewReaderConfig(t *testing.T) {
-	config, err := NewConfig(os.ExpandEnv("$GOPATH/src/github.com/resourced/resourced/tests/data/config-reader/gostruct-docker-containers-memory.toml"), "reader")
+	config, err := NewConfig(os.ExpandEnv("$GOPATH/src/github.com/resourced/resourced/tests/data/resourced-configs/readers/gostruct-docker-containers-memory.toml"), "reader")
 	if err != nil {
 		t.Fatalf("Initializing Config should work. Error: %v", err)
 	}
@@ -42,7 +42,7 @@ func TestNewReaderConfig(t *testing.T) {
 }
 
 func TestNewWriterConfigWithJsonProcessor(t *testing.T) {
-	config, err := NewConfig(os.ExpandEnv("$GOPATH/src/github.com/resourced/resourced/tests/data/config-writer/gostruct-stdout.toml"), "writer")
+	config, err := NewConfig(os.ExpandEnv("$GOPATH/src/github.com/resourced/resourced/tests/data/resourced-configs/writers/gostruct-stdout.toml"), "writer")
 	if err != nil {
 		t.Fatalf("Initializing Config should work. Error: %v", err)
 	}

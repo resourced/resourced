@@ -15,8 +15,7 @@
 
 ResourceD requires only 2 environment variables to run.
 ```bash
-RESOURCED_CONFIG_READER_DIR=$GOPATH/src/github.com/resourced/resourced/tests/data/config-reader \
-RESOURCED_CONFIG_WRITER_DIR=$GOPATH/src/github.com/resourced/resourced/tests/data/config-writer \
+RESOURCED_CONFIG_DIR=$GOPATH/src/github.com/resourced/resourced/tests/data/resourced-configs \
 $GOPATH/bin/resourced
 ```
 
@@ -30,9 +29,7 @@ curl -X GET -H "Content-type: application/json" http://localhost:55555/r/load-av
 
 ResourceD accepts a few environment variables as configuration:
 
-* **RESOURCED_CONFIG_READER_DIR:** Path to readers config directory (Required). Default: ""
-
-* **RESOURCED_CONFIG_WRITER_DIR:** Path to writers config directory (Required). Default: ""
+* **RESOURCED_CONFIG_DIR:** Path to parent config directory (Required), its children must be: readers, writers, and executors. Default: ""
 
 * **RESOURCED_LOG_LEVEL:** Log level. Default: "info"
 
