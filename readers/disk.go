@@ -5,8 +5,12 @@ import (
 	gopsutil_disk "github.com/shirou/gopsutil/disk"
 )
 
+func init() {
+	Register("DiskPartitions", NewDiskPartitions)
+}
+
 // NewDiskPartitions is DiskPartitions constructor.
-func NewDiskPartitions() *DiskPartitions {
+func NewDiskPartitions() IReader {
 	d := &DiskPartitions{}
 	d.Data = make(map[string]map[string]gopsutil_disk.DiskPartitionStat)
 	return d

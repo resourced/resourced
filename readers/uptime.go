@@ -6,7 +6,11 @@ import (
 	"time"
 )
 
-func NewUptime() *Uptime {
+func init() {
+	Register("Uptime", NewUptime)
+}
+
+func NewUptime() IReader {
 	u := &Uptime{}
 	u.Data = make(map[string]interface{})
 	return u
@@ -20,7 +24,9 @@ type Uptime struct {
 
 // Run gathers uptime information from gosigar.
 func (u *Uptime) Run() error {
-	loadAvg := NewLoadAvg()
+	loadAvg := &LoadAvg{}
+	loadAvg.Data = make(map[string]interface{})
+
 	err := loadAvg.Run()
 	if err != nil {
 		return err

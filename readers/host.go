@@ -5,7 +5,11 @@ import (
 	gopsutil_host "github.com/shirou/gopsutil/host"
 )
 
-func NewHostInfo() *HostInfo {
+func init() {
+	Register("HostInfo", NewHostInfo)
+}
+
+func NewHostInfo() IReader {
 	h := &HostInfo{}
 	h.Data = make(map[string]interface{})
 	return h

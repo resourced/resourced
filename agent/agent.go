@@ -185,7 +185,10 @@ func (a *Agent) initGoStructWriter(config resourced_config.Config) (resourced_wr
 
 // initGoStructExecutor initialize and return IExecutor.
 func (a *Agent) initGoStructExecutor(config resourced_config.Config) (resourced_executors.IExecutor, error) {
-	executor := resourced_executors.NewGoStructByConfig(config)
+	executor, err := resourced_executors.NewGoStructByConfig(config)
+	if err != nil {
+		return nil, err
+	}
 
 	executor.SetReadersDataInBytes(a.Db.Data)
 

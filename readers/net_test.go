@@ -5,13 +5,6 @@ import (
 	"testing"
 )
 
-func TestNewNetIO(t *testing.T) {
-	n := NewNetIO()
-	if n.Data == nil {
-		t.Error("Reader data should never be nil.")
-	}
-}
-
 func TestNewNetIORun(t *testing.T) {
 	n := NewNetIO()
 	err := n.Run()

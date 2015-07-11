@@ -6,13 +6,6 @@ import (
 	"testing"
 )
 
-func TestNewDiskPartitions(t *testing.T) {
-	n := NewDiskPartitions()
-	if n.Data == nil {
-		t.Error("Reader data should never be nil.")
-	}
-}
-
 func TestNewDiskPartitionsRun(t *testing.T) {
 	n := NewDiskPartitions()
 	err := n.Run()

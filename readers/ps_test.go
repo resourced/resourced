@@ -6,13 +6,6 @@ import (
 	"testing"
 )
 
-func TestNewPs(t *testing.T) {
-	n := NewPs()
-	if n.Data == nil {
-		t.Error("Reader data should never be nil.")
-	}
-}
-
 func TestNewPsRun(t *testing.T) {
 	n := NewPs()
 	err := n.Run()

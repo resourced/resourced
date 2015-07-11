@@ -5,13 +5,6 @@ import (
 	"testing"
 )
 
-func TestNewLoadAvg(t *testing.T) {
-	n := NewLoadAvg()
-	if n.Data == nil {
-		t.Error("Reader data should never be nil.")
-	}
-}
-
 func TestNewLoadAvgRun(t *testing.T) {
 	n := NewLoadAvg()
 	err := n.Run()

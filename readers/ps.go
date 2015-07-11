@@ -7,7 +7,11 @@ import (
 	"strconv"
 )
 
-func NewPs() *Ps {
+func init() {
+	Register("Ps", NewPs)
+}
+
+func NewPs() IReader {
 	p := &Ps{}
 	p.Data = make(map[string]map[string]interface{})
 	return p

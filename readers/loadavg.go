@@ -5,7 +5,11 @@ import (
 	"github.com/cloudfoundry/gosigar"
 )
 
-func NewLoadAvg() *LoadAvg {
+func init() {
+	Register("LoadAvg", NewLoadAvg)
+}
+
+func NewLoadAvg() IReader {
 	l := &LoadAvg{}
 	l.Data = make(map[string]interface{})
 	return l

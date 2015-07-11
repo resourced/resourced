@@ -2,6 +2,7 @@
 package executors
 
 import (
+	"errors"
 	"reflect"
 	"sync"
 
@@ -29,13 +30,21 @@ func ResetConditionsMetByPath() {
 }
 
 // NewGoStruct instantiates IExecutor
-func NewGoStruct(name string) IExecutor {
-	return executorConstructors[name]()
+func NewGoStruct(name string) (IExecutor, error) {
+	constructor, ok := executorConstructors[name]
+	if !ok {
+		return nil, errors.New("GoStruct is undefined.")
+	}
+
+	return constructor(), nil
 }
 
 // NewGoStructByConfig instantiates IExecutor given Config struct
-func NewGoStructByConfig(config resourced_config.Config) IExecutor {
-	executor := NewGoStruct(config.GoStruct)
+func NewGoStructByConfig(config resourced_config.Config) (IExecutor, error) {
+	executor, err := NewGoStruct(config.GoStruct)
+	if err != nil {
+		return nil, err
+	}
 
 	executor.SetPath(config.Path)
 	executor.SetInterval(config.Interval)
@@ -54,7 +63,7 @@ func NewGoStructByConfig(config resourced_config.Config) IExecutor {
 
 	executor.SetQueryParser()
 
-	return executor
+	return executor, nil
 }
 
 // IExecutor is generic interface for all executors.

@@ -5,8 +5,12 @@ import (
 	gopsutil_cpu "github.com/shirou/gopsutil/cpu"
 )
 
+func init() {
+	Register("CpuInfo", NewCpuInfo)
+}
+
 // NewCpuInfo is CpuInfo constructor.
-func NewCpuInfo() *CpuInfo {
+func NewCpuInfo() IReader {
 	c := &CpuInfo{}
 	c.Data = make(map[string][]gopsutil_cpu.CPUInfoStat)
 	return c

@@ -5,13 +5,6 @@ import (
 	"testing"
 )
 
-func TestNewUptime(t *testing.T) {
-	n := NewUptime()
-	if n.Data == nil {
-		t.Error("Reader data should never be nil.")
-	}
-}
-
 func TestNewUptimeRun(t *testing.T) {
 	n := NewUptime()
 	err := n.Run()

@@ -5,7 +5,11 @@ import (
 	gopsutil_net "github.com/shirou/gopsutil/net"
 )
 
-func NewNetIO() *NetIO {
+func init() {
+	Register("NetIO", NewNetIO)
+}
+
+func NewNetIO() IReader {
 	n := &NetIO{}
 	n.Data = make(map[string]gopsutil_net.NetIOCountersStat)
 	return n

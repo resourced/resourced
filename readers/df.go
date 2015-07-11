@@ -9,8 +9,12 @@ import (
 	"strings"
 )
 
+func init() {
+	Register("Df", NewDf)
+}
+
 // NewDf is Df constructor.
-func NewDf() *Df {
+func NewDf() IReader {
 	d := &Df{}
 	d.Data = make(map[string]map[string]interface{})
 	return d

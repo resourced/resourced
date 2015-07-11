@@ -5,13 +5,6 @@ import (
 	"testing"
 )
 
-func TestNewFree(t *testing.T) {
-	n := NewFree()
-	if n.Data == nil {
-		t.Error("Reader data should never be nil.")
-	}
-}
-
 func TestNewFreeRun(t *testing.T) {
 	n := NewFree()
 	err := n.Run()

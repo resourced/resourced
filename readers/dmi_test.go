@@ -6,13 +6,6 @@ import (
 	"testing"
 )
 
-func TestNewDMI(t *testing.T) {
-	d := NewDMI()
-	if d.Data == nil {
-		t.Error("Reader data should never be nil.")
-	}
-}
-
 func TestDMIRun(t *testing.T) {
 	// 'dmidecode' is not available on Darwin, run test only on Linux
 	if runtime.GOOS == "linux" {

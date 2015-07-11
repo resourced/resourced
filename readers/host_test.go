@@ -5,13 +5,6 @@ import (
 	"testing"
 )
 
-func TestNewHostInfo(t *testing.T) {
-	n := NewHostInfo()
-	if n.Data == nil {
-		t.Error("Reader data should never be nil.")
-	}
-}
-
 func TestNewHostInfoRun(t *testing.T) {
 	n := NewHostInfo()
 	err := n.Run()

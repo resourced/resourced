@@ -5,13 +5,6 @@ import (
 	"testing"
 )
 
-func TestNewDu(t *testing.T) {
-	n := NewDu()
-	if n.Data == nil {
-		t.Error("Reader data should never be nil.")
-	}
-}
-
 func TestDuRun(t *testing.T) {
 	n := NewDu()
 	err := n.Run()
@@ -48,7 +41,8 @@ func TestDuToJson(t *testing.T) {
 }
 
 func TestDuFSPaths(t *testing.T) {
-	n := NewDf()
+	n := &Du{}
+	n.Data = make(map[string]map[string]interface{})
 	n.FSPaths = "/tmp,/bin"
 
 	err := n.Run()

@@ -5,7 +5,11 @@ import (
 	"github.com/cloudfoundry/gosigar"
 )
 
-func NewFree() *Free {
+func init() {
+	Register("Free", NewFree)
+}
+
+func NewFree() IReader {
 	m := &Free{}
 	m.Data = make(map[string]map[string]interface{})
 	return m

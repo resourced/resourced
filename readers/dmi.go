@@ -6,14 +6,18 @@ import (
 	"github.com/dselans/dmidecode"
 )
 
-type DMI struct {
-	Data map[string]map[string]string
+func init() {
+	Register("DMI", NewDMI)
 }
 
-func NewDMI() *DMI {
+func NewDMI() IReader {
 	d := &DMI{}
 	d.Data = make(map[string]map[string]string)
 	return d
+}
+
+type DMI struct {
+	Data map[string]map[string]string
 }
 
 func (d *DMI) Run() error {

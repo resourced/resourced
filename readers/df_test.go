@@ -5,13 +5,6 @@ import (
 	"testing"
 )
 
-func TestNewDf(t *testing.T) {
-	n := NewDf()
-	if n.Data == nil {
-		t.Error("Reader data should never be nil.")
-	}
-}
-
 func TestDfRun(t *testing.T) {
 	n := NewDf()
 	err := n.Run()
@@ -48,7 +41,8 @@ func TestDfToJson(t *testing.T) {
 }
 
 func TestDfFSPaths(t *testing.T) {
-	n := NewDf()
+	n := &Df{}
+	n.Data = make(map[string]map[string]interface{})
 	n.FSPaths = "/tmp,/bin"
 
 	err := n.Run()

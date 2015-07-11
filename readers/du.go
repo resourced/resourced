@@ -10,7 +10,11 @@ import (
 	"strings"
 )
 
-func NewDu() *Du {
+func init() {
+	Register("Du", NewDu)
+}
+
+func NewDu() IReader {
 	d := &Du{}
 	d.Data = make(map[string]map[string]interface{})
 	return d

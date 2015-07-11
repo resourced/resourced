@@ -6,13 +6,6 @@ import (
 	"testing"
 )
 
-func TestNewCpuInfo(t *testing.T) {
-	n := NewCpuInfo()
-	if n.Data == nil {
-		t.Error("Reader data should never be nil.")
-	}
-}
-
 func TestNewCpuInfoRun(t *testing.T) {
 	n := NewCpuInfo()
 	err := n.Run()
