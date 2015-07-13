@@ -120,7 +120,7 @@ func (b *Base) SetReadersDataInBytes(readersJsonBytes map[string][]byte) {
 }
 
 func (b *Base) IsConditionMet() bool {
-	result, err := b.qp.EvalExpressions(b.ReadersDataBytes, nil)
+	result, err := b.qp.EvalJSONExpressions(b.ReadersDataBytes, nil)
 	if err != nil {
 		return false
 	}

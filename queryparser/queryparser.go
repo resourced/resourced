@@ -31,11 +31,11 @@ func (qp *QueryParser) JSONQuery() ([]interface{}, error) {
 	return data, nil
 }
 
-// EvalExpressions evaluates nested expressions and returns boolean given full dataset from storage.
+// EvalJSONExpressions evaluates nested expressions and returns boolean given full dataset from storage.
 // Each slice tree has three components: [operator, (expression || data point map), (expression || value)].
 // There is an exception where a slice tree only has one value. That value must be a boolean type.
 // Operator && and || only work when both left and right sides are expressions.
-func (qp *QueryParser) EvalExpressions(data map[string][]byte, jsonQuery []interface{}) (bool, error) {
+func (qp *QueryParser) EvalJSONExpressions(data map[string][]byte, jsonQuery []interface{}) (bool, error) {
 	if jsonQuery == nil {
 		var err error
 
@@ -89,7 +89,7 @@ func (qp *QueryParser) EvalExpressions(data map[string][]byte, jsonQuery []inter
 			leftSideExpression, isLeftSideExpression := jsonQueryPart.([]interface{})
 
 			if isLeftSideExpression {
-				evaluated, err := qp.EvalExpressions(data, leftSideExpression)
+				evaluated, err := qp.EvalJSONExpressions(data, leftSideExpression)
 				if err != nil {
 					return false, err
 				}
@@ -104,7 +104,7 @@ func (qp *QueryParser) EvalExpressions(data map[string][]byte, jsonQuery []inter
 		if i == 2 {
 			rightSideExpression, isRightSideExpression := jsonQueryPart.([]interface{})
 			if isRightSideExpression {
-				evaluated, err := qp.EvalExpressions(data, rightSideExpression)
+				evaluated, err := qp.EvalJSONExpressions(data, rightSideExpression)
 				if err != nil {
 					return false, err
 				}

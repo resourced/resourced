@@ -18,14 +18,14 @@ func TestJSONQuery(t *testing.T) {
 	}
 }
 
-func TestEvalSingleValue(t *testing.T) {
+func TestJSONEvalSingleValue(t *testing.T) {
 	data := make(map[string][]byte)
 	data["/r/load-avg"] = []byte(`{"Data": {"LoadAvg1m": 0.904296875}}`)
 
 	query := []byte(`[true]`)
 	qp := New(query)
 
-	evaluated, err := qp.EvalExpressions(data, nil)
+	evaluated, err := qp.EvalJSONExpressions(data, nil)
 	if err != nil {
 		t.Fatalf("Unable to evaluate query. Error: %v", err)
 	}
@@ -35,14 +35,14 @@ func TestEvalSingleValue(t *testing.T) {
 	}
 }
 
-func TestEvalSingleExpression(t *testing.T) {
+func TestJSONEvalSingleExpression(t *testing.T) {
 	data := make(map[string][]byte)
 	data["/r/load-avg"] = []byte(`{"Data": {"LoadAvg1m": 0.904296875}}`)
 
 	query := []byte(`[">", {"/r/load-avg": "LoadAvg1m"}, 0.5]`)
 	qp := New(query)
 
-	evaluated, err := qp.EvalExpressions(data, nil)
+	evaluated, err := qp.EvalJSONExpressions(data, nil)
 	if err != nil {
 		t.Fatalf("Unable to evaluate query. Error: %v", err)
 	}
@@ -53,14 +53,14 @@ func TestEvalSingleExpression(t *testing.T) {
 
 }
 
-func TestEvalFalsySingleExpression(t *testing.T) {
+func TestJSONEvalFalsySingleExpression(t *testing.T) {
 	data := make(map[string][]byte)
 	data["/r/load-avg"] = []byte(`{"Data": {"LoadAvg1m": 0.904296875}}`)
 
 	query := []byte(`[">", {"/r/load-avg": "LoadAvg1m"}, 100]`)
 	qp := New(query)
 
-	evaluated, err := qp.EvalExpressions(data, nil)
+	evaluated, err := qp.EvalJSONExpressions(data, nil)
 	if err != nil {
 		t.Fatalf("Unable to evaluate query. Error: %v", err)
 	}
@@ -71,14 +71,14 @@ func TestEvalFalsySingleExpression(t *testing.T) {
 
 }
 
-func TestEvalBooleanExpressions(t *testing.T) {
+func TestJSONEvalBooleanExpressions(t *testing.T) {
 	data := make(map[string][]byte)
 	data["/r/load-avg"] = []byte(`{"Data": {"LoadAvg1m": 0.904296875}}`)
 
 	query := []byte(`["&&", [">", {"/r/load-avg": "LoadAvg1m"}, 0.5], ["<", {"/r/load-avg": "LoadAvg1m"}, 10]]`)
 	qp := New(query)
 
-	evaluated, err := qp.EvalExpressions(data, nil)
+	evaluated, err := qp.EvalJSONExpressions(data, nil)
 	if err != nil {
 		t.Fatalf("Unable to evaluate query. Error: %v", err)
 	}
@@ -88,14 +88,14 @@ func TestEvalBooleanExpressions(t *testing.T) {
 	}
 }
 
-func TestEvalNestedBooleanExpressions(t *testing.T) {
+func TestJSONEvalNestedBooleanExpressions(t *testing.T) {
 	data := make(map[string][]byte)
 	data["/r/load-avg"] = []byte(`{"Data": {"LoadAvg1m": 0.904296875}}`)
 
 	query := []byte(`["&&", ["&&", [">", {"/r/load-avg": "LoadAvg1m"}, 0.5], ["<", {"/r/load-avg": "LoadAvg1m"}, 10]], true]`)
 	qp := New(query)
 
-	evaluated, err := qp.EvalExpressions(data, nil)
+	evaluated, err := qp.EvalJSONExpressions(data, nil)
 	if err != nil {
 		t.Fatalf("Unable to evaluate query. Error: %v", err)
 	}
