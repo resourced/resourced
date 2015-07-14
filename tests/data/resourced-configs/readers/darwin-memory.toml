@@ -1,3 +1,0 @@
-Command = "$GOPATH/src/github.com/resourced/resourced/tests/data/script-reader/darwin-memory.py"
-Path = "/memory.darwin"
-Interval = "3s"
