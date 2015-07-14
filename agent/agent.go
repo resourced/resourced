@@ -2,7 +2,6 @@
 package agent
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 	"net"
@@ -14,7 +13,6 @@ import (
 	resourced_config "github.com/resourced/resourced/config"
 	resourced_executors "github.com/resourced/resourced/executors"
 	resourced_host "github.com/resourced/resourced/host"
-	"github.com/resourced/resourced/libprocess"
 	"github.com/resourced/resourced/libstring"
 	"github.com/resourced/resourced/libtime"
 	resourced_readers "github.com/resourced/resourced/readers"
@@ -97,15 +95,12 @@ func (a *Agent) pathWithKindPrefix(kind string, input interface{}) string {
 // Run executes a reader/writer config.
 // Run will save reader data as JSON in local db.
 func (a *Agent) Run(config resourced_config.Config) (output []byte, err error) {
-	if config.Command != "" {
-		output, err = a.runCommand(config)
-	} else if config.GoStruct != "" && config.Kind == "reader" {
+	if config.GoStruct != "" && config.Kind == "reader" {
 		output, err = a.runGoStructReader(config)
 	} else if config.GoStruct != "" && config.Kind == "writer" {
 		output, err = a.runGoStructWriter(config)
 	} else if config.GoStruct != "" && config.Kind == "executor" {
 		output, err = a.runGoStructExecutor(config)
-		println(string(output))
 	}
 
 	if err != nil {
@@ -117,43 +112,12 @@ func (a *Agent) Run(config resourced_config.Config) (output []byte, err error) {
 			"config.Interval":    config.Interval,
 			"config.Kind":        config.Kind,
 			"config.ReaderPaths": fmt.Sprintf("%s", config.ReaderPaths),
-		}).Error("Failed to execute agent.runCommand/runGoStructReader/runGoStructWriter(config)")
+		}).Error("Failed to execute runGoStructReader/runGoStructWriter/runGoStructExecutor")
 	}
 
 	err = a.saveRun(config, output, err)
 
 	return output, err
-}
-
-// runCommand shells out external program and returns the output.
-func (a *Agent) runCommand(config resourced_config.Config) ([]byte, error) {
-	cmd := libprocess.NewCmd(config.Command)
-
-	if config.Kind == "writer" {
-		// Get readers data.
-		readersData := make(map[string]interface{})
-
-		for _, readerPath := range config.ReaderPaths {
-			readerJsonBytes, err := a.GetRunByPath(a.pathWithKindPrefix("r", readerPath))
-
-			if err == nil {
-				var data interface{}
-				err := json.Unmarshal(readerJsonBytes, &data)
-				if err == nil {
-					readersData[readerPath] = data
-				}
-			}
-		}
-
-		readersDataJsonBytes, err := json.Marshal(readersData)
-		if err != nil {
-			return nil, err
-		}
-
-		cmd.Stdin = bytes.NewReader(readersDataJsonBytes)
-	}
-
-	return cmd.Output()
 }
 
 // initGoStructReader initialize and return IReader.
