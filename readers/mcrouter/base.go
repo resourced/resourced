@@ -1,4 +1,4 @@
-// Package mcrouter gathers Redis related data from a host.
+// Package mcrouter gathers mcrouter related data from a host.
 package mcrouter
 
 import (
