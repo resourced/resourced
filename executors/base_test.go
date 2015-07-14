@@ -72,7 +72,7 @@ func TestIsConditionsMetCustomQuery(t *testing.T) {
 	ResetConditionsMetByPath()
 
 	config := newConfigExecutorForTest(t)
-	config.GoStructFields["Conditions"] = `["<", {"/r/load-avg": "LoadAvg1m"}, 100]`
+	config.GoStructFields["Conditions"] = `/r/load-avg.LoadAvg1m < 100`
 
 	data := make(map[string][]byte)
 	data["/r/load-avg"] = []byte(`{"Data": {"LoadAvg1m": 0.904296875}}`)

@@ -43,13 +43,6 @@ func TestNewDiskPartitionsToJson(t *testing.T) {
 
 // ------------------------------------------------------------
 
-func TestNewDiskIO(t *testing.T) {
-	n := NewDiskIO()
-	if n.Data == nil {
-		t.Error("Reader data should never be nil.")
-	}
-}
-
 func TestNewDiskIORun(t *testing.T) {
 	if runtime.GOOS == "linux" {
 		n := NewDiskIO()

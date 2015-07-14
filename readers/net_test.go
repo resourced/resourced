@@ -42,13 +42,6 @@ func TestNewNetIOToJson(t *testing.T) {
 
 // ------------------------------------------------------------
 
-func TestNewNetInterfaces(t *testing.T) {
-	n := NewNetInterfaces()
-	if n.Data == nil {
-		t.Error("Reader data should never be nil.")
-	}
-}
-
 func TestNewNetInterfacesRun(t *testing.T) {
 	n := NewNetInterfaces()
 	err := n.Run()

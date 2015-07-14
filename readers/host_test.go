@@ -40,13 +40,6 @@ func TestNewHostInfoToJson(t *testing.T) {
 	}
 }
 
-func TestNewHostUsers(t *testing.T) {
-	n := NewHostUsers()
-	if n.Data == nil {
-		t.Error("Reader data should never be nil.")
-	}
-}
-
 func TestNewHostUsersRun(t *testing.T) {
 	n := NewHostUsers()
 	err := n.Run()

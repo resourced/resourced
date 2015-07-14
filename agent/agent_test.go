@@ -11,6 +11,7 @@ import (
 	"testing"
 
 	resourced_config "github.com/resourced/resourced/config"
+	_ "github.com/resourced/resourced/readers/docker"
 )
 
 func createAgentForTest(t *testing.T) *Agent {
