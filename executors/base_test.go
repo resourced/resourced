@@ -23,15 +23,18 @@ func TestDynamicConstructor(t *testing.T) {
 
 	config := newConfigExecutorForTest(t)
 
-	s := NewGoStructByConfig(config)
-	if s == nil {
+	executor, err := NewGoStructByConfig(config)
+	if executor == nil {
 		t.Fatalf("Shell constructor did not do its job")
+	}
+	if err != nil {
+		t.Errorf("Shell constructor did not do its job. Error: %v", err)
 	}
 
 	// Test simple run, see if it works
-	s.Run()
+	executor.Run()
 
-	inJson, err := s.ToJson()
+	inJson, err := executor.ToJson()
 	if err != nil {
 		t.Errorf("Failed to serialize data to JSON. Error: %v", err)
 	}
@@ -52,9 +55,12 @@ func TestIsConditionMetDefaultQuery(t *testing.T) {
 
 	config := newConfigExecutorForTest(t)
 
-	executor := NewGoStructByConfig(config)
+	executor, err := NewGoStructByConfig(config)
 	if executor == nil {
 		t.Fatalf("Shell constructor did not do its job")
+	}
+	if err != nil {
+		t.Errorf("Shell constructor did not do its job. Error: %v", err)
 	}
 
 	if executor.IsConditionMet() == false {
@@ -71,9 +77,12 @@ func TestIsConditionsMetCustomQuery(t *testing.T) {
 	data := make(map[string][]byte)
 	data["/r/load-avg"] = []byte(`{"Data": {"LoadAvg1m": 0.904296875}}`)
 
-	executor := NewGoStructByConfig(config)
+	executor, err := NewGoStructByConfig(config)
 	if executor == nil {
 		t.Fatalf("Shell constructor did not do its job")
+	}
+	if err != nil {
+		t.Errorf("Shell constructor did not do its job. Error: %v", err)
 	}
 
 	executor.SetReadersDataInBytes(data)
@@ -94,14 +103,17 @@ func TestRunAndCheckConditionsMet(t *testing.T) {
 	data := make(map[string][]byte)
 	data["/r/load-avg"] = []byte(`{"Data": {"LoadAvg1m": 0.904296875}}`)
 
-	executor := NewGoStructByConfig(config)
+	executor, err := NewGoStructByConfig(config)
 	if executor == nil {
 		t.Fatalf("Shell constructor did not do its job")
+	}
+	if err != nil {
+		t.Errorf("Shell constructor did not do its job. Error: %v", err)
 	}
 
 	executor.SetReadersDataInBytes(data)
 
-	err := executor.Run()
+	err = executor.Run()
 	if err != nil {
 		t.Fatalf("Running uptime should always work. Error: %v", err)
 	}

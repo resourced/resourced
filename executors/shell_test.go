@@ -10,14 +10,17 @@ func TestSimpleRun(t *testing.T) {
 
 	config := newConfigExecutorForTest(t)
 
-	s := NewGoStructByConfig(config)
-	if s == nil {
+	executor, err := NewGoStructByConfig(config)
+	if executor == nil {
 		t.Fatalf("Shell constructor did not do its job")
 	}
+	if err != nil {
+		t.Errorf("Shell constructor did not do its job. Error: %v", err)
+	}
 
-	s.Run()
+	executor.Run()
 
-	dataJson, err := s.ToJson()
+	dataJson, err := executor.ToJson()
 	if err != nil {
 		t.Fatalf("Failed to serialize data to JSON. Error: %v", err)
 	}

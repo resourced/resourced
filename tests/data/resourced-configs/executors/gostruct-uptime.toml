@@ -5,4 +5,4 @@ Interval = "3s"
 [GoStructFields]
 Command = "uptime"
 Interval = "3s"
-Conditions = "[\"<\", {\"/r/load-avg\": \"LoadAvg1m\"}, 100]"
+Conditions = "/r/load-avg.LoadAvg1m < 100"

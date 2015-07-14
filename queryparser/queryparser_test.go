@@ -15,24 +15,11 @@ var queries = []string{
 	`/r/load-avg.LoadAvg1m > 5 && (true) || false`,
 }
 
-func TestConstructor(t *testing.T) {
-	data := make(map[string][]byte)
-	data["/r/load-avg"] = []byte(`{"Data": {"LoadAvg1m": 0.904296875}}`)
-
-	_, err := New(data)
-	if err != nil {
-		t.Fatalf("Unable to create query. Error: %v", err)
-	}
-}
-
 func TestDataValue(t *testing.T) {
 	data := make(map[string][]byte)
 	data["/r/load-avg"] = []byte(`{"Data": {"LoadAvg1m": 0.904296875}}`)
 
-	qp, err := New(data)
-	if err != nil {
-		t.Fatalf("Unable to create query. Error: %v", err)
-	}
+	qp := New(data)
 
 	valueInterface, err := qp.DataValue("/r/load-avg", "LoadAvg1m")
 	if err != nil {
@@ -50,10 +37,7 @@ func TestReplaceDataPathWithValue(t *testing.T) {
 	data := make(map[string][]byte)
 	data["/r/load-avg"] = []byte(`{"Data": {"LoadAvg1m": 0.904296875}}`)
 
-	qp, err := New(data)
-	if err != nil {
-		t.Fatalf("Unable to create query. Error: %v", err)
-	}
+	qp := New(data)
 
 	query, err := qp.replaceDataPathWithValue(queries[0])
 	if err != nil {
@@ -70,10 +54,7 @@ func TestParse(t *testing.T) {
 	data := make(map[string][]byte)
 	data["/r/load-avg"] = []byte(`{"Data": {"LoadAvg1m": 0.904296875}}`)
 
-	qp, err := New(data)
-	if err != nil {
-		t.Fatalf("Unable to create query. Error: %v", err)
-	}
+	qp := New(data)
 
 	for _, query := range queries {
 		result, err := qp.Parse(query)

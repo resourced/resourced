@@ -61,8 +61,6 @@ func NewGoStructByConfig(config resourced_config.Config) (IExecutor, error) {
 		}
 	}
 
-	executor.SetQueryParser()
-
 	return executor, nil
 }
 
@@ -73,7 +71,7 @@ type IExecutor interface {
 	SetInterval(string)
 	Run() error
 	ToJson() ([]byte, error)
-	SetQueryParser()
+	SetQueryParser(map[string][]byte)
 	SetReadersDataInBytes(map[string][]byte)
 	IsConditionMet() bool
 	LowThresholdExceeded() bool
@@ -107,20 +105,23 @@ func (b *Base) SetInterval(interval string) {
 	b.Interval = interval
 }
 
-func (b *Base) SetQueryParser() {
-	if b.Conditions == "" {
-		b.Conditions = `[true]`
-	}
-	b.qp = queryparser.New([]byte(b.Conditions))
+func (b *Base) SetQueryParser(readersJsonBytes map[string][]byte) {
+	b.qp = queryparser.New(readersJsonBytes)
 }
 
 // SetReadersDataInBytes pulls readers data and store them on ReadersData field.
 func (b *Base) SetReadersDataInBytes(readersJsonBytes map[string][]byte) {
 	b.ReadersDataBytes = readersJsonBytes
+
+	b.SetQueryParser(readersJsonBytes)
 }
 
 func (b *Base) IsConditionMet() bool {
-	result, err := b.qp.EvalJSONExpressions(b.ReadersDataBytes, nil)
+	if b.Conditions == "" {
+		b.Conditions = "true"
+	}
+
+	result, err := b.qp.Parse(b.Conditions)
 	if err != nil {
 		return false
 	}

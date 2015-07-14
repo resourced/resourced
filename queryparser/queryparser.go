@@ -8,11 +8,10 @@ import (
 	"github.com/robertkrimen/otto"
 )
 
-func New(data map[string][]byte) (*QueryParser, error) {
+func New(data map[string][]byte) *QueryParser {
 	qp := &QueryParser{}
 	qp.data = data
-
-	return qp, nil
+	return qp
 }
 
 type QueryParser struct {
