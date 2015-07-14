@@ -1,106 +1,88 @@
 package queryparser
 
 import (
+	"strings"
 	"testing"
 )
 
-func TestJSONQuery(t *testing.T) {
-	query := []byte(`[true]`)
-	qp := New(query)
-
-	jsonQuery, err := qp.JSONQuery()
-	if err != nil {
-		t.Fatalf("Unable to parse query. Error: %v", err)
-	}
-
-	if len(jsonQuery) != 1 {
-		t.Errorf("Failed to parse query correctly. Length: %v", len(jsonQuery))
-	}
+var queries = []string{
+	`(((/r/load-avg.LoadAvg1m > 5) && (/r/load-avg.LoadAvg1m < 10)) || (/r/load-avg.LoadAvg1m == 100))`,
+	`((/r/load-avg.LoadAvg1m > 5 && /r/load-avg.LoadAvg1m < 10) || (/r/load-avg.LoadAvg1m == 100))`,
+	`(/r/load-avg.LoadAvg1m > 5 && /r/load-avg.LoadAvg1m < 10) || (/r/load-avg.LoadAvg1m == 100)`,
+	`(/r/load-avg.LoadAvg1m > 5 && /r/load-avg.LoadAvg1m < 10) || /r/load-avg.LoadAvg1m == 100`,
+	`/r/load-avg.LoadAvg1m > 5 && /r/load-avg.LoadAvg1m < 10 || /r/load-avg.LoadAvg1m == 100`,
+	`/r/load-avg.LoadAvg1m > 5 && /r/load-avg.LoadAvg1m < 10 || false`,
+	`/r/load-avg.LoadAvg1m > 5 && (true) || false`,
 }
 
-func TestJSONEvalSingleValue(t *testing.T) {
+func TestConstructor(t *testing.T) {
 	data := make(map[string][]byte)
 	data["/r/load-avg"] = []byte(`{"Data": {"LoadAvg1m": 0.904296875}}`)
 
-	query := []byte(`[true]`)
-	qp := New(query)
-
-	evaluated, err := qp.EvalJSONExpressions(data, nil)
+	_, err := New(data)
 	if err != nil {
-		t.Fatalf("Unable to evaluate query. Error: %v", err)
-	}
-
-	if evaluated != true {
-		t.Errorf("Failed to parse query correctly. Value: %v", evaluated)
+		t.Fatalf("Unable to create query. Error: %v", err)
 	}
 }
 
-func TestJSONEvalSingleExpression(t *testing.T) {
+func TestDataValue(t *testing.T) {
 	data := make(map[string][]byte)
 	data["/r/load-avg"] = []byte(`{"Data": {"LoadAvg1m": 0.904296875}}`)
 
-	query := []byte(`[">", {"/r/load-avg": "LoadAvg1m"}, 0.5]`)
-	qp := New(query)
-
-	evaluated, err := qp.EvalJSONExpressions(data, nil)
+	qp, err := New(data)
 	if err != nil {
-		t.Fatalf("Unable to evaluate query. Error: %v", err)
+		t.Fatalf("Unable to create query. Error: %v", err)
 	}
 
-	if evaluated != true {
-		t.Errorf("Failed to parse query correctly. Value: %v", evaluated)
+	valueInterface, err := qp.DataValue("/r/load-avg", "LoadAvg1m")
+	if err != nil {
+		t.Fatalf("Unable to fetch data value. Error: %v", err)
 	}
-
+	if valueInterface == nil {
+		t.Fatalf("Data value should not be nil.")
+	}
+	if valueInterface.(float64) != 0.904296875 {
+		t.Fatalf("Fetch data value incorrectly. Value: %v", valueInterface.(float64))
+	}
 }
 
-func TestJSONEvalFalsySingleExpression(t *testing.T) {
+func TestReplaceDataPathWithValue(t *testing.T) {
 	data := make(map[string][]byte)
 	data["/r/load-avg"] = []byte(`{"Data": {"LoadAvg1m": 0.904296875}}`)
 
-	query := []byte(`[">", {"/r/load-avg": "LoadAvg1m"}, 100]`)
-	qp := New(query)
-
-	evaluated, err := qp.EvalJSONExpressions(data, nil)
+	qp, err := New(data)
 	if err != nil {
-		t.Fatalf("Unable to evaluate query. Error: %v", err)
+		t.Fatalf("Unable to create query. Error: %v", err)
 	}
 
-	if evaluated != false {
-		t.Errorf("Failed to parse query correctly. Value: %v", evaluated)
+	query, err := qp.replaceDataPathWithValue(queries[0])
+	if err != nil {
+		t.Fatalf("Failed to replace data path with value. Error: %v", err)
+	}
+
+	if strings.Contains(query, "/r/") {
+		t.Fatalf("Failed to replace data path with value. Query: %v", query)
 	}
 
 }
 
-func TestJSONEvalBooleanExpressions(t *testing.T) {
+func TestParse(t *testing.T) {
 	data := make(map[string][]byte)
 	data["/r/load-avg"] = []byte(`{"Data": {"LoadAvg1m": 0.904296875}}`)
 
-	query := []byte(`["&&", [">", {"/r/load-avg": "LoadAvg1m"}, 0.5], ["<", {"/r/load-avg": "LoadAvg1m"}, 10]]`)
-	qp := New(query)
-
-	evaluated, err := qp.EvalJSONExpressions(data, nil)
+	qp, err := New(data)
 	if err != nil {
-		t.Fatalf("Unable to evaluate query. Error: %v", err)
+		t.Fatalf("Unable to create query. Error: %v", err)
 	}
 
-	if evaluated != true {
-		t.Errorf("Failed to parse query correctly. Value: %v", evaluated)
-	}
-}
+	for _, query := range queries {
+		result, err := qp.Parse(query)
+		if err != nil {
+			t.Fatalf("Failed to parse query. Error: %v", err)
+		}
 
-func TestJSONEvalNestedBooleanExpressions(t *testing.T) {
-	data := make(map[string][]byte)
-	data["/r/load-avg"] = []byte(`{"Data": {"LoadAvg1m": 0.904296875}}`)
-
-	query := []byte(`["&&", ["&&", [">", {"/r/load-avg": "LoadAvg1m"}, 0.5], ["<", {"/r/load-avg": "LoadAvg1m"}, 10]], true]`)
-	qp := New(query)
-
-	evaluated, err := qp.EvalJSONExpressions(data, nil)
-	if err != nil {
-		t.Fatalf("Unable to evaluate query. Error: %v", err)
-	}
-
-	if evaluated != true {
-		t.Errorf("Failed to parse query correctly. Value: %v", evaluated)
+		if result != false {
+			t.Fatalf("Failed to parse query correctly. Result: %v", result)
+		}
 	}
 }

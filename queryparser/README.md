@@ -1,4 +1,4 @@
-Package `queryparser2` parses the `Conditions = xyz` query.
+Package `queryparser` parses the `Conditions = xyz` query.
 
 ## Spec
 ```
