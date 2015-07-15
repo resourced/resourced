@@ -1,6 +1,7 @@
 package redis
 
 import (
+	"strings"
 	"testing"
 )
 
@@ -9,6 +10,12 @@ func TestRedisInfoRun(t *testing.T) {
 	r.Data = make(map[string]string)
 	if r.initConnection() == nil {
 		err := r.Run()
+
+		if strings.Contains(err.Error(), "connection refused") {
+			t.Infof("Local Redis is not running. Stop testing.")
+			return
+		}
+
 		if err != nil {
 			t.Errorf("fetching INFO data should always be successful. Error: %v", err)
 		}

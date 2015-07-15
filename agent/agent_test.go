@@ -73,7 +73,7 @@ func TestGetRun(t *testing.T) {
 func TestHttpRouter(t *testing.T) {
 	agent := createAgentForTest(t)
 
-	_, err := agent.Run(agent.ConfigStorage.Readers[1])
+	_, err := agent.Run(agent.ConfigStorage.Readers[0])
 	if err != nil {
 		t.Fatalf("Run should work. Error: %v", err)
 	}

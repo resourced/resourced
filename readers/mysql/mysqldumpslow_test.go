@@ -3,6 +3,7 @@ package mysql
 import (
 	"io/ioutil"
 	"os"
+	"strings"
 	"testing"
 )
 
@@ -34,6 +35,11 @@ func TestMysqlDumpSlowRun(t *testing.T) {
 	m.FilePath = testMysqlSlowData
 
 	err := m.Run()
+	if strings.Contains(err.Error(), "connection refused") {
+		t.Infof("Local MySQL is not running. Stop testing.")
+		return
+	}
+
 	if err != nil {
 		t.Errorf("Fetching mysqldumpslow data should always be successful. Error: %v", err)
 	}
