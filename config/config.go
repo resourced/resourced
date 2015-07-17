@@ -47,7 +47,7 @@ func NewConfigStorage(configDir string) (*ConfigStorage, error) {
 
 		if err == nil {
 			for _, f := range configFiles {
-				fullpath := path.Join(path.Join(configDir, configKindPlural), f.Name())
+				fullpath := path.Join(configDir, configKindPlural, f.Name())
 
 				conf, err := NewConfig(fullpath, configKind)
 				if err == nil {

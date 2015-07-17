@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net"
-	"os"
 	"strings"
 	"time"
 
@@ -26,9 +25,12 @@ func NewAgent(allowedNetworks []*net.IPNet) (*Agent, error) {
 
 	agent.AllowedNetworks = allowedNetworks
 
-	agent.setTags()
+	err := agent.setTags()
+	if err != nil {
+		return nil, err
+	}
 
-	err := agent.setConfigStorage()
+	err = agent.setConfigStorage()
 	if err != nil {
 		return nil, err
 	}
@@ -44,23 +46,8 @@ type Agent struct {
 	ConfigStorage   *resourced_config.ConfigStorage
 	DbPath          string
 	Db              *storage.Storage
-	Tags            []string
+	Tags            map[string]string
 	AllowedNetworks []*net.IPNet
-}
-
-// setTags store RESOURCED_TAGS data to Tags field.
-func (a *Agent) setTags() {
-	a.Tags = make([]string, 0)
-
-	tags := os.Getenv("RESOURCED_TAGS")
-	if tags != "" {
-		tagsSlice := strings.Split(tags, ",")
-		a.Tags = make([]string, len(tagsSlice))
-
-		for i, tag := range tagsSlice {
-			a.Tags[i] = strings.TrimSpace(tag)
-		}
-	}
 }
 
 // pathWithPrefix prepends the short version of config.Kind to path.
