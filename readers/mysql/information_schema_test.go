@@ -12,8 +12,8 @@ func TestMysqlInformationSchemaTablesRun(t *testing.T) {
 	m.Retries = 1
 
 	err := m.Run()
-	if strings.Contains(err.Error(), "connection refused") {
-		t.Infof("Local MySQL is not running. Stop testing.")
+	if err != nil && strings.Contains(err.Error(), "connection refused") {
+		t.Logf("Local MySQL is not running. Stop testing.")
 		return
 	}
 
@@ -33,8 +33,8 @@ func TestMysqlInformationSchemaTablesRun(t *testing.T) {
 func TestMysqlInformationSchemaTablesToJson(t *testing.T) {
 	m := NewMysqlInformationSchemaTables()
 	err := m.Run()
-	if strings.Contains(err.Error(), "connection refused") {
-		t.Infof("Local MySQL is not running. Stop testing.")
+	if err != nil && strings.Contains(err.Error(), "connection refused") {
+		t.Logf("Local MySQL is not running. Stop testing.")
 		return
 	}
 

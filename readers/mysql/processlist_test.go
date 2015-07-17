@@ -11,7 +11,7 @@ func TestMysqlProcesslistRun(t *testing.T) {
 	m.Retries = 1
 
 	err := m.Run()
-	if strings.Contains(err.Error(), "connection refused") {
+	if err != nil && strings.Contains(err.Error(), "connection refused") {
 		return
 	}
 
@@ -31,8 +31,8 @@ func TestMysqlProcesslistToJson(t *testing.T) {
 	m.Retries = 1
 
 	err := m.Run()
-	if strings.Contains(err.Error(), "connection refused") {
-		t.Infof("Local MySQL is not running. Stop testing.")
+	if err != nil && strings.Contains(err.Error(), "connection refused") {
+		t.Logf("Local MySQL is not running. Stop testing.")
 		return
 	}
 

@@ -9,8 +9,8 @@ func TestBaseInitConnection(t *testing.T) {
 	r := &Base{}
 	err := r.initConnection()
 
-	if strings.Contains(err.Error(), "connection refused") {
-		t.Infof("Local Redis is not running. Stop testing.")
+	if err != nil && strings.Contains(err.Error(), "connection refused") {
+		t.Logf("Local Redis is not running. Stop testing.")
 		return
 	}
 
