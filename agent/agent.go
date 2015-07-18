@@ -10,19 +10,21 @@ import (
 
 	"github.com/Sirupsen/logrus"
 	resourced_config "github.com/resourced/resourced/config"
-	resourced_executors "github.com/resourced/resourced/executors"
-	resourced_host "github.com/resourced/resourced/host"
+	"github.com/resourced/resourced/executors"
+	"github.com/resourced/resourced/host"
 	"github.com/resourced/resourced/libstring"
 	"github.com/resourced/resourced/libtime"
-	resourced_readers "github.com/resourced/resourced/readers"
+	"github.com/resourced/resourced/readers"
 	"github.com/resourced/resourced/storage"
-	resourced_writers "github.com/resourced/resourced/writers"
+	"github.com/resourced/resourced/writers"
+	"github.com/satori/go.uuid"
 )
 
 // NewAgent is the constructor for Agent struct.
 func NewAgent(allowedNetworks []*net.IPNet) (*Agent, error) {
 	agent := &Agent{}
 
+	agent.ID = uuid.NewV4().String()
 	agent.AllowedNetworks = allowedNetworks
 
 	err := agent.setTags()
@@ -43,6 +45,7 @@ func NewAgent(allowedNetworks []*net.IPNet) (*Agent, error) {
 // Agent struct carries most of the functionality of ResourceD.
 // It collects information through readers and serve them up as HTTP+JSON.
 type Agent struct {
+	ID              string
 	ConfigStorage   *resourced_config.ConfigStorage
 	DbPath          string
 	Db              *storage.Storage
@@ -108,13 +111,13 @@ func (a *Agent) Run(config resourced_config.Config) (output []byte, err error) {
 }
 
 // initGoStructReader initialize and return IReader.
-func (a *Agent) initGoStructReader(config resourced_config.Config) (resourced_readers.IReader, error) {
-	return resourced_readers.NewGoStructByConfig(config)
+func (a *Agent) initGoStructReader(config resourced_config.Config) (readers.IReader, error) {
+	return readers.NewGoStructByConfig(config)
 }
 
 // initGoStructWriter initialize and return IWriter.
-func (a *Agent) initGoStructWriter(config resourced_config.Config) (resourced_writers.IWriter, error) {
-	writer, err := resourced_writers.NewGoStructByConfig(config)
+func (a *Agent) initGoStructWriter(config resourced_config.Config) (writers.IWriter, error) {
+	writer, err := writers.NewGoStructByConfig(config)
 	if err != nil {
 		return nil, err
 	}
@@ -135,8 +138,8 @@ func (a *Agent) initGoStructWriter(config resourced_config.Config) (resourced_wr
 }
 
 // initGoStructExecutor initialize and return IExecutor.
-func (a *Agent) initGoStructExecutor(config resourced_config.Config) (resourced_executors.IExecutor, error) {
-	executor, err := resourced_executors.NewGoStructByConfig(config)
+func (a *Agent) initGoStructExecutor(config resourced_config.Config) (executors.IExecutor, error) {
+	executor, err := executors.NewGoStructByConfig(config)
 	if err != nil {
 		return nil, err
 	}
@@ -148,7 +151,7 @@ func (a *Agent) initGoStructExecutor(config resourced_config.Config) (resourced_
 
 // runGoStruct executes IReader/IWriter and returns the output.
 // Note that IWriter also implements IReader
-func (a *Agent) runGoStruct(readerOrWriter resourced_readers.IReader) ([]byte, error) {
+func (a *Agent) runGoStruct(readerOrWriter readers.IReader) ([]byte, error) {
 	err := readerOrWriter.Run()
 	if err != nil {
 		errData := make(map[string]string)
@@ -231,15 +234,15 @@ func (a *Agent) commonData(config resourced_config.Config) map[string]interface{
 }
 
 // hostData builds host related information.
-func (a *Agent) hostData() (*resourced_host.Host, error) {
-	host, err := resourced_host.NewHostByHostname()
+func (a *Agent) hostData() (*host.Host, error) {
+	h, err := host.NewHostByHostname()
 	if err != nil {
 		return nil, err
 	}
 
-	host.Tags = a.Tags
+	h.Tags = a.Tags
 
-	return host, nil
+	return h, nil
 }
 
 // saveRun gathers basic, host, and reader/witer information and save them into local storage.
