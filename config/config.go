@@ -16,10 +16,6 @@ func NewConfig(fullpath, kind string) (Config, error) {
 	var config Config
 	_, err := toml.DecodeFile(fullpath, &config)
 
-	if config.Command != "" {
-		config.Command = libstring.ExpandTildeAndEnv(config.Command)
-	}
-
 	if config.Interval == "" {
 		config.Interval = "1m"
 	}
@@ -72,7 +68,6 @@ func NewConfigs(configDir string) (*Configs, error) {
 // Reader config defines how to fetch a particular information and its JSON data path.
 // Writer config defines how to export the JSON data to a particular destination. E.g. Facts/graphing database.
 type Config struct {
-	Command        string
 	GoStruct       string
 	GoStructFields map[string]interface{}
 	Path           string

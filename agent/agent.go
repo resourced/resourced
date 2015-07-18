@@ -116,7 +116,6 @@ func (a *Agent) Run(config resourced_config.Config) (output []byte, err error) {
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
 			"Error":              err.Error(),
-			"config.Command":     config.Command,
 			"config.GoStruct":    config.GoStruct,
 			"config.Path":        config.Path,
 			"config.Interval":    config.Interval,
@@ -205,7 +204,6 @@ func (a *Agent) runGoStructWriter(config resourced_config.Config) ([]byte, error
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
 			"Error":              err.Error(),
-			"config.Command":     config.Command,
 			"config.GoStruct":    config.GoStruct,
 			"config.Path":        config.Path,
 			"config.Interval":    config.Interval,
@@ -241,10 +239,6 @@ func (a *Agent) commonData(config resourced_config.Config) map[string]interface{
 		config.Interval = "1m"
 	}
 	record["Interval"] = config.Interval
-
-	if config.Command != "" {
-		record["Command"] = config.Command
-	}
 
 	if config.GoStruct != "" {
 		record["GoStruct"] = config.GoStruct
