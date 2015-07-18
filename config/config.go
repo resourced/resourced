@@ -29,9 +29,9 @@ func NewConfig(fullpath, kind string) (Config, error) {
 	return config, err
 }
 
-// NewConfigStorage creates ConfigStorage struct given configDir.
-func NewConfigStorage(configDir string) (*ConfigStorage, error) {
-	storage := &ConfigStorage{}
+// NewConfigs creates Configs struct given configDir.
+func NewConfigs(configDir string) (*Configs, error) {
+	storage := &Configs{}
 	storage.Readers = make([]Config, 0)
 	storage.Writers = make([]Config, 0)
 	storage.Executors = make([]Config, 0)
@@ -91,8 +91,8 @@ type Config struct {
 	Conditions    []interface{}
 }
 
-// ConfigStorage stores all readers and writers configuration.
-type ConfigStorage struct {
+// Configs stores all readers and writers configuration.
+type Configs struct {
 	Readers   []Config
 	Writers   []Config
 	Executors []Config

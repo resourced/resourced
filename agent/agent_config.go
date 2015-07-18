@@ -6,13 +6,13 @@ import (
 	resourced_config "github.com/resourced/resourced/config"
 )
 
-// setConfigStorage reads config paths and setup configStorage.
-func (a *Agent) setConfigStorage() error {
+// setConfigs reads config paths and setup configStorage.
+func (a *Agent) setConfigs() error {
 	configDir := os.Getenv("RESOURCED_CONFIG_DIR")
 
-	configStorage, err := resourced_config.NewConfigStorage(configDir)
+	configStorage, err := resourced_config.NewConfigs(configDir)
 	if err == nil {
-		a.ConfigStorage = configStorage
+		a.Configs = configStorage
 	}
 
 	return err

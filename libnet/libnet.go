@@ -1,12 +1,12 @@
-// Package contains miscelaneous utility functions
-package util
+// Package libnet contains networking related functions
+package libnet
 
 import (
 	"net"
 	"strings"
 )
 
-// Parse a string with comma separated CIDR's; return slice of net.IPNet objs;
+// ParseCIDRs parse a string with comma separated CIDR's; return slice of net.IPNet objs;
 // if given string is empty, return an empty slice of net.IPNet objs instead.
 func ParseCIDRs(cidrs string) ([]*net.IPNet, error) {
 	if cidrs == "" {

@@ -6,10 +6,10 @@ import (
 	"testing"
 )
 
-func TestNewConfigStorage(t *testing.T) {
-	config, err := NewConfigStorage("$GOPATH/src/github.com/resourced/resourced/tests/data/resourced-configs")
+func TestNewConfigs(t *testing.T) {
+	config, err := NewConfigs("$GOPATH/src/github.com/resourced/resourced/tests/data/resourced-configs")
 	if err != nil {
-		t.Fatalf("Initializing ConfigStorage should work. Error: %v", err)
+		t.Fatalf("Initializing Configs should work. Error: %v", err)
 	}
 
 	if len(config.Readers) <= 0 {

@@ -17,8 +17,7 @@ import (
 func createAgentForTest(t *testing.T) *Agent {
 	os.Setenv("RESOURCED_CONFIG_DIR", os.ExpandEnv("$GOPATH/src/github.com/resourced/resourced/tests/data/resourced-configs"))
 
-	// Provide empty slice - allow all to connect
-	agent, err := NewAgent([]*net.IPNet{})
+	agent, err := New()
 	if err != nil {
 		t.Fatalf("Initializing agent should work. Error: %v", err)
 	}
@@ -26,26 +25,10 @@ func createAgentForTest(t *testing.T) *Agent {
 	return agent
 }
 
-func TestConstructor(t *testing.T) {
-	os.Setenv("RESOURCED_TAGS", "prod, mysql, percona")
-
-	agent := createAgentForTest(t)
-
-	if len(agent.Tags) != 3 {
-		t.Error("agent.Tags should not be empty.")
-	}
-
-	for _, tag := range agent.Tags {
-		if tag != "prod" && tag != "mysql" && tag != "percona" {
-			t.Errorf("agent.Tags is incorrect: %v", agent.Tags)
-		}
-	}
-}
-
 func TestRun(t *testing.T) {
 	agent := createAgentForTest(t)
 
-	_, err := agent.Run(agent.ConfigStorage.Readers[1])
+	_, err := agent.Run(agent.Configs.Readers[1])
 	if err != nil {
 		t.Fatalf("Run should work. Error: %v", err)
 	}
@@ -54,7 +37,7 @@ func TestRun(t *testing.T) {
 func TestGetRun(t *testing.T) {
 	agent := createAgentForTest(t)
 
-	config := agent.ConfigStorage.Readers[1]
+	config := agent.Configs.Readers[1]
 
 	_, err := agent.Run(config)
 	if err != nil {
@@ -73,7 +56,7 @@ func TestGetRun(t *testing.T) {
 func TestHttpRouter(t *testing.T) {
 	agent := createAgentForTest(t)
 
-	_, err := agent.Run(agent.ConfigStorage.Readers[0])
+	_, err := agent.Run(agent.Configs.Readers[0])
 	if err != nil {
 		t.Fatalf("Run should work. Error: %v", err)
 	}
@@ -107,7 +90,7 @@ func TestHttpRouter(t *testing.T) {
 func TestPathWithPrefix(t *testing.T) {
 	agent := createAgentForTest(t)
 
-	config := agent.ConfigStorage.Readers[1]
+	config := agent.Configs.Readers[1]
 
 	path := agent.pathWithPrefix(config)
 	if !strings.HasPrefix(path, "/r") {
@@ -156,7 +139,7 @@ func TestInitGoStructReader(t *testing.T) {
 	agent := createAgentForTest(t)
 
 	var config resourced_config.Config
-	for _, c := range agent.ConfigStorage.Readers {
+	for _, c := range agent.Configs.Readers {
 		if c.GoStruct == "DockerContainersMemory" {
 			config = c
 			break
@@ -178,7 +161,7 @@ func TestInitGoStructWriter(t *testing.T) {
 	agent := createAgentForTest(t)
 
 	var config resourced_config.Config
-	for _, c := range agent.ConfigStorage.Writers {
+	for _, c := range agent.Configs.Writers {
 		if c.GoStruct == "Http" {
 			config = c
 			break
@@ -206,7 +189,7 @@ func TestCommonData(t *testing.T) {
 	agent := createAgentForTest(t)
 
 	var config resourced_config.Config
-	for _, c := range agent.ConfigStorage.Readers {
+	for _, c := range agent.Configs.Readers {
 		if c.GoStruct == "DockerContainersMemory" {
 			config = c
 			break
@@ -228,10 +211,11 @@ func TestIsAllowed(t *testing.T) {
 	_, network, _ := net.ParseCIDR("127.0.0.1/8")
 	allowedNetworks := []*net.IPNet{network}
 
-	agent, err := NewAgent(allowedNetworks)
+	agent, err := New()
 	if err != nil {
 		t.Fatalf("Initializing agent should work. Error: %v", err)
 	}
+	agent.AllowedNetworks = allowedNetworks
 
 	goodIP := "127.0.0.1"
 	badIP := "10.0.0.1"

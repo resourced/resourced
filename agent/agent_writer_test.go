@@ -21,7 +21,7 @@ func createConfigForAgentWriterTest(t *testing.T) resourced_config.Config {
 func TestRunGoStructWriterWithJsonFlattener(t *testing.T) {
 	agent := createAgentForTest(t)
 
-	for _, readerConfig := range agent.ConfigStorage.Readers {
+	for _, readerConfig := range agent.Configs.Readers {
 		if readerConfig.Path == "/du" {
 			agent.Run(readerConfig)
 
@@ -49,7 +49,7 @@ func TestRunGoStructWriterWithJsonFlattener(t *testing.T) {
 func TestRunGoStructWriterWithInsightsDuFormatter(t *testing.T) {
 	agent := createAgentForTest(t)
 
-	for _, readerConfig := range agent.ConfigStorage.Readers {
+	for _, readerConfig := range agent.Configs.Readers {
 		if readerConfig.Path == "/du" {
 			agent.Run(readerConfig)
 

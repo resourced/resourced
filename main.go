@@ -5,13 +5,12 @@ import (
 	"os"
 	"runtime"
 
-	resourced_agent "github.com/resourced/resourced/agent"
+	"github.com/resourced/resourced/agent"
 	_ "github.com/resourced/resourced/readers/docker"
 	_ "github.com/resourced/resourced/readers/mcrouter"
 	_ "github.com/resourced/resourced/readers/mysql"
 	_ "github.com/resourced/resourced/readers/procfs"
 	_ "github.com/resourced/resourced/readers/redis"
-	resourced_util "github.com/resourced/resourced/util"
 )
 
 func init() {
@@ -31,26 +30,21 @@ func main() {
 		runtime.GOMAXPROCS(runtime.NumCPU())
 	}
 
-	allowedNetworks, cidrErr := resourced_util.ParseCIDRs(os.Getenv("RESOURCED_ALLOWED_NETWORKS"))
-	if cidrErr != nil {
-		panic(cidrErr)
-	}
-
-	agent, err := resourced_agent.NewAgent(allowedNetworks)
+	ag, err := agent.New()
 	if err != nil {
 		panic(err)
 	}
 
-	agent.RunAllForever()
+	ag.RunAllForever()
 
 	httpAddr := os.Getenv("RESOURCED_ADDR")
 	httpsCertFile := os.Getenv("RESOURCED_CERT_FILE")
 	httpsKeyFile := os.Getenv("RESOURCED_KEY_FILE")
 
 	if httpsCertFile != "" && httpsKeyFile != "" {
-		err = agent.ListenAndServeTLS(httpAddr, httpsCertFile, httpsKeyFile)
+		err = ag.ListenAndServeTLS(httpAddr, httpsCertFile, httpsKeyFile)
 	} else {
-		err = agent.ListenAndServe(httpAddr)
+		err = ag.ListenAndServe(httpAddr)
 	}
 
 	if err != nil {

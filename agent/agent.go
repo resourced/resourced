@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net"
+	"os"
 	"strings"
 	"time"
 
@@ -12,6 +13,7 @@ import (
 	resourced_config "github.com/resourced/resourced/config"
 	"github.com/resourced/resourced/executors"
 	"github.com/resourced/resourced/host"
+	"github.com/resourced/resourced/libnet"
 	"github.com/resourced/resourced/libstring"
 	"github.com/resourced/resourced/libtime"
 	"github.com/resourced/resourced/readers"
@@ -20,24 +22,28 @@ import (
 	"github.com/satori/go.uuid"
 )
 
-// NewAgent is the constructor for Agent struct.
-func NewAgent(allowedNetworks []*net.IPNet) (*Agent, error) {
+// New is the constructor for Agent struct.
+func New() (*Agent, error) {
 	agent := &Agent{}
 
 	agent.ID = uuid.NewV4().String()
-	agent.AllowedNetworks = allowedNetworks
 
-	err := agent.setTags()
+	err := agent.setAllowedNetworks()
 	if err != nil {
 		return nil, err
 	}
 
-	err = agent.setConfigStorage()
+	err = agent.setTags()
 	if err != nil {
 		return nil, err
 	}
 
-	agent.Db = storage.NewStorage()
+	err = agent.setConfigs()
+	if err != nil {
+		return nil, err
+	}
+
+	agent.setStorage()
 
 	return agent, err
 }
@@ -46,11 +52,25 @@ func NewAgent(allowedNetworks []*net.IPNet) (*Agent, error) {
 // It collects information through readers and serve them up as HTTP+JSON.
 type Agent struct {
 	ID              string
-	ConfigStorage   *resourced_config.ConfigStorage
+	Configs         *resourced_config.Configs
 	DbPath          string
 	Db              *storage.Storage
 	Tags            map[string]string
 	AllowedNetworks []*net.IPNet
+}
+
+func (a *Agent) setStorage() {
+	a.Db = storage.NewStorage()
+}
+
+func (a *Agent) setAllowedNetworks() error {
+	allowedNetworks, err := libnet.ParseCIDRs(os.Getenv("RESOURCED_ALLOWED_NETWORKS"))
+	if err != nil {
+		return err
+	}
+
+	a.AllowedNetworks = allowedNetworks
+	return nil
 }
 
 // pathWithPrefix prepends the short version of config.Kind to path.
@@ -306,13 +326,13 @@ func (a *Agent) RunForever(config resourced_config.Config) {
 
 // RunAllForever executes all readers & writers in an infinite loop.
 func (a *Agent) RunAllForever() {
-	for _, config := range a.ConfigStorage.Readers {
+	for _, config := range a.Configs.Readers {
 		a.RunForever(config)
 	}
-	for _, config := range a.ConfigStorage.Writers {
+	for _, config := range a.Configs.Writers {
 		a.RunForever(config)
 	}
-	for _, config := range a.ConfigStorage.Executors {
+	for _, config := range a.Configs.Executors {
 		a.RunForever(config)
 	}
 }
