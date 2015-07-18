@@ -3,9 +3,18 @@ package agent
 import (
 	"fmt"
 	net_url "net/url"
+	"os"
+	"time"
+
+	"github.com/Sirupsen/logrus"
+	"github.com/resourced/resourced/wsclient"
+	"github.com/resourced/resourced/wstrafficker"
 )
 
-func (a *Agent) initializeWSConnection() error {
+// setWSTrafficker construct WSTrafficker instance.
+// WSTrafficker carry its own websocket client.
+func (a *Agent) setWSTrafficker() error {
+	wsPath := "/api/ws"
 	var wsUrl string
 
 	for _, writer := range a.Configs.Writers {
@@ -20,13 +29,32 @@ func (a *Agent) initializeWSConnection() error {
 				return err
 			}
 
-			wsUrl = fmt.Sprintf("%v://%v/api/ws", url.Scheme, url.Host)
+			wsUrl = fmt.Sprintf("%v://%v%v", url.Scheme, url.Host, wsPath)
 			break
 		}
 	}
 
 	if wsUrl != "" {
-		return nil
+		wsSettings := make(map[string]interface{})
+		wsSettings["Timeout"] = 1 * time.Second
+
+		httpAddr := os.Getenv("RESOURCED_ADDR")
+		if httpAddr == "" {
+			httpAddr = "localhost:55555"
+		}
+
+		wsClient, _, err := wsclient.NewClient("http://"+httpAddr, wsUrl, wsSettings)
+		if err != nil {
+			logrus.WithFields(logrus.Fields{
+				"Error":     err.Error(),
+				"OriginURL": "http://" + httpAddr,
+				"TargetURL": wsUrl,
+				"Timeout":   wsSettings["Timeout"],
+			}).Error("Failed to establish websocket connection")
+			return nil
+		}
+
+		a.WSTrafficker = wstrafficker.New(wsClient)
 	}
 
 	return nil

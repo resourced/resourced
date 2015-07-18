@@ -38,6 +38,10 @@ func main() {
 	ag.RunAllForever()
 
 	httpAddr := os.Getenv("RESOURCED_ADDR")
+	if httpAddr == "" {
+		httpAddr = ":55555"
+	}
+
 	httpsCertFile := os.Getenv("RESOURCED_CERT_FILE")
 	httpsKeyFile := os.Getenv("RESOURCED_KEY_FILE")
 

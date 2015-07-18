@@ -19,6 +19,7 @@ import (
 	"github.com/resourced/resourced/readers"
 	"github.com/resourced/resourced/storage"
 	"github.com/resourced/resourced/writers"
+	"github.com/resourced/resourced/wstrafficker"
 	"github.com/satori/go.uuid"
 )
 
@@ -43,6 +44,11 @@ func New() (*Agent, error) {
 		return nil, err
 	}
 
+	err = agent.setWSTrafficker()
+	if err != nil {
+		return nil, err
+	}
+
 	agent.setStorage()
 
 	return agent, err
@@ -52,11 +58,12 @@ func New() (*Agent, error) {
 // It collects information through readers and serve them up as HTTP+JSON.
 type Agent struct {
 	ID              string
+	Tags            map[string]string
 	Configs         *resourced_config.Configs
 	DbPath          string
 	Db              *storage.Storage
-	Tags            map[string]string
 	AllowedNetworks []*net.IPNet
+	WSTrafficker    *wstrafficker.WSTrafficker
 }
 
 func (a *Agent) setStorage() {
