@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/Sirupsen/logrus"
+	"net/http"
 	"os"
 	"runtime"
 
@@ -30,28 +31,37 @@ func main() {
 		runtime.GOMAXPROCS(runtime.NumCPU())
 	}
 
-	ag, err := agent.New()
+	a, err := agent.New()
 	if err != nil {
-		panic(err)
+		logrus.Fatal(err)
 	}
 
-	ag.RunAllForever()
+	a.RunAllForever()
 
-	httpAddr := os.Getenv("RESOURCED_ADDR")
-	if httpAddr == "" {
-		httpAddr = ":55555"
+	addr := os.Getenv("RESOURCED_ADDR")
+	if addr == "" {
+		addr = ":55555"
 	}
 
-	httpsCertFile := os.Getenv("RESOURCED_CERT_FILE")
-	httpsKeyFile := os.Getenv("RESOURCED_KEY_FILE")
+	certFile := os.Getenv("RESOURCED_CERT_FILE")
+	keyFile := os.Getenv("RESOURCED_KEY_FILE")
 
-	if httpsCertFile != "" && httpsKeyFile != "" {
-		err = ag.ListenAndServeTLS(httpAddr, httpsCertFile, httpsKeyFile)
+	if certFile != "" && keyFile != "" {
+		logrus.WithFields(logrus.Fields{
+			"addr": addr,
+		}).Info("Running HTTPS server")
+
+		err = http.ListenAndServeTLS(addr, certFile, keyFile, a.HttpRouter())
+
 	} else {
-		err = ag.ListenAndServe(httpAddr)
+		logrus.WithFields(logrus.Fields{
+			"addr": addr,
+		}).Info("Running HTTP server")
+
+		err = http.ListenAndServe(addr, a.HttpRouter())
 	}
 
 	if err != nil {
-		panic(err)
+		logrus.Fatal(err)
 	}
 }

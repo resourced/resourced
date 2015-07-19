@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/Sirupsen/logrus"
 	"github.com/julienschmidt/httprouter"
 	resourced_config "github.com/resourced/resourced/config"
 )
@@ -390,30 +389,4 @@ func (a *Agent) HttpRouter() *httprouter.Router {
 	}
 
 	return router
-}
-
-// ListenAndServe runs HTTP server.
-func (a *Agent) ListenAndServe(addr string) error {
-	if addr == "" {
-		addr = ":55555"
-	}
-
-	logrus.WithFields(logrus.Fields{
-		"addr": addr,
-	}).Info("Running HTTP server")
-
-	return http.ListenAndServe(addr, a.HttpRouter())
-}
-
-// ListenAndServe runs HTTPS server.
-func (a *Agent) ListenAndServeTLS(addr, certFile, keyFile string) error {
-	if addr == "" {
-		addr = ":55555"
-	}
-
-	logrus.WithFields(logrus.Fields{
-		"addr": addr,
-	}).Info("Running HTTPS server")
-
-	return http.ListenAndServeTLS(addr, certFile, keyFile, a.HttpRouter())
 }
