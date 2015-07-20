@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/Sirupsen/logrus"
-	"github.com/resourced/resourced/wsclient"
 	"github.com/resourced/resourced/wstrafficker"
 )
 
@@ -72,7 +71,7 @@ func (a *Agent) setWSTrafficker() error {
 		wsSettings := make(map[string]interface{})
 		wsSettings["Timeout"] = 1 * time.Second
 
-		wsClient, _, err := wsclient.NewClient(originURL, targetURL, wsSettings)
+		trafficker, err := wstrafficker.NewWSTrafficker(originURL, targetURL, wsSettings)
 		if err != nil {
 			logrus.WithFields(logrus.Fields{
 				"Error":     err.Error(),
@@ -83,7 +82,7 @@ func (a *Agent) setWSTrafficker() error {
 			return nil
 		}
 
-		a.WSTrafficker = wstrafficker.NewWSTrafficker(wsClient)
+		a.WSTrafficker = trafficker
 
 		payload := make(map[string]string)
 		payload["Hostname"] = hostname
@@ -103,6 +102,9 @@ func (a *Agent) setWSTrafficker() error {
 			"TargetURL": targetURL,
 			"Timeout":   wsSettings["Timeout"],
 		}).Info("Established websocket connection")
+
+		// Ping and reconnect when neccessary
+		trafficker.PingAndReconnect()
 	}
 
 	return nil
