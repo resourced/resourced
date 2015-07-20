@@ -51,22 +51,33 @@ func (a *Agent) setWSTrafficker() error {
 			return err
 		}
 
+		originScheme := "ws"
+		if a.IsTLS() {
+			originScheme = "wss"
+		}
+
+		originAddr := os.Getenv("RESOURCED_ADDR")
+		if originAddr == "" {
+			originAddr = "localhost:55555"
+		}
+
+		targetScheme := "ws"
+		if masterUrl.Scheme == "https" {
+			targetScheme = "wss"
+		}
+
+		originURL := fmt.Sprintf("%v://%v", originScheme, originAddr)
+		targetURL := fmt.Sprintf("%v://%v%v/%v", targetScheme, masterUrl.Host, websocketPathByAccessTokenPrefix, accessToken)
+
 		wsSettings := make(map[string]interface{})
 		wsSettings["Timeout"] = 1 * time.Second
 
-		httpAddr := os.Getenv("RESOURCED_ADDR")
-		if httpAddr == "" {
-			httpAddr = "localhost:55555"
-		}
-
-		wsUrl := fmt.Sprintf("%v://%v%v/%v", masterUrl.Scheme, masterUrl.Host, websocketPathByAccessTokenPrefix, accessToken)
-
-		wsClient, _, err := wsclient.NewClient("http://"+httpAddr, wsUrl, wsSettings)
+		wsClient, _, err := wsclient.NewClient(originURL, targetURL, wsSettings)
 		if err != nil {
 			logrus.WithFields(logrus.Fields{
 				"Error":     err.Error(),
-				"OriginURL": "http://" + httpAddr,
-				"TargetURL": wsUrl,
+				"OriginURL": originURL,
+				"TargetURL": targetURL,
 				"Timeout":   wsSettings["Timeout"],
 			}).Error("Failed to establish websocket connection")
 			return nil
@@ -86,6 +97,12 @@ func (a *Agent) setWSTrafficker() error {
 		if err != nil {
 			return err
 		}
+
+		logrus.WithFields(logrus.Fields{
+			"OriginURL": originURL,
+			"TargetURL": targetURL,
+			"Timeout":   wsSettings["Timeout"],
+		}).Info("Established websocket connection")
 	}
 
 	return nil

@@ -70,6 +70,16 @@ func (a *Agent) setStorage() {
 	a.Db = storage.NewStorage()
 }
 
+func (a *Agent) IsTLS() bool {
+	certFile := os.Getenv("RESOURCED_CERT_FILE")
+	keyFile := os.Getenv("RESOURCED_KEY_FILE")
+
+	if certFile != "" && keyFile != "" {
+		return true
+	}
+	return false
+}
+
 func (a *Agent) setAllowedNetworks() error {
 	allowedNetworks, err := libnet.ParseCIDRs(os.Getenv("RESOURCED_ALLOWED_NETWORKS"))
 	if err != nil {
