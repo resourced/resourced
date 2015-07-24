@@ -2,19 +2,13 @@ package agent
 
 import (
 	"bufio"
+	"github.com/resourced/resourced/libstring"
 	"io/ioutil"
 	"os"
 	"path"
 	"strings"
-
-	"github.com/resourced/resourced/libstring"
 )
 
-// setTags parses tags directory under RESOURCED_CONFIG_DIR/tags
-// and store them under agent.Tags.
-// Format of the tag is: key=value.
-// This simple parser picks the first = as key, value delimiter.
-// Errors are ignored in this function because malformed tags should not break the agent.
 func (a *Agent) setTags() error {
 	a.Tags = make(map[string]string)
 

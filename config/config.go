@@ -2,11 +2,8 @@
 package config
 
 import (
-	"bufio"
 	"io/ioutil"
-	"os"
 	"path"
-	"strings"
 
 	"github.com/BurntSushi/toml"
 	"github.com/resourced/resourced/libstring"
@@ -94,51 +91,4 @@ type Configs struct {
 	Readers   []Config
 	Writers   []Config
 	Executors []Config
-}
-
-// NewMasterConfig is the constructor for MasterConfig
-// It parses general.toml first and then all the access tokens under access-tokens directory.
-func NewMasterConfig(configDir string) (*MasterConfig, error) {
-
-	configDir = libstring.ExpandTildeAndEnv(configDir)
-	generalConfigFile := path.Join(configDir, "general.toml")
-
-	masterConfig := &MasterConfig{}
-	masterConfig.AccessTokens = make([]string, 0)
-
-	_, err := toml.DecodeFile(generalConfigFile, &masterConfig)
-	if err != nil {
-		return nil, err
-	}
-
-	tokenFiles, err := ioutil.ReadDir(path.Join(configDir, "access-tokens"))
-	if err != nil {
-		return nil, err
-	}
-
-	for _, f := range tokenFiles {
-		fullpath := path.Join(configDir, "access-tokens", f.Name())
-
-		file, err := os.Open(fullpath)
-		if err != nil {
-			return nil, err
-		}
-		defer file.Close()
-
-		scanner := bufio.NewScanner(file)
-		for scanner.Scan() {
-			accessToken := strings.TrimSpace(scanner.Text())
-			if accessToken != "" {
-				masterConfig.AccessTokens = append(masterConfig.AccessTokens, accessToken)
-			}
-		}
-	}
-
-	return masterConfig, nil
-}
-
-// MasterConfig stores endpoint and credentials to connect to ResourceD Master.
-type MasterConfig struct {
-	Url          string
-	AccessTokens []string
 }

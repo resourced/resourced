@@ -15,11 +15,5 @@ func (a *Agent) setConfigs() error {
 		a.Configs = configStorage
 	}
 
-	masterConfigDir := os.Getenv("RESOURCED_MASTER_CONFIG_DIR")
-	masterConfig, err := resourced_config.NewMasterConfig(masterConfigDir)
-	if err == nil {
-		a.MasterConfig = masterConfig
-	}
-
 	return err
 }
