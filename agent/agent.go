@@ -60,6 +60,7 @@ type Agent struct {
 	ID              string
 	Tags            map[string]string
 	Configs         *resourced_config.Configs
+	MasterConfig    *resourced_config.MasterConfig
 	DbPath          string
 	Db              *storage.Storage
 	AllowedNetworks []*net.IPNet

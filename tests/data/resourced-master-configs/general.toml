@@ -1,0 +1,2 @@
+# Url is the root endpoint to ResourceD Master.
+Url = "http://localhost:55655"
