@@ -1,6 +1,6 @@
 ReaderPaths = ["/load-avg", "/uptime", "/free", "/net/interfaces"]
-Path = "/go/resourced-master"
-GoStruct = "ResourcedMaster"
+Path = "/resourced-master/host"
+GoStruct = "ResourcedMasterHost"
 Interval = "3s"
 
 [GoStructFields]

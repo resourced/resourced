@@ -1,5 +1,5 @@
 ReaderPaths = ["/load-avg", "/uptime", "/free"]
-Path = "/go/loadavg-uptime-free/http"
+Path = "/loadavg-uptime-free/http"
 GoStruct = "Http"
 Interval = "3s"
 

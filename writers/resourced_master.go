@@ -1,15 +1,15 @@
 package writers
 
 func init() {
-	Register("ResourcedMaster", NewResourcedMaster)
+	Register("ResourcedMasterHost", NewResourcedMasterHost)
 }
 
-// NewResourcedMaster is ResourcedMaster constructor.
-func NewResourcedMaster() IWriter {
-	return &ResourcedMaster{}
+// NewResourcedMasterHost is ResourcedMasterHost constructor.
+func NewResourcedMasterHost() IWriter {
+	return &ResourcedMasterHost{}
 }
 
-// ResourcedMaster is a writer that serialize readers data to ResourcedMaster.
-type ResourcedMaster struct {
+// ResourcedMasterHost is a writer that serialize readers data to ResourcedMasterHost.
+type ResourcedMasterHost struct {
 	Http
 }
