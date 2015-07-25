@@ -31,7 +31,6 @@ fi
 # Install ResourceD
 cd $GOPATH/src/github.com/resourced/resourced
 GOPATH=/go go get ./... && GOPATH=/go go install github.com/resourced/resourced
-mkdir -p /resourced && echo 'RESOURCED_DB=/resourced/db' > /etc/profile.d/resourced.sh
 
 # SUPERVISORD
 # Setup ResourceD on port :55556

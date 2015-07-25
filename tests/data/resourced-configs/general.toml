@@ -1,0 +1,13 @@
+# Addr is the host and port of ResourceD Agent HTTP/S server
+Addr = "localhost:55555"
+
+# Valid LogLevel are: debug, info, warning, error, fatal, panic
+LogLevel = "info"
+
+[HTTPS]
+CertFile = ""
+KeyFile = ""
+
+[ResourcedMaster]
+# Url is the root endpoint to Resourced Master
+Url = "http://localhost:55655"

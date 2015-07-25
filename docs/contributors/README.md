@@ -15,8 +15,7 @@ This section is dedicated for current or future ResourceD contributors.
 
 Below is an example on how to run ResourceD as foreground process.
 ```bash
-RESOURCED_CONFIG_READER_DIR=$GOPATH/src/github.com/resourced/resourced/tests/data/config-reader \
-RESOURCED_CONFIG_WRITER_DIR=$GOPATH/src/github.com/resourced/resourced/tests/data/config-writer \
+RESOURCED_CONFIG_DIR=$GOPATH/src/github.com/resourced/resourced/tests/data/resourced-configs \
 go run $GOPATH/src/github.com/resourced/resourced/resourced.go
 ```
 

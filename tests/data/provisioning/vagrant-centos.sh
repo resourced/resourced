@@ -19,7 +19,6 @@ fi
 GOPATH=/go go get github.com/tools/godep
 
 # Install ResourceD
-mkdir -p /resourced && echo 'RESOURCED_DB=/resourced/db' > /etc/profile.d/resourced.sh
 cd $GOPATH/src/github.com/resourced/resourced
 GOPATH=/go go get ./...
 GOPATH=/go godep go build

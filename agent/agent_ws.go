@@ -55,10 +55,7 @@ func (a *Agent) setWSTrafficker() error {
 			originScheme = "wss"
 		}
 
-		originAddr := os.Getenv("RESOURCED_ADDR")
-		if originAddr == "" {
-			originAddr = "localhost:55555"
-		}
+		originAddr := a.GeneralConfig.Addr
 
 		targetScheme := "ws"
 		if masterUrl.Scheme == "https" {

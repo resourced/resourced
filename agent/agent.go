@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net"
-	"os"
 	"strings"
 	"time"
 
@@ -29,17 +28,17 @@ func New() (*Agent, error) {
 
 	agent.ID = uuid.NewV4().String()
 
-	err := agent.setAllowedNetworks()
+	err := agent.setConfigs()
+	if err != nil {
+		return nil, err
+	}
+
+	err = agent.setAllowedNetworks()
 	if err != nil {
 		return nil, err
 	}
 
 	err = agent.setTags()
-	if err != nil {
-		return nil, err
-	}
-
-	err = agent.setConfigs()
 	if err != nil {
 		return nil, err
 	}
@@ -60,6 +59,7 @@ type Agent struct {
 	ID              string
 	Tags            map[string]string
 	Configs         *resourced_config.Configs
+	GeneralConfig   resourced_config.GeneralConfig
 	DbPath          string
 	Db              *storage.Storage
 	AllowedNetworks []*net.IPNet
@@ -71,17 +71,14 @@ func (a *Agent) setStorage() {
 }
 
 func (a *Agent) IsTLS() bool {
-	certFile := os.Getenv("RESOURCED_CERT_FILE")
-	keyFile := os.Getenv("RESOURCED_KEY_FILE")
-
-	if certFile != "" && keyFile != "" {
+	if a.GeneralConfig.HTTPS.CertFile != "" && a.GeneralConfig.HTTPS.KeyFile != "" {
 		return true
 	}
 	return false
 }
 
 func (a *Agent) setAllowedNetworks() error {
-	allowedNetworks, err := libnet.ParseCIDRs(os.Getenv("RESOURCED_ALLOWED_NETWORKS"))
+	allowedNetworks, err := libnet.ParseCIDRs(a.GeneralConfig.AllowedNetworks)
 	if err != nil {
 		return err
 	}

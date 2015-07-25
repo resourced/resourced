@@ -27,21 +27,11 @@ curl -X GET -H "Content-type: application/json" http://localhost:55555/r/load-av
 
 ## Configuration
 
-ResourceD accepts a few environment variables as configuration:
+**RESOURCED_CONFIG_DIR:** Path to root config directory (Required).
 
-* **RESOURCED_CONFIG_DIR:** Path to parent config directory (Required), its children must be: readers, writers, and executors. Default: ""
+Its children must be: readers, writers, executors, tags, and `general.toml`.
 
-* **RESOURCED_LOG_LEVEL:** Log level. Default: "info"
-
-* **RESOURCED_ADDR:** The HTTP server host and port. Default: ":55555"
-
-* **RESOURCED_CERT_FILE:** Path to cert file. Default: ""
-
-* **RESOURCED_KEY_FILE:** Path to key file. Default: ""
-
-* **RESOURCED_TAGS:** Comma separated tags. Default: ""
-
-* **RESOURCED_ALLOWED_NETWORKS:** Comma separated list of CIDR's that are allowed to use ResourceD's API endpoint. Default: ""
+All default settings are defined in `general.toml`.
 
 
 ## Data Gathering

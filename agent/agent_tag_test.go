@@ -6,8 +6,6 @@ import (
 )
 
 func TestConstructor(t *testing.T) {
-	os.Setenv("RESOURCED_TAGS", "prod, mysql, percona")
-
 	agent := createAgentForTest(t)
 
 	if len(agent.Tags) == 0 {
