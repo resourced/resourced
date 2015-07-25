@@ -5,6 +5,7 @@ import (
 	"fmt"
 	net_url "net/url"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/Sirupsen/logrus"
@@ -23,7 +24,7 @@ func (a *Agent) setWSTrafficker() error {
 	var err error
 
 	for _, writer := range a.Configs.Writers {
-		if writer.GoStruct == "ResourcedMaster" {
+		if strings.HasPrefix(writer.GoStruct, "ResourcedMaster") {
 			urlInterface := writer.GoStructFields["Url"]
 			if urlInterface == nil {
 				return nil
