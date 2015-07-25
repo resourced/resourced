@@ -29,9 +29,17 @@ curl -X GET -H "Content-type: application/json" http://localhost:55555/r/load-av
 
 **RESOURCED_CONFIG_DIR:** Path to root config directory (Required).
 
-Its children must be: readers, writers, executors, tags, and `general.toml`.
+In there, you will see the following subdirectories or files:
 
-All default settings are defined in `general.toml`.
+* `readers/` Put all the TOML configurations for readers here.
+
+* `writers/` Put all the TOML configurations for writers here.
+
+* `executors/` Put all the TOML configurations for executors here.
+
+* `tags/` Each line in each file will be parsed as key=value tag.
+
+* `general.toml` All default settings are defined in `general.toml`.
 
 
 ## Data Gathering
