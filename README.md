@@ -12,8 +12,6 @@
 
 
 ## Running the Server
-
-ResourceD requires only 2 environment variables to run.
 ```bash
 RESOURCED_CONFIG_DIR=$GOPATH/src/github.com/resourced/resourced/tests/data/resourced-configs \
 $GOPATH/bin/resourced
@@ -27,7 +25,9 @@ curl -X GET -H "Content-type: application/json" http://localhost:55555/r/load-av
 
 ## Configuration
 
-**RESOURCED_CONFIG_DIR:** Path to root config directory (Required).
+ResourceD requires only 1 environment variable to run.
+
+**RESOURCED_CONFIG_DIR:** Path to root config directory.
 
 In there, you will see the following subdirectories or files:
 
