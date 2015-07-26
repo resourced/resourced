@@ -170,6 +170,28 @@ func (a *Agent) initGoStructWriter(config resourced_config.Config) (writers.IWri
 	return writer, err
 }
 
+// initGoStructWriter initialize ResourceD Master specific IWriter.
+func (a *Agent) initResourcedMasterWriter(config resourced_config.Config) (writers.IWriter, error) {
+	var apiPath string
+
+	if config.GoStruct == "ResourcedMasterHost" {
+		apiPath = "/api/hosts"
+	}
+
+	urlFromConfigInterface, ok := config.GoStructFields["Url"]
+	if !ok || urlFromConfigInterface == nil {
+		config.GoStructFields["Url"] = a.GeneralConfig.ResourcedMaster.Url + apiPath
+
+	} else {
+		urlFromConfig := urlFromConfigInterface.(string)
+		if !strings.HasSuffix(urlFromConfig, apiPath) {
+			config.GoStructFields["Url"] = a.GeneralConfig.ResourcedMaster.Url + apiPath
+		}
+	}
+
+	return a.initGoStructWriter(config)
+}
+
 // initGoStructExecutor initialize and return IExecutor.
 func (a *Agent) initGoStructExecutor(config resourced_config.Config) (executors.IExecutor, error) {
 	executor, err := executors.NewGoStructByConfig(config)
@@ -208,10 +230,21 @@ func (a *Agent) runGoStructReader(config resourced_config.Config) ([]byte, error
 
 // runGoStructWriter executes IWriter and returns error if exists.
 func (a *Agent) runGoStructWriter(config resourced_config.Config) ([]byte, error) {
+	var writer writers.IWriter
+	var err error
+
 	// Initialize IWriter
-	writer, err := a.initGoStructWriter(config)
-	if err != nil {
-		return nil, err
+	if strings.HasPrefix(config.GoStruct, "ResourcedMaster") {
+		writer, err = a.initResourcedMasterWriter(config)
+		if err != nil {
+			return nil, err
+		}
+
+	} else {
+		writer, err = a.initGoStructWriter(config)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	err = writer.GenerateData()
@@ -236,7 +269,6 @@ func (a *Agent) runGoStructExecutor(config resourced_config.Config) ([]byte, err
 	// Initialize IExecutor
 	executor, err := a.initGoStructExecutor(config)
 	if err != nil {
-		println("initGoStructExecutor failed: " + err.Error())
 		return nil, err
 	}
 

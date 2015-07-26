@@ -4,11 +4,5 @@ GoStruct = "ResourcedMasterHost"
 Interval = "3s"
 
 [GoStructFields]
-Url = "http://localhost:55655/api/hosts"
 Method = "POST"
 Username = "{access-token}"
-
-# Headers data structure is comma delimited string because:
-# * TOML map does not support dash as key.
-# * Slice reflection is a bit pain.
-Headers = "X-Token=abc123,X-Teapot-Count=2"
