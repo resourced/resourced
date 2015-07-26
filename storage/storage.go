@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
-	"path"
+	"strings"
 	"sync"
 )
 
@@ -40,19 +40,36 @@ func (s *Storage) ToJson() ([]byte, error) {
 	return json.Marshal(s.Data)
 }
 
-func NewResourcedMasterMetadataStorage(root string) *ResourcedMasterMetadataStorage {
+type MetadataStorages struct {
+	ResourcedMaster *ResourcedMasterMetadataStorage
+}
+
+func NewResourcedMasterMetadataStorage(root, accessToken string) *ResourcedMasterMetadataStorage {
 	s := &ResourcedMasterMetadataStorage{}
 	s.Root = root
+	s.AccessToken = accessToken
 	return s
 }
 
 type ResourcedMasterMetadataStorage struct {
-	Root string
+	Root        string
+	AccessToken string
 }
 
 func (s *ResourcedMasterMetadataStorage) Set(key string, data []byte) error {
-	req, err := http.NewRequest("POST", path.Join(s.Root, key), bytes.NewBuffer(data))
+	if strings.HasPrefix(key, "/") {
+		strings.Replace(key, "/", "", 1)
+	}
+
+	postPath = "api/metadata"
+
+	url := strings.Join([]string{s.Root, postPath, key}, "/")
+
+	req, err := http.NewRequest("POST", url, bytes.NewBuffer(data))
+
 	req.Header.Set("Content-Type", "application/json")
+
+	req.SetBasicAuth(s.AccessToken, "")
 
 	client := &http.Client{}
 	resp, err := client.Do(req)
@@ -67,7 +84,15 @@ func (s *ResourcedMasterMetadataStorage) Set(key string, data []byte) error {
 }
 
 func (s *ResourcedMasterMetadataStorage) Get(key string) ([]byte, error) {
-	resp, err := http.Get(path.Join(s.Root, key))
+	if strings.HasPrefix(key, "/") {
+		strings.Replace(key, "/", "", 1)
+	}
+
+	getPath = "api/metadata"
+
+	url := strings.Join([]string{s.Root, postPath, key}, "/")
+
+	resp, err := http.Get(url)
 	if err != nil {
 		return nil, err
 	}

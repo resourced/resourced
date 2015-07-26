@@ -48,7 +48,10 @@ func New() (*Agent, error) {
 		return nil, err
 	}
 
-	agent.setStorage()
+	err = agent.setStorages()
+	if err != nil {
+		return nil, err
+	}
 
 	return agent, err
 }
@@ -56,18 +59,15 @@ func New() (*Agent, error) {
 // Agent struct carries most of the functionality of ResourceD.
 // It collects information through readers and serve them up as HTTP+JSON.
 type Agent struct {
-	ID              string
-	Tags            map[string]string
-	Configs         *resourced_config.Configs
-	GeneralConfig   resourced_config.GeneralConfig
-	DbPath          string
-	Db              *storage.Storage
-	AllowedNetworks []*net.IPNet
-	WSTrafficker    *wstrafficker.WSTrafficker
-}
-
-func (a *Agent) setStorage() {
-	a.Db = storage.NewStorage()
+	ID               string
+	Tags             map[string]string
+	Configs          *resourced_config.Configs
+	GeneralConfig    resourced_config.GeneralConfig
+	MetadataStorages *storage.MetadataStorages
+	DbPath           string
+	Db               *storage.Storage
+	AllowedNetworks  []*net.IPNet
+	WSTrafficker     *wstrafficker.WSTrafficker
 }
 
 func (a *Agent) IsTLS() bool {

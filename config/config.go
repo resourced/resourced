@@ -119,6 +119,7 @@ type GeneralConfig struct {
 		KeyFile  string
 	}
 	ResourcedMaster struct {
-		Url string
+		Url         string
+		AccessToken string
 	}
 }

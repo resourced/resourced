@@ -11,3 +11,6 @@ KeyFile = ""
 [ResourcedMaster]
 # Url is the root endpoint to Resourced Master
 Url = "http://localhost:55655"
+
+# General purpose AccessToken, it will be used when AccessToken is not defined elsewhere.
+AccessToken = "{access-token}"
