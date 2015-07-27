@@ -2,37 +2,31 @@ package queryparser
 
 import (
 	"encoding/json"
+	"os"
 	"strings"
 
 	"github.com/jmoiron/jsonq"
 	"github.com/robertkrimen/otto"
 )
 
-func New(data map[string][]byte) *QueryParser {
+func New(data map[string][]byte, tags map[string]string) *QueryParser {
+	hostname, _ := os.Hostname()
+
 	qp := &QueryParser{}
+	qp.hostname = hostname
+	qp.tags = tags
 	qp.data = data
 	return qp
 }
 
 type QueryParser struct {
-	data map[string][]byte
+	hostname string
+	tags     map[string]string
+	data     map[string][]byte
 }
 
-func (qp *QueryParser) DataValue(datapath, jsonSelector string) (interface{}, error) {
-	dataJsonBytes := qp.data[datapath]
-	var dataJson map[string]interface{}
-
-	err := json.Unmarshal(dataJsonBytes, &dataJson)
-	if err != nil {
-		return nil, err
-	}
-
-	jq := jsonq.NewQuery(dataJson)
-
-	jsonSelectorChunks := strings.Split(jsonSelector, ".")
-	jsonSelectorChunks = append([]string{"Data"}, jsonSelectorChunks...) // Always query from "Data" sub-structure.
-
-	return jq.Interface(jsonSelectorChunks...)
+func (qp *QueryParser) SetTags(tags map[string]string) {
+	qp.tags = tags
 }
 
 func (qp *QueryParser) Parse(query string) (bool, error) {
@@ -49,6 +43,23 @@ func (qp *QueryParser) Parse(query string) (bool, error) {
 	return value.ToBoolean()
 }
 
+func (qp *QueryParser) dataValue(datapath, jsonSelector string) (interface{}, error) {
+	dataJsonBytes := qp.data[datapath]
+	var dataJson map[string]interface{}
+
+	err := json.Unmarshal(dataJsonBytes, &dataJson)
+	if err != nil {
+		return nil, err
+	}
+
+	jq := jsonq.NewQuery(dataJson)
+
+	jsonSelectorChunks := strings.Split(jsonSelector, ".")
+	jsonSelectorChunks = append([]string{"Data"}, jsonSelectorChunks...) // Always query from "Data" sub-structure.
+
+	return jq.Interface(jsonSelectorChunks...)
+}
+
 func (qp *QueryParser) replaceDataPathWithValue(query string) (string, error) {
 	queryChunks := strings.Fields(query)
 
@@ -63,7 +74,7 @@ func (qp *QueryParser) replaceDataPathWithValue(query string) (string, error) {
 			jsonSelectorChunks := dataPathAndJsonSelectorChunks[1:]
 			jsonSelector := strings.Join(jsonSelectorChunks, ".")
 
-			valueInterface, err := qp.DataValue(dataPath, jsonSelector)
+			valueInterface, err := qp.dataValue(dataPath, jsonSelector)
 			if err != nil {
 				return "", err
 			}

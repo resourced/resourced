@@ -21,7 +21,7 @@ func TestDataValue(t *testing.T) {
 
 	qp := New(data)
 
-	valueInterface, err := qp.DataValue("/r/load-avg", "LoadAvg1m")
+	valueInterface, err := qp.dataValue("/r/load-avg", "LoadAvg1m")
 	if err != nil {
 		t.Fatalf("Unable to fetch data value. Error: %v", err)
 	}

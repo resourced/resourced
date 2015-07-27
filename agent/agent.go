@@ -200,6 +200,7 @@ func (a *Agent) initGoStructExecutor(config resourced_config.Config) (executors.
 	}
 
 	executor.SetReadersDataInBytes(a.Db.Data)
+	executor.SetTags(a.Tags)
 
 	return executor, nil
 }

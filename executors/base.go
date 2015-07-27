@@ -73,6 +73,7 @@ type IExecutor interface {
 	ToJson() ([]byte, error)
 	SetQueryParser(map[string][]byte)
 	SetReadersDataInBytes(map[string][]byte)
+	SetTags(map[string]string)
 	IsConditionMet() bool
 	LowThresholdExceeded() bool
 	HighThresholdExceeded() bool
@@ -106,7 +107,7 @@ func (b *Base) SetInterval(interval string) {
 }
 
 func (b *Base) SetQueryParser(readersJsonBytes map[string][]byte) {
-	b.qp = queryparser.New(readersJsonBytes)
+	b.qp = queryparser.New(readersJsonBytes, nil)
 }
 
 // SetReadersDataInBytes pulls readers data and store them on ReadersData field.
@@ -114,6 +115,11 @@ func (b *Base) SetReadersDataInBytes(readersJsonBytes map[string][]byte) {
 	b.ReadersDataBytes = readersJsonBytes
 
 	b.SetQueryParser(readersJsonBytes)
+}
+
+// SetTags assigns all host tags to qp (QueryParser).
+func (b *Base) SetTags(tags map[string]string) {
+	b.qp.SetTags(tags)
 }
 
 func (b *Base) IsConditionMet() bool {
