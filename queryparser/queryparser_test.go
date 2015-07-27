@@ -25,6 +25,11 @@ var nameQueries = []string{
 	`name == "some-hostname"`,
 }
 
+var metadataQueries = []string{
+	`metadata.users/didip.name == "didip"`,
+	`metadata.users/didip.uid == 1000`,
+}
+
 func queryparserForTest(t *testing.T) *QueryParser {
 	data := make(map[string][]byte)
 	data["/r/load-avg"] = []byte(`{"Data": {"LoadAvg1m": 0.904296875}}`)
@@ -33,7 +38,13 @@ func queryparserForTest(t *testing.T) *QueryParser {
 	tags["role"] = "appserver"
 	tags["environment"] = "staging"
 
-	return New(data, tags)
+	metadata := make(map[string][]byte)
+	metadata["users/didip"] = []byte(`{"Key": "users/didip", "Data": {"name": "didip", "uid": 1000}}`)
+
+	qp := New(data, tags)
+	qp.SetMetadata(metadata)
+
+	return qp
 }
 
 func TestDataValue(t *testing.T) {
@@ -89,6 +100,18 @@ func TestReplaceHostnameWithValue(t *testing.T) {
 	}
 }
 
+func TestReplaceMetadataWithValue(t *testing.T) {
+	qp := queryparserForTest(t)
+
+	query, err := qp.replaceMetadataWithValue(metadataQueries[0])
+	if err != nil {
+		t.Fatalf("Failed to replace metadata with value. Error: %v", err)
+	}
+	if strings.Contains(query, "metadata.users/didip.name") {
+		t.Fatalf("Failed to replace metadata with value. Query: %v", query)
+	}
+}
+
 func TestParseQueries(t *testing.T) {
 	qp := queryparserForTest(t)
 
@@ -139,6 +162,21 @@ func TestParseHostnameQueries(t *testing.T) {
 			if result != false {
 				t.Fatalf("Failed to parse tag query correctly. Result: %v", result)
 			}
+		}
+	}
+}
+
+func TestParseMetadataQueries(t *testing.T) {
+	qp := queryparserForTest(t)
+
+	for _, query := range metadataQueries {
+		result, err := qp.Parse(query)
+		if err != nil {
+			t.Fatalf("Failed to parse metadata query. Error: %v", err)
+		}
+
+		if result != true {
+			t.Errorf("Failed to parse metadata query correctly. Result: %v, query: %v", result, query)
 		}
 	}
 }

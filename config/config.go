@@ -83,7 +83,7 @@ type Config struct {
 	// Executor specific fields
 	LowThreshold  int64
 	HighThreshold int64
-	Conditions    []interface{}
+	Conditions    string
 }
 
 // Configs stores all readers and writers configuration.

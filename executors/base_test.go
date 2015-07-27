@@ -96,7 +96,7 @@ func TestRunAndCheckConditionsMet(t *testing.T) {
 	ResetConditionsMetByPath()
 
 	config := newConfigExecutorForTest(t)
-	config.GoStructFields["Conditions"] = `["<", {"/r/load-avg": "LoadAvg1m"}, 100]`
+	config.GoStructFields["Conditions"] = `/r/load-avg.LoadAvg1m < 100`
 	config.GoStructFields["LowThreshold"] = 1
 	config.GoStructFields["HighThreshold"] = 2
 

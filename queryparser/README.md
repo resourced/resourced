@@ -27,5 +27,5 @@ name == "didip-mac-mini.local"
 
 ### Metadata:
 ```
-metadata./path/to/data.JSONParent.JSONChild > 10
+metadata.path/to/data.JSONParent.JSONChild > 10
 ```
