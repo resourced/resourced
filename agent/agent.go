@@ -202,18 +202,6 @@ func (a *Agent) initGoStructExecutor(config resourced_config.Config) (executors.
 	executor.SetReadersDataInBytes(a.Db.Data)
 	executor.SetTags(a.Tags)
 
-	// Fetch metadata values for executor conditions
-	metadata := make(map[string][]byte)
-
-	for _, key := range executor.GetMetadataKeys(config.Conditions) {
-		data, err := a.MetadataStorages.ResourcedMaster.Get(key)
-		if err != nil {
-			return nil, err
-		}
-		metadata[key] = data
-	}
-	executor.SetMetadata(metadata)
-
 	return executor, nil
 }
 

@@ -74,8 +74,6 @@ type IExecutor interface {
 	SetQueryParser(map[string][]byte)
 	SetReadersDataInBytes(map[string][]byte)
 	SetTags(map[string]string)
-	GetMetadataKeys(string) []string
-	SetMetadata(map[string][]byte)
 	IsConditionMet() bool
 	LowThresholdExceeded() bool
 	HighThresholdExceeded() bool
@@ -122,14 +120,6 @@ func (b *Base) SetReadersDataInBytes(readersJsonBytes map[string][]byte) {
 // SetTags assigns all host tags to qp (QueryParser).
 func (b *Base) SetTags(tags map[string]string) {
 	b.qp.SetTags(tags)
-}
-
-func (b *Base) GetMetadataKeys(query string) []string {
-	return b.qp.GetMetadataKeys(query)
-}
-
-func (b *Base) SetMetadata(metadata map[string][]byte) {
-	b.qp.SetMetadata(metadata)
 }
 
 func (b *Base) IsConditionMet() bool {

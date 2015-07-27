@@ -47,95 +47,12 @@ func (qp *QueryParser) Parse(query string) (bool, error) {
 		return false, err
 	}
 
-	query, err = qp.replaceMetadataWithValue(query)
-	if err != nil {
-		return false, err
-	}
-
 	value, err := otto.New().Run(query)
 	if err != nil {
 		return false, err
 	}
 
 	return value.ToBoolean()
-}
-
-func (qp *QueryParser) GetMetadataKeys(query string) []string {
-	keys := make([]string, 0)
-
-	queryChunks := strings.Fields(query)
-
-	for _, chunk := range queryChunks {
-		if strings.Contains(chunk, "metadata.") {
-			chunk = strings.Replace(chunk, "(", "", -1)
-
-			prefixKeyAndJsonSelectorChunks := strings.Split(chunk, ".")
-
-			key := prefixKeyAndJsonSelectorChunks[1]
-			keys = append(keys, key)
-		}
-	}
-
-	return keys
-}
-
-func (qp *QueryParser) SetMetadata(metadata map[string][]byte) {
-	qp.metadata = metadata
-}
-
-func (qp *QueryParser) metadataValue(key, jsonSelector string) (interface{}, error) {
-	dataJsonBytes := qp.metadata[key]
-	var dataJson map[string]interface{}
-
-	err := json.Unmarshal(dataJsonBytes, &dataJson)
-	if err != nil {
-		return nil, err
-	}
-
-	jq := jsonq.NewQuery(dataJson)
-
-	jsonSelectorChunks := strings.Split(jsonSelector, ".")
-	jsonSelectorChunks = append([]string{"Data"}, jsonSelectorChunks...) // Always query from "Data" sub-structure.
-
-	return jq.Interface(jsonSelectorChunks...)
-}
-
-func (qp *QueryParser) replaceMetadataWithValue(query string) (string, error) {
-	queryChunks := strings.Fields(query)
-
-	for i, chunk := range queryChunks {
-		if strings.Contains(chunk, "metadata.") {
-			openParensCount := strings.Count(chunk, "(")
-			chunk = strings.Replace(chunk, "(", "", -1)
-
-			prefixKeyAndJsonSelectorChunks := strings.Split(chunk, ".")
-
-			key := prefixKeyAndJsonSelectorChunks[1]
-			jsonSelectorChunks := prefixKeyAndJsonSelectorChunks[2:]
-			jsonSelector := strings.Join(jsonSelectorChunks, ".")
-
-			valueInterface, err := qp.metadataValue(key, jsonSelector)
-			if err != nil {
-				return "", err
-			}
-
-			valueBytes, err := json.Marshal(valueInterface)
-			if err != nil {
-				return "", err
-			}
-
-			println(string(valueBytes))
-
-			if openParensCount == 0 {
-				queryChunks[i] = string(valueBytes)
-
-			} else {
-				queryChunks[i] = strings.Repeat("(", openParensCount) + string(valueBytes)
-			}
-		}
-	}
-
-	return strings.Join(queryChunks, " "), nil
 }
 
 func (qp *QueryParser) replaceHostnameWithValue(query string) (string, error) {
