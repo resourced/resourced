@@ -12,3 +12,19 @@ Package `queryparser` parses the `Conditions = xyz` query.
 # 3. Numerical operator: typical
 # 4. String operator: ==, !=
 ```
+
+### Tags:
+```
+tags.mysql = "5.6.24"
+tags.redis != "2.0.1"
+```
+
+### Name:
+```
+name = "didip-mac-mini.local"
+```
+
+### Metadata:
+```
+metadata./path/to/data.JSONParent.JSONChild > 10
+```
