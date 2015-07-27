@@ -2,6 +2,7 @@ package queryparser
 
 import (
 	"encoding/json"
+	"fmt"
 	"os"
 	"strings"
 
@@ -35,12 +36,66 @@ func (qp *QueryParser) Parse(query string) (bool, error) {
 		return false, err
 	}
 
+	query, err = qp.replaceTagsWithValue(query)
+	if err != nil {
+		return false, err
+	}
+
+	query, err = qp.replaceHostnameWithValue(query)
+	if err != nil {
+		return false, err
+	}
+
 	value, err := otto.New().Run(query)
 	if err != nil {
 		return false, err
 	}
 
 	return value.ToBoolean()
+}
+
+func (qp *QueryParser) replaceHostnameWithValue(query string) (string, error) {
+	queryChunks := strings.Fields(query)
+
+	for i, chunk := range queryChunks {
+		if strings.HasSuffix(chunk, "name") {
+			openParensCount := strings.Count(chunk, "(")
+
+			if openParensCount == 0 {
+				queryChunks[i] = fmt.Sprintf(`"%v"`, qp.hostname)
+
+			} else {
+				queryChunks[i] = strings.Repeat("(", openParensCount) + fmt.Sprintf(`"%v"`, qp.hostname)
+			}
+		}
+	}
+
+	return strings.Join(queryChunks, " "), nil
+}
+
+func (qp *QueryParser) replaceTagsWithValue(query string) (string, error) {
+	queryChunks := strings.Fields(query)
+
+	for i, chunk := range queryChunks {
+		if strings.Contains(chunk, "tags.") {
+			openParensCount := strings.Count(chunk, "(")
+			chunk = strings.Replace(chunk, "(", "", -1)
+
+			prefixAndTagChunk := strings.Split(chunk, ".")
+
+			tag := prefixAndTagChunk[1]
+			value := qp.tags[tag]
+
+			if openParensCount == 0 {
+				queryChunks[i] = fmt.Sprintf(`"%v"`, value)
+
+			} else {
+				queryChunks[i] = strings.Repeat("(", openParensCount) + fmt.Sprintf(`"%v"`, value)
+			}
+		}
+	}
+
+	return strings.Join(queryChunks, " "), nil
 }
 
 func (qp *QueryParser) dataValue(datapath, jsonSelector string) (interface{}, error) {
@@ -90,7 +145,6 @@ func (qp *QueryParser) replaceDataPathWithValue(query string) (string, error) {
 			} else {
 				queryChunks[i] = strings.Repeat("(", openParensCount) + string(valueBytes)
 			}
-
 		}
 	}
 

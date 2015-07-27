@@ -15,11 +15,29 @@ var queries = []string{
 	`/r/load-avg.LoadAvg1m > 5 && (true) || false`,
 }
 
-func TestDataValue(t *testing.T) {
+var tagQueries = []string{
+	`tags.role == "appserver" && tags.environment == "prod"`,
+	`tags.role == "appserver" && tags.environment == "staging"`,
+	`(tags.role == "appserver" && tags.environment == "staging")`,
+}
+
+var nameQueries = []string{
+	`name == "some-hostname"`,
+}
+
+func queryparserForTest(t *testing.T) *QueryParser {
 	data := make(map[string][]byte)
 	data["/r/load-avg"] = []byte(`{"Data": {"LoadAvg1m": 0.904296875}}`)
 
-	qp := New(data)
+	tags := make(map[string]string)
+	tags["role"] = "appserver"
+	tags["environment"] = "staging"
+
+	return New(data, tags)
+}
+
+func TestDataValue(t *testing.T) {
+	qp := queryparserForTest(t)
 
 	valueInterface, err := qp.dataValue("/r/load-avg", "LoadAvg1m")
 	if err != nil {
@@ -34,10 +52,7 @@ func TestDataValue(t *testing.T) {
 }
 
 func TestReplaceDataPathWithValue(t *testing.T) {
-	data := make(map[string][]byte)
-	data["/r/load-avg"] = []byte(`{"Data": {"LoadAvg1m": 0.904296875}}`)
-
-	qp := New(data)
+	qp := queryparserForTest(t)
 
 	query, err := qp.replaceDataPathWithValue(queries[0])
 	if err != nil {
@@ -47,14 +62,35 @@ func TestReplaceDataPathWithValue(t *testing.T) {
 	if strings.Contains(query, "/r/") {
 		t.Fatalf("Failed to replace data path with value. Query: %v", query)
 	}
-
 }
 
-func TestParse(t *testing.T) {
-	data := make(map[string][]byte)
-	data["/r/load-avg"] = []byte(`{"Data": {"LoadAvg1m": 0.904296875}}`)
+func TestReplaceTagsWithValue(t *testing.T) {
+	qp := queryparserForTest(t)
 
-	qp := New(data)
+	query, err := qp.replaceTagsWithValue(tagQueries[0])
+	if err != nil {
+		t.Fatalf("Failed to replace tags with value. Error: %v", err)
+	}
+
+	if strings.Contains(query, "tags.") {
+		t.Fatalf("Failed to replace tags with value. Query: %v", query)
+	}
+}
+
+func TestReplaceHostnameWithValue(t *testing.T) {
+	qp := queryparserForTest(t)
+
+	query, err := qp.replaceHostnameWithValue(nameQueries[0])
+	if err != nil {
+		t.Fatalf("Failed to replace tags with value. Error: %v", err)
+	}
+	if strings.Contains(query, "name ==") {
+		t.Fatalf("Failed to replace tags with value. Query: %v", query)
+	}
+}
+
+func TestParseQueries(t *testing.T) {
+	qp := queryparserForTest(t)
 
 	for _, query := range queries {
 		result, err := qp.Parse(query)
@@ -64,6 +100,45 @@ func TestParse(t *testing.T) {
 
 		if result != false {
 			t.Fatalf("Failed to parse query correctly. Result: %v", result)
+		}
+	}
+}
+
+func TestParseTagQueries(t *testing.T) {
+	qp := queryparserForTest(t)
+
+	for i, query := range tagQueries {
+		result, err := qp.Parse(query)
+		if err != nil {
+			t.Fatalf("Failed to parse tag query. Error: %v", err)
+		}
+
+		if i == 0 {
+			if result != false {
+				t.Fatalf("Failed to parse tag query correctly. Result: %v", result)
+			}
+
+		} else {
+			if result != true {
+				t.Fatalf("Failed to parse tag query correctly. Result: %v", result)
+			}
+		}
+	}
+}
+
+func TestParseHostnameQueries(t *testing.T) {
+	qp := queryparserForTest(t)
+
+	for i, query := range nameQueries {
+		result, err := qp.Parse(query)
+		if err != nil {
+			t.Fatalf("Failed to parse tag query. Error: %v", err)
+		}
+
+		if i == 0 {
+			if result != false {
+				t.Fatalf("Failed to parse tag query correctly. Result: %v", result)
+			}
 		}
 	}
 }

@@ -15,13 +15,14 @@ Package `queryparser` parses the `Conditions = xyz` query.
 
 ### Tags:
 ```
-tags.mysql = "5.6.24"
-tags.redis != "2.0.1"
+tags.role == "appserver"
+tags.environment != "prod"
 ```
 
 ### Name:
 ```
-name = "didip-mac-mini.local"
+# Hostname matcher
+name == "didip-mac-mini.local"
 ```
 
 ### Metadata:
