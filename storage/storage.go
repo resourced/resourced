@@ -61,7 +61,7 @@ func (s *ResourcedMasterMetadataStorage) Set(key string, data []byte) error {
 		strings.Replace(key, "/", "", 1)
 	}
 
-	postPath = "api/metadata"
+	postPath := "api/metadata"
 
 	url := strings.Join([]string{s.Root, postPath, key}, "/")
 
@@ -88,11 +88,18 @@ func (s *ResourcedMasterMetadataStorage) Get(key string) ([]byte, error) {
 		strings.Replace(key, "/", "", 1)
 	}
 
-	getPath = "api/metadata"
+	getPath := "api/metadata"
 
-	url := strings.Join([]string{s.Root, postPath, key}, "/")
+	url := strings.Join([]string{s.Root, getPath, key}, "/")
 
-	resp, err := http.Get(url)
+	req, err := http.NewRequest("GET", url, nil)
+
+	req.Header.Set("Content-Type", "application/json")
+
+	req.SetBasicAuth(s.AccessToken, "")
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
 	if err != nil {
 		return nil, err
 	}
