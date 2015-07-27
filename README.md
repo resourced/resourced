@@ -44,13 +44,13 @@ In there, you will see the following subdirectories or files:
 
 ## Data Gathering
 
-ResourceD readers gather data on your server. The easiest way to create a reader is to use a scripting language.
+ResourceD `readers` gather data on your server. The easiest way to create a reader is to use a scripting language.
 
 1. Write the script following this one requirement: **Output the JSON data through STDOUT**
 
-2. Write config file. [Click here for examples](https://github.com/resourced/resourced/tree/master/tests/data/config-reader).
+2. Write config file. [Click here for examples](https://github.com/resourced/resourced/tree/master/tests/data/resourced-configs/readers).
 
-For more info, [follow this link](https://github.com/resourced/resourced/tree/master/docs/users/DATA-GATHERER.md).
+For more info, [follow this link](https://github.com/resourced/resourced/tree/master/docs/users/READERS.md).
 
 
 ### RESTful Endpoints
