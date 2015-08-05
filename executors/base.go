@@ -78,8 +78,6 @@ type IExecutor interface {
 	LowThresholdExceeded() bool
 	HighThresholdExceeded() bool
 	ConditionMetCount() int
-	OnLowThresholdExceeded() error
-	OnHighThresholdExceeded() error
 }
 
 type Base struct {
@@ -167,12 +165,4 @@ func (b *Base) HighThresholdExceeded() bool {
 		return false
 	}
 	return ConditionMetByPathCounter[b.Path] > b.HighThreshold
-}
-
-func (b *Base) OnLowThresholdExceeded() error {
-	return nil
-}
-
-func (b *Base) OnHighThresholdExceeded() error {
-	return nil
 }
