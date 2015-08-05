@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-func TestSimpleRun(t *testing.T) {
+func TestShellRun(t *testing.T) {
 	ResetConditionsMetByPath()
 
 	config := newConfigExecutorForTest(t)

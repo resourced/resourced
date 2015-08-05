@@ -30,6 +30,7 @@ func (s *Shell) Run() error {
 		s.Data["Conditions"] = s.Conditions
 
 		if err != nil {
+			s.Data["Error"] = err.Error()
 			s.Data["ExitStatus"] = 1
 		} else {
 			s.Data["ExitStatus"] = 0
