@@ -8,7 +8,7 @@ import (
 func (a *Agent) setStorages() error {
 	a.MetadataStorages = &storage.MetadataStorages{}
 
-	a.MetadataStorages.ResourcedMaster = storage.NewResourcedMasterMetadataStorage(a.GeneralConfig.ResourcedMaster.Url, a.GeneralConfig.ResourcedMaster.AccessToken)
+	a.MetadataStorages.ResourcedMaster = storage.NewResourcedMasterMetadataStorage(a.GeneralConfig.ResourcedMaster.URL, a.GeneralConfig.ResourcedMaster.AccessToken)
 
 	a.Db = storage.NewStorage()
 

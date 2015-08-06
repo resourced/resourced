@@ -10,7 +10,26 @@ KeyFile = ""
 
 [ResourcedMaster]
 # Url is the root endpoint to Resourced Master
-Url = "http://localhost:55655"
+URL = "http://localhost:55655"
 
 # General purpose AccessToken, it will be used when AccessToken is not defined elsewhere.
 AccessToken = "{access-token}"
+
+[ResourcedStacks]
+# Root is the root path of resourced-stacks
+Root = "./resourced-stacks"
+
+PythonPath = "/usr/bin/python"
+
+PipPath = "/usr/local/bin/pip"
+
+# Conditions to match before running stacks/logic.
+Conditions = "true"
+
+DryRun = true
+
+[ResourcedStacks.Git]
+# The URL to Git repo
+HTTPS = ""
+
+Branch = "master"

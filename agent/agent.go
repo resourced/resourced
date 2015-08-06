@@ -180,12 +180,12 @@ func (a *Agent) initResourcedMasterWriter(config resourced_config.Config) (write
 
 	urlFromConfigInterface, ok := config.GoStructFields["Url"]
 	if !ok || urlFromConfigInterface == nil {
-		config.GoStructFields["Url"] = a.GeneralConfig.ResourcedMaster.Url + apiPath
+		config.GoStructFields["Url"] = a.GeneralConfig.ResourcedMaster.URL + apiPath
 
 	} else {
 		urlFromConfig := urlFromConfigInterface.(string)
 		if !strings.HasSuffix(urlFromConfig, apiPath) {
-			config.GoStructFields["Url"] = a.GeneralConfig.ResourcedMaster.Url + apiPath
+			config.GoStructFields["Url"] = a.GeneralConfig.ResourcedMaster.URL + apiPath
 		}
 	}
 
