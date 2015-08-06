@@ -170,7 +170,7 @@ func (a *Agent) initGoStructWriter(config resourced_config.Config) (writers.IWri
 	return writer, err
 }
 
-// initGoStructWriter initialize ResourceD Master specific IWriter.
+// initResourcedMasterWriter initialize ResourceD Master specific IWriter.
 func (a *Agent) initResourcedMasterWriter(config resourced_config.Config) (writers.IWriter, error) {
 	var apiPath string
 
@@ -203,6 +203,46 @@ func (a *Agent) initGoStructExecutor(config resourced_config.Config) (executors.
 	executor.SetTags(a.Tags)
 
 	return executor, nil
+}
+
+// initResourcedStacksExecutor initialize ResourceD Stacks specific IExecutor.
+func (a *Agent) initResourcedStacksExecutor(config resourced_config.Config) (executors.IExecutor, error) {
+	_, ok := config.GoStructFields["Root"]
+	if !ok {
+		config.GoStructFields["Root"] = a.GeneralConfig.ResourcedStacks.Root
+	}
+
+	_, ok = config.GoStructFields["PythonPath"]
+	if !ok {
+		config.GoStructFields["PythonPath"] = a.GeneralConfig.ResourcedStacks.PythonPath
+	}
+
+	_, ok = config.GoStructFields["PipPath"]
+	if !ok {
+		config.GoStructFields["PipPath"] = a.GeneralConfig.ResourcedStacks.PipPath
+	}
+
+	_, ok = config.GoStructFields["Conditions"]
+	if !ok {
+		config.GoStructFields["Conditions"] = a.GeneralConfig.ResourcedStacks.Conditions
+	}
+
+	_, ok = config.GoStructFields["DryRun"]
+	if !ok {
+		config.GoStructFields["DryRun"] = a.GeneralConfig.ResourcedStacks.DryRun
+	}
+
+	_, ok = config.GoStructFields["GitRepo"]
+	if !ok {
+		config.GoStructFields["GitRepo"] = a.GeneralConfig.ResourcedStacks.Git.HTTPS
+	}
+
+	_, ok = config.GoStructFields["GitBranch"]
+	if !ok {
+		config.GoStructFields["GitBranch"] = a.GeneralConfig.ResourcedStacks.Git.Branch
+	}
+
+	return a.initGoStructExecutor(config)
 }
 
 // runGoStruct executes IReader/IWriter and returns the output.
@@ -267,10 +307,21 @@ func (a *Agent) runGoStructWriter(config resourced_config.Config) ([]byte, error
 
 // runGoStructExecutor executes IExecutor and returns the output.
 func (a *Agent) runGoStructExecutor(config resourced_config.Config) ([]byte, error) {
+	var executor executors.IExecutor
+	var err error
+
 	// Initialize IExecutor
-	executor, err := a.initGoStructExecutor(config)
-	if err != nil {
-		return nil, err
+	if strings.HasPrefix(config.GoStruct, "ResourcedStacks") {
+		executor, err = a.initResourcedStacksExecutor(config)
+		if err != nil {
+			return nil, err
+		}
+
+	} else {
+		executor, err = a.initGoStructExecutor(config)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return a.runGoStruct(executor)
