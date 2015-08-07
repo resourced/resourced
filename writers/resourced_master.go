@@ -1,6 +1,8 @@
 package writers
 
 import (
+	"encoding/json"
+	"errors"
 	"net/http"
 
 	"github.com/Sirupsen/logrus"
@@ -32,14 +34,26 @@ type ResourcedMasterStacks struct {
 	Root string
 }
 
+// stacksData gathers complete list of ResourceD Stacks metadata.
+func (rm *ResourcedMasterStacks) stacksData() map[string]interface{} {
+	data := make(map[string]interface{})
+	return data
+}
+
 // Run executes the writer.
 func (rm *ResourcedMasterStacks) Run() error {
+	if rm.Root == "" {
+		return errors.New("ResourceD Stacks root should not be empty")
+	}
+
 	callback := func() {
 		if rm.Data == nil {
 			return
 		}
 
-		dataJson, err := rm.ToJson()
+		data := rm.stacksData()
+
+		dataJson, err := json.Marshal(data)
 		if err != nil {
 			return
 		}
