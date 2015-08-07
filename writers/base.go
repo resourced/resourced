@@ -5,10 +5,13 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"reflect"
+
+	"github.com/Sirupsen/logrus"
+	"github.com/go-fsnotify/fsnotify"
 	resourced_config "github.com/resourced/resourced/config"
 	"github.com/resourced/resourced/libprocess"
 	"github.com/resourced/resourced/libstring"
-	"reflect"
 )
 
 var writerConstructors = make(map[string]func() IWriter)
@@ -58,6 +61,7 @@ func NewGoStructByConfig(config resourced_config.Config) (IWriter, error) {
 
 // IWriter is general interface for writer.
 type IWriter interface {
+	WatchDir(string, func()) error
 	Run() error
 	SetReadersDataInBytes(map[string][]byte)
 	SetReadersData(map[string]interface{})
@@ -73,6 +77,43 @@ type Base struct {
 	ReadersData   map[string]interface{}
 	Data          interface{}
 	JsonProcessor string
+}
+
+// WatchDir watches a directory and execute callback on any changes.
+func (b *Base) WatchDir(path string, callback func()) error {
+	watcher, err := fsnotify.NewWatcher()
+	if err != nil {
+		return err
+	}
+	defer watcher.Close()
+
+	err = watcher.Add(path)
+	if err != nil {
+		return err
+	}
+
+	for {
+		select {
+		case event := <-watcher.Events:
+			if (event.Op&fsnotify.Create == fsnotify.Create) || (event.Op&fsnotify.Remove == fsnotify.Remove) || (event.Op&fsnotify.Write == fsnotify.Write) || (event.Op&fsnotify.Rename == fsnotify.Rename) {
+
+				logrus.WithFields(logrus.Fields{
+					"Path":  path,
+					"Event": event.String(),
+				}).Info("Changes happened, executing callback")
+
+				callback()
+			}
+		case err := <-watcher.Errors:
+			if err != nil {
+				logrus.WithFields(logrus.Fields{
+					"Error": err.Error(),
+					"Path":  path,
+				}).Error("Error while watching path")
+			}
+		}
+	}
+	return nil
 }
 
 // Run executes the writer.

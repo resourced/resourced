@@ -176,6 +176,8 @@ func (a *Agent) initResourcedMasterWriter(config resourced_config.Config) (write
 
 	if config.GoStruct == "ResourcedMasterHost" {
 		apiPath = "/api/hosts"
+	} else if config.GoStruct == "ResourcedMasterStacks" {
+		apiPath = "/api/stacks"
 	}
 
 	urlFromConfigInterface, ok := config.GoStructFields["Url"]
@@ -245,17 +247,17 @@ func (a *Agent) initResourcedStacksExecutor(config resourced_config.Config) (exe
 	return a.initGoStructExecutor(config)
 }
 
-// runGoStruct executes IReader/IWriter and returns the output.
-// Note that IWriter also implements IReader
-func (a *Agent) runGoStruct(readerOrWriter readers.IReader) ([]byte, error) {
-	err := readerOrWriter.Run()
+// runGoStruct executes Run() fom IReader/IWriter/IExecutor and returns the output.
+// Note that IWriter and IExecutor also implement IReader.
+func (a *Agent) runGoStruct(readerOrWriterOrExecutor readers.IReader) ([]byte, error) {
+	err := readerOrWriterOrExecutor.Run()
 	if err != nil {
 		errData := make(map[string]string)
 		errData["Error"] = err.Error()
 		return json.Marshal(errData)
 	}
 
-	return readerOrWriter.ToJson()
+	return readerOrWriterOrExecutor.ToJson()
 }
 
 // runGoStructReader executes IReader and returns the output.
