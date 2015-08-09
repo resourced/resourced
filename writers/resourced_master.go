@@ -84,6 +84,18 @@ func (rm *ResourcedMasterStacks) stacksData() map[string]interface{} {
 	return data
 }
 
+func (rm *ResourcedMasterStacks) GetCurrentSHA() string {
+	output, err := exec.Command("git", "rev-parse", "HEAD").CombinedOutput()
+	if err != nil {
+		logrus.WithFields(logrus.Fields{
+			"error": err.Error(),
+		}).Fatal(string(output))
+
+		return ""
+	}
+	return strings.TrimSpace(string(output))
+}
+
 // Run executes the writer.
 func (rm *ResourcedMasterStacks) Run() error {
 	if rm.Root == "" {
@@ -91,15 +103,15 @@ func (rm *ResourcedMasterStacks) Run() error {
 	}
 
 	callback := func() error {
+		rm.CurrentSHA = rm.GetCurrentSHA()
+
 		data := rm.stacksData()
+		data["CurrentSHA"] = rm.CurrentSHA
 
 		dataJson, err := json.Marshal(data)
 		if err != nil {
 			return err
 		}
-
-		println("data:")
-		println(string(dataJson))
 
 		req, err := rm.NewHttpRequest(dataJson)
 		if err != nil {
@@ -123,19 +135,7 @@ func (rm *ResourcedMasterStacks) Run() error {
 			resp.Body.Close()
 		}
 
-		// Preserve the current Git SHA
-		output, err := exec.Command("git", "rev-parse", "HEAD").CombinedOutput()
-		if err != nil {
-			logrus.WithFields(logrus.Fields{
-				"error": err.Error(),
-			}).Fatal(string(output))
-
-			return err
-		}
-		rm.CurrentSHA = strings.TrimSpace(string(output))
-
 		// Set rm.Data
-		data["CurrentSHA"] = rm.CurrentSHA
 		rm.Data = data
 
 		return nil
