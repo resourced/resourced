@@ -3,6 +3,8 @@
 
 **ResourceD:** A single binary daemon that collects and report your server data with ease.
 
+**NOTE: This documentation refers to master branch. For stable release, checkout the [main website](http://resourced.io/).**
+
 
 ## Installation
 
