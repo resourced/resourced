@@ -3,8 +3,14 @@ package writers
 import (
 	"encoding/json"
 	"errors"
+	"io/ioutil"
 	"net/http"
+	"os"
+	"os/exec"
+	"path"
+	"strings"
 
+	"github.com/BurntSushi/toml"
 	"github.com/Sirupsen/logrus"
 )
 
@@ -28,15 +34,53 @@ func NewResourcedMasterStacks() IWriter {
 	return &ResourcedMasterStacks{}
 }
 
+type Stack struct {
+	Steps []string `toml:"steps"`
+}
+
 // ResourcedMasterStacks is a writer that serialize readers data to ResourcedMasterStacks.
 type ResourcedMasterStacks struct {
 	Http
-	Root string
+	Root       string
+	CurrentSHA string
 }
 
 // stacksData gathers complete list of ResourceD Stacks metadata.
 func (rm *ResourcedMasterStacks) stacksData() map[string]interface{} {
 	data := make(map[string]interface{})
+	logicList := make([]string, 0)
+	stackList := make([]Stack, 0)
+
+	if _, err := os.Stat(path.Join(rm.Root, "logic")); err == nil {
+		logic, err := ioutil.ReadDir(path.Join(rm.Root, "logic"))
+		if err == nil {
+			for _, lgc := range logic {
+				logicList = append(logicList, lgc.Name())
+			}
+		}
+	}
+
+	if _, err := os.Stat(path.Join(rm.Root, "stacks")); err == nil {
+		stacks, err := ioutil.ReadDir(path.Join(rm.Root, "stacks"))
+		if err == nil {
+			for _, stackName := range stacks {
+				var stk Stack
+
+				stackPath := path.Join(rm.Root, "stacks", stackName.Name(), stackName.Name()+".toml")
+				if _, err := toml.DecodeFile(stackPath, &stk); err != nil {
+					logrus.WithFields(logrus.Fields{
+						"error": err.Error(),
+					}).Errorf("Unable to decode %v", stackPath)
+				}
+
+				stackList = append(stackList, stk)
+			}
+		}
+	}
+
+	data["logic"] = logicList
+	data["stacks"] = stackList
+
 	return data
 }
 
@@ -46,21 +90,20 @@ func (rm *ResourcedMasterStacks) Run() error {
 		return errors.New("ResourceD Stacks root should not be empty")
 	}
 
-	callback := func() {
-		if rm.Data == nil {
-			return
-		}
-
+	callback := func() error {
 		data := rm.stacksData()
 
 		dataJson, err := json.Marshal(data)
 		if err != nil {
-			return
+			return err
 		}
+
+		println("data:")
+		println(string(dataJson))
 
 		req, err := rm.NewHttpRequest(dataJson)
 		if err != nil {
-			return
+			return err
 		}
 
 		client := &http.Client{}
@@ -73,12 +116,34 @@ func (rm *ResourcedMasterStacks) Run() error {
 				"req.Method": req.Method,
 			}).Error("Failed to send HTTP request")
 
-			return
+			return err
 		}
 
 		if resp.Body != nil {
 			resp.Body.Close()
 		}
+
+		// Preserve the current Git SHA
+		output, err := exec.Command("git", "rev-parse", "HEAD").CombinedOutput()
+		if err != nil {
+			logrus.WithFields(logrus.Fields{
+				"error": err.Error(),
+			}).Fatal(string(output))
+
+			return err
+		}
+		rm.CurrentSHA = strings.TrimSpace(string(output))
+
+		// Set rm.Data
+		data["CurrentSHA"] = rm.CurrentSHA
+		rm.Data = data
+
+		return nil
 	}
+
+	if rm.CurrentSHA == "" {
+		return callback()
+	}
+
 	return rm.WatchDir(rm.Root, callback)
 }

@@ -5,3 +5,4 @@ Interval = "1m"
 [GoStructFields]
 Method = "POST"
 Username = "{access-token}"
+Root = "/path/to/resourced-stacks/project"

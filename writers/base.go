@@ -61,7 +61,7 @@ func NewGoStructByConfig(config resourced_config.Config) (IWriter, error) {
 
 // IWriter is general interface for writer.
 type IWriter interface {
-	WatchDir(string, func()) error
+	WatchDir(string, func() error) error
 	Run() error
 	SetReadersDataInBytes(map[string][]byte)
 	SetReadersData(map[string]interface{})
@@ -80,7 +80,7 @@ type Base struct {
 }
 
 // WatchDir watches a directory and execute callback on any changes.
-func (b *Base) WatchDir(path string, callback func()) error {
+func (b *Base) WatchDir(path string, callback func() error) error {
 	watcher, err := fsnotify.NewWatcher()
 	if err != nil {
 		return err
