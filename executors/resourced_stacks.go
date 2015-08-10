@@ -5,7 +5,6 @@ import (
 	"os"
 
 	resourced_stacks_engine "github.com/resourced/resourced-stacks/engine"
-	resourced_config "github.com/resourced/resourced/config"
 )
 
 func init() {
@@ -21,13 +20,12 @@ func NewResourcedStacks() IExecutor {
 
 type ResourcedStacks struct {
 	Base
-	Name         string
-	Root         string
-	GitRepo      string
-	GitBranch    string
-	DryRun       bool
-	AgentConfigs *resourced_config.Configs
-	Data         map[string]interface{}
+	Name      string
+	Root      string
+	GitRepo   string
+	GitBranch string
+	DryRun    bool
+	Data      map[string]interface{}
 }
 
 func (s *ResourcedStacks) onError(err error) error {

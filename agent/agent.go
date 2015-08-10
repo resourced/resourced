@@ -244,8 +244,6 @@ func (a *Agent) initResourcedStacksExecutor(config resourced_config.Config) (exe
 		config.GoStructFields["GitBranch"] = a.GeneralConfig.ResourcedStacks.Git.Branch
 	}
 
-	config.GoStructFields["AgentConfigs"] = a.Configs
-
 	return a.initGoStructExecutor(config)
 }
 
