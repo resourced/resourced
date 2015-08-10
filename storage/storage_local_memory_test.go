@@ -4,7 +4,7 @@ import (
 	"testing"
 )
 
-func TestCrud(t *testing.T) {
+func TestStorageCrud(t *testing.T) {
 	testData := `{"Free": 1000, "Used": 500}`
 
 	s := NewStorage()

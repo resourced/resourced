@@ -8,6 +8,7 @@ import (
 
 	resourced_config "github.com/resourced/resourced/config"
 	"github.com/resourced/resourced/queryparser"
+	resourced_storage "github.com/resourced/resourced/storage"
 )
 
 var executorConstructors = make(map[string]func() IExecutor)
@@ -74,6 +75,7 @@ type IExecutor interface {
 	SetQueryParser(map[string][]byte)
 	SetReadersDataInBytes(map[string][]byte)
 	SetTags(map[string]string)
+	SetMetadataStorages(*resourced_storage.MetadataStorages)
 	IsConditionMet() bool
 	LowThresholdExceeded() bool
 	HighThresholdExceeded() bool
@@ -89,6 +91,7 @@ type Base struct {
 	Conditions       string
 	ReadersDataBytes map[string][]byte
 	qp               *queryparser.QueryParser
+	metadataStorages *resourced_storage.MetadataStorages
 	sync.RWMutex
 }
 
@@ -118,6 +121,10 @@ func (b *Base) SetReadersDataInBytes(readersJsonBytes map[string][]byte) {
 // SetTags assigns all host tags to qp (QueryParser).
 func (b *Base) SetTags(tags map[string]string) {
 	b.qp.SetTags(tags)
+}
+
+func (b *Base) SetMetadataStorages(metadataStorages *resourced_storage.MetadataStorages) {
+	b.metadataStorages = metadataStorages
 }
 
 func (b *Base) IsConditionMet() bool {
