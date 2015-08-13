@@ -83,15 +83,32 @@ type IExecutor interface {
 }
 
 type Base struct {
-	Command          string
-	Path             string
-	Interval         string
-	LowThreshold     int
-	HighThreshold    int
-	Conditions       string
+	// Command: Shell command to execute.
+	Command string
+
+	// Path: ResourceD URL path. Example:
+	// /uptime -> http://localhost:55555/x/uptime
+	Path string
+
+	Interval string
+
+	// LowThreshold: minimum count of valid conditions
+	LowThreshold int
+
+	// HighThreshold: maximum count of valid conditions
+	HighThreshold int
+
+	// Conditions for when executor should run. It uses javascript.
+	Conditions string
+
 	ReadersDataBytes map[string][]byte
-	qp               *queryparser.QueryParser
-	metadataStorages *resourced_storage.MetadataStorages
+
+	// MetadataStorages provides access to remote key-value data.
+	// For now there's only 1 backend: ResourceD Master.
+	// In the future: etcd or consul.
+	MetadataStorages *resourced_storage.MetadataStorages
+
+	qp *queryparser.QueryParser
 	sync.RWMutex
 }
 
@@ -124,7 +141,7 @@ func (b *Base) SetTags(tags map[string]string) {
 }
 
 func (b *Base) SetMetadataStorages(metadataStorages *resourced_storage.MetadataStorages) {
-	b.metadataStorages = metadataStorages
+	b.MetadataStorages = metadataStorages
 }
 
 func (b *Base) IsConditionMet() bool {
