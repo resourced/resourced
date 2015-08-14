@@ -10,8 +10,8 @@ import (
 	resourced_config "github.com/resourced/resourced/config"
 )
 
-// BaseHandler wraps all other handlers; returns 403 for clients that aren't authorized to connect.
-func (a *Agent) BaseHandler(h httprouter.Handle) httprouter.Handle {
+// AuthorizeMiddleware wraps all other handlers; returns 403 for clients that aren't authorized to connect.
+func (a *Agent) AuthorizeMiddleware(h httprouter.Handle) httprouter.Handle {
 	return func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 		if !a.IsAllowed(r.RemoteAddr) {
 			w.WriteHeader(403)
@@ -360,33 +360,57 @@ func (a *Agent) MapExecutorsGetHandlers() map[string]func(w http.ResponseWriter,
 	return handlersMap
 }
 
+// metadataMasterGetHandler returns function that proxy metadata query to ResourceD Master.
+func (a *Agent) metadataMasterGetHandler() func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	return func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+		w.Header().Set("Content-Type", "application/json")
+
+		path := ps.ByName("path")
+
+		if strings.HasPrefix(path, "/") {
+			path = path[1:]
+		}
+
+		jsonBytes, err := a.MetadataStorages.ResourcedMaster.Get(path)
+		if err != nil {
+			w.WriteHeader(503)
+			w.Write([]byte(fmt.Sprintf(`{"Error": "%v"}`, err)))
+		}
+
+		w.WriteHeader(200)
+		w.Write(jsonBytes)
+	}
+}
+
 // HttpRouter returns HTTP router.
 func (a *Agent) HttpRouter() *httprouter.Router {
 	router := httprouter.New()
 
-	router.GET("/", a.BaseHandler(a.RootGetHandler()))
-	router.GET("/paths", a.BaseHandler(a.PathsGetHandler()))
+	router.GET("/", a.AuthorizeMiddleware(a.RootGetHandler()))
+	router.GET("/paths", a.AuthorizeMiddleware(a.PathsGetHandler()))
 
-	router.GET("/r", a.BaseHandler(a.ReadersGetHandler()))
-	router.GET("/r/paths", a.BaseHandler(a.ReaderPathsGetHandler()))
+	router.GET("/r", a.AuthorizeMiddleware(a.ReadersGetHandler()))
+	router.GET("/r/paths", a.AuthorizeMiddleware(a.ReaderPathsGetHandler()))
 
-	router.GET("/w", a.BaseHandler(a.WritersGetHandler()))
-	router.GET("/w/paths", a.BaseHandler(a.WriterPathsGetHandler()))
+	router.GET("/w", a.AuthorizeMiddleware(a.WritersGetHandler()))
+	router.GET("/w/paths", a.AuthorizeMiddleware(a.WriterPathsGetHandler()))
 
-	router.GET("/x", a.BaseHandler(a.ExecutorsGetHandler()))
-	router.GET("/x/paths", a.BaseHandler(a.ExecutorPathsGetHandler()))
+	router.GET("/x", a.AuthorizeMiddleware(a.ExecutorsGetHandler()))
+	router.GET("/x/paths", a.AuthorizeMiddleware(a.ExecutorPathsGetHandler()))
 
 	for path, handler := range a.MapReadersGetHandlers() {
-		router.GET(path, a.BaseHandler(handler))
+		router.GET(path, a.AuthorizeMiddleware(handler))
 	}
 
 	for path, handler := range a.MapWritersGetHandlers() {
-		router.GET(path, a.BaseHandler(handler))
+		router.GET(path, a.AuthorizeMiddleware(handler))
 	}
 
 	for path, handler := range a.MapExecutorsGetHandlers() {
-		router.GET(path, a.BaseHandler(handler))
+		router.GET(path, a.AuthorizeMiddleware(handler))
 	}
+
+	router.GET("/metadata/resourced-master/*path", a.AuthorizeMiddleware(a.metadataMasterGetHandler()))
 
 	return router
 }
