@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net"
+	"os"
 	"strings"
 	"time"
 
@@ -180,18 +181,30 @@ func (a *Agent) initResourcedMasterWriter(config resourced_config.Config) (write
 	if config.GoStruct == "ResourcedMasterHost" {
 		apiPath = "/api/hosts"
 	} else if config.GoStruct == "ResourcedMasterExecutors" {
-		apiPath = "/api/executors"
+		hostname, err := os.Hostname()
+		if err != nil {
+			return nil, err
+		}
+		apiPath = "/api/executors/" + hostname
 	}
 
 	urlFromConfigInterface, ok := config.GoStructFields["Url"]
-	if !ok || urlFromConfigInterface == nil {
+	if !ok || urlFromConfigInterface == nil { // Check if Url is not defined in config
 		config.GoStructFields["Url"] = a.GeneralConfig.ResourcedMaster.URL + apiPath
 
-	} else {
+	} else { // Check if Url does not contain apiPath
 		urlFromConfig := urlFromConfigInterface.(string)
 		if !strings.HasSuffix(urlFromConfig, apiPath) {
 			config.GoStructFields["Url"] = a.GeneralConfig.ResourcedMaster.URL + apiPath
 		}
+	}
+
+	// Check if username is not defined
+	// If so, set GeneralConfig.ResourcedMaster.AccessToken as default
+	usernameFromConfigInterface, ok := config.GoStructFields["Username"]
+	if !ok || usernameFromConfigInterface == nil {
+		config.GoStructFields["Username"] = a.GeneralConfig.ResourcedMaster.AccessToken
+
 	}
 
 	return a.initGoStructWriter(config)
