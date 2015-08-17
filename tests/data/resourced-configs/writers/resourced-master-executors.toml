@@ -1,7 +1,6 @@
-ReaderPaths = ["/load-avg", "/uptime", "/free", "/net/interfaces"]
-Path = "/resourced-master/host"
-GoStruct = "ResourcedMasterHost"
-Interval = "3s"
+Path = "/resourced-master/executors"
+GoStruct = "ResourcedMasterExecutors"
+Interval = "1m"
 
 [GoStructFields]
 Method = "POST"

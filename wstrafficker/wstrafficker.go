@@ -1,4 +1,4 @@
-// Package wstrafficker provides smart ws:// client to connecto to ResourceD Master
+// Package wstrafficker provides smart ws:// client to connect to ResourceD Master
 package wstrafficker
 
 import (

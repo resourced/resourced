@@ -63,6 +63,7 @@ func NewGoStructByConfig(config resourced_config.Config) (IWriter, error) {
 type IWriter interface {
 	WatchDir(string, func() error) error
 	Run() error
+	SetConfigs(*resourced_config.Configs)
 	SetReadersDataInBytes(map[string][]byte)
 	SetReadersData(map[string]interface{})
 	GetReadersData() map[string]interface{}
@@ -74,6 +75,7 @@ type IWriter interface {
 }
 
 type Base struct {
+	Configs       *resourced_config.Configs
 	ReadersData   map[string]interface{}
 	Data          interface{}
 	JsonProcessor string
@@ -119,6 +121,11 @@ func (b *Base) WatchDir(path string, callback func() error) error {
 // Run executes the writer.
 func (b *Base) Run() error {
 	return nil
+}
+
+// SetConfigs remembers configs data in-memory.
+func (b *Base) SetConfigs(configs *resourced_config.Configs) {
+	b.Configs = configs
 }
 
 // SetReadersDataInBytes pulls readers data and store them on ReadersData field.
