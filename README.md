@@ -33,13 +33,13 @@ ResourceD requires only 1 environment variable to run.
 
 In there, you will see the following subdirectories or files:
 
-* `readers/` Put all the TOML configurations for readers here. [(Example)](tests/data/resourced-configs/readers)
+* `readers/` Put all the TOML configurations for readers here [(Example)](tests/data/resourced-configs/readers).
 
-* `writers/` Put all the TOML configurations for writers here. [(Example)](tests/data/resourced-configs/writers)
+* `writers/` Put all the TOML configurations for writers here [(Example)](tests/data/resourced-configs/writers).
 
-* `executors/` Put all the TOML configurations for executors here. [(Example)](tests/data/resourced-configs/executors)
+* `executors/` Put all the TOML configurations for executors here [(Example)](tests/data/resourced-configs/executors).
 
-* `tags/` Each line in each file will be parsed as key=value tag.[(Example)](tests/data/resourced-configs/tags)
+* `tags/` Each line in each file will be parsed as key=value tag [(Example)](tests/data/resourced-configs/tags).
 
 * `general.toml` All default settings are defined in `general.toml`.
 
