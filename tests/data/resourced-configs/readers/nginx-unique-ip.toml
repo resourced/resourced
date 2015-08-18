@@ -1,0 +1,8 @@
+GoStruct = "NginxUniqueIP"
+Path = "/nginx/unique-ip"
+Interval = "3s"
+
+# FilePath is where your nginx access.log is
+[GoStructFields]
+# FilePath = "/var/log/nginx/access.log"
+FilePath = "$GOPATH/src/github.com/resourced/resourced/tests/data/log-files/nginx-access.log"
