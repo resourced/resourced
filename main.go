@@ -1,9 +1,10 @@
 package main
 
 import (
-	"github.com/Sirupsen/logrus"
 	"net/http"
 	"runtime"
+
+	"github.com/Sirupsen/logrus"
 
 	"github.com/resourced/resourced/agent"
 	_ "github.com/resourced/resourced/readers/docker"
@@ -32,17 +33,10 @@ func main() {
 	a.RunAllForever()
 
 	logFields := logrus.Fields{
-		"Addr":                       a.GeneralConfig.Addr,
-		"LogLevel":                   a.GeneralConfig.LogLevel,
-		"AllowedNetworks":            a.GeneralConfig.AllowedNetworks,
-		"ResourcedMaster.URL":        a.GeneralConfig.ResourcedMaster.URL,
-		"ResourcedStacks.Root":       a.GeneralConfig.ResourcedStacks.Root,
-		"ResourcedStacks.PythonPath": a.GeneralConfig.ResourcedStacks.PythonPath,
-		"ResourcedStacks.PipPath":    a.GeneralConfig.ResourcedStacks.PipPath,
-		"ResourcedStacks.Conditions": a.GeneralConfig.ResourcedStacks.Conditions,
-		"ResourcedStacks.DryRun":     a.GeneralConfig.ResourcedStacks.DryRun,
-		"ResourcedStacks.Git.HTTPS":  a.GeneralConfig.ResourcedStacks.Git.HTTPS,
-		"ResourcedStacks.Git.Branch": a.GeneralConfig.ResourcedStacks.Git.Branch,
+		"Addr":                a.GeneralConfig.Addr,
+		"LogLevel":            a.GeneralConfig.LogLevel,
+		"AllowedNetworks":     a.GeneralConfig.AllowedNetworks,
+		"ResourcedMaster.URL": a.GeneralConfig.ResourcedMaster.URL,
 	}
 
 	if a.GeneralConfig.HTTPS.CertFile != "" && a.GeneralConfig.HTTPS.KeyFile != "" {

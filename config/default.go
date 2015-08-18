@@ -9,6 +9,7 @@ import (
 	"runtime"
 	"strings"
 
+	"github.com/Sirupsen/logrus"
 	"github.com/resourced/resourced/libstring"
 )
 
@@ -24,6 +25,10 @@ func NewDefaultConfigs(configDir string) error {
 			if err != nil {
 				return err
 			}
+
+			logrus.WithFields(logrus.Fields{
+				"Directory": configDir,
+			}).Infof("Created config directory")
 		}
 	}
 
@@ -37,9 +42,16 @@ func NewDefaultConfigs(configDir string) error {
 				if err != nil {
 					return err
 				}
+
+				logrus.WithFields(logrus.Fields{
+					"Directory": subdirPath,
+				}).Infof("Created config directory")
 			}
 		}
 	}
+
+	// TODO(didip): Download default readers
+	// https://raw.githubusercontent.com/resourced/resourced/master/tests/data/resourced-configs/readers/cpu-info.toml
 
 	// Create default tags
 	defaultTagsTemplate := `GOOS=%v
@@ -57,6 +69,9 @@ uname=%v
 	if err != nil {
 		return err
 	}
+	logrus.WithFields(logrus.Fields{
+		"File": path.Join(configDir, "tags", "default"),
+	}).Infof("Created default tags file")
 
 	// Create a default general.toml
 	generalToml := `# Addr is the host and port of ResourceD Agent HTTP/S server
@@ -81,6 +96,9 @@ AccessToken = "{access-token}"
 	if err != nil {
 		return err
 	}
+	logrus.WithFields(logrus.Fields{
+		"File": path.Join(configDir, "general.toml"),
+	}).Infof("Created general config file")
 
 	return nil
 }
