@@ -34,9 +34,9 @@ func NewConfigs(configDir string) (*Configs, error) {
 
 	var err error
 
-	for _, configKind := range []string{"reader", "writer", "executor"} {
-		configDir = libstring.ExpandTildeAndEnv(configDir)
+	configDir = libstring.ExpandTildeAndEnv(configDir)
 
+	for _, configKind := range []string{"reader", "writer", "executor"} {
 		configKindPlural := configKind + "s"
 
 		configFiles, err := ioutil.ReadDir(path.Join(configDir, configKindPlural))
