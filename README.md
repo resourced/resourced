@@ -29,17 +29,17 @@ curl -X GET -H "Content-type: application/json" http://localhost:55555/r/load-av
 
 ResourceD requires only 1 environment variable to run.
 
-**RESOURCED_CONFIG_DIR:** Path to root config directory.
+**RESOURCED_CONFIG_DIR:** Path to root config directory. If directory does not exist, it will be created.
 
 In there, you will see the following subdirectories or files:
 
-* `readers/` Put all the TOML configurations for readers here.
+* `readers/` Put all the TOML configurations for readers here. [(Example)](tests/data/resourced-configs/readers)
 
-* `writers/` Put all the TOML configurations for writers here.
+* `writers/` Put all the TOML configurations for writers here. [(Example)](tests/data/resourced-configs/writers)
 
-* `executors/` Put all the TOML configurations for executors here.
+* `executors/` Put all the TOML configurations for executors here. [(Example)](tests/data/resourced-configs/executors)
 
-* `tags/` Each line in each file will be parsed as key=value tag.
+* `tags/` Each line in each file will be parsed as key=value tag.[(Example)](tests/data/resourced-configs/tags)
 
 * `general.toml` All default settings are defined in `general.toml`.
 
