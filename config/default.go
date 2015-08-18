@@ -46,18 +46,33 @@ func NewDefaultConfigs(configDir string) error {
 				logrus.WithFields(logrus.Fields{
 					"Directory": subdirPath,
 				}).Infof("Created config directory")
+
+				// Download default reader config files
+				// Ignore errors as it's not important.
+				if subdirConfigs == "readers" {
+					output, err := exec.Command(
+						"svn", "checkout",
+						"https://github.com/resourced/resourced/trunk/tests/data/resourced-configs/readers",
+						subdirPath,
+					).CombinedOutput()
+
+					if err != nil {
+						logrus.WithFields(logrus.Fields{
+							"Error": err.Error(),
+						}).Error("Failed to download default reader config files: " + string(output))
+					}
+
+					// Remove .svn artifacts
+					os.RemoveAll(path.Join(subdirPath, ".svn"))
+				}
 			}
 		}
 	}
-
-	// TODO(didip): Download default readers
-	// https://raw.githubusercontent.com/resourced/resourced/master/tests/data/resourced-configs/readers/cpu-info.toml
 
 	// Create default tags
 	defaultTagsTemplate := `GOOS=%v
 uname=%v
 `
-
 	unameBytes, err := exec.Command("uname", "-a").CombinedOutput()
 	if err != nil {
 		return err
