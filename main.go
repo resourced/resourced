@@ -1,12 +1,15 @@
 package main
 
 import (
+	"errors"
 	"net/http"
+	"os"
 	"runtime"
 
 	"github.com/Sirupsen/logrus"
 
 	"github.com/resourced/resourced/agent"
+	resourced_config "github.com/resourced/resourced/config"
 	_ "github.com/resourced/resourced/readers/docker"
 	_ "github.com/resourced/resourced/readers/mcrouter"
 	_ "github.com/resourced/resourced/readers/mysql"
@@ -20,6 +23,22 @@ func init() {
 
 // main runs the web server for resourced.
 func main() {
+	configDir := os.Getenv("RESOURCED_CONFIG_DIR")
+	if configDir == "" {
+		err := errors.New("RESOURCED_CONFIG_DIR is required")
+		logrus.Fatal(err)
+	}
+
+	// Create default configDir if necessary
+	if _, err := os.Stat(configDir); err != nil {
+		if os.IsNotExist(err) {
+			err := resourced_config.NewDefaultConfigs(configDir)
+			if err != nil {
+				logrus.Fatal(err)
+			}
+		}
+	}
+
 	a, err := agent.New()
 	if err != nil {
 		logrus.Fatal(err)
