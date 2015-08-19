@@ -1,11 +1,19 @@
 #!/bin/bash
 
 apt-get update
-apt-get install -y software-properties-common
+apt-get install -y software-properties-common python-setuptools
 
 # Install Docker
 apt-get install -y docker.io
 ln -sf /usr/bin/docker.io /usr/local/bin/docker
+
+# Remove all containers
+docker stop $(docker ps -a -q)
+docker rm $(docker ps -a -q)
+
+# Run one container for testing
+docker pull nginx:latest
+docker run -d nginx:latest
 
 # Install mysql
 export DEBIAN_FRONTEND=noninteractive
@@ -31,7 +39,8 @@ echo 'export PATH=$GOPATH/bin:$PATH' >> /etc/profile.d/go.sh
 
 # Install supervisord
 apt-get install -y supervisor
-service supervisord start
+easy_install superlance
+service supervisor restart
 
 # Place ENV variables in /home/vagrant/.bashrc
 if ! grep -Fxq "# Go and ResourceD Evironment Variables" /home/vagrant/.bashrc ; then

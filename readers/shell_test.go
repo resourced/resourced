@@ -2,6 +2,7 @@ package readers
 
 import (
 	"encoding/json"
+	"runtime"
 	"testing"
 
 	resourced_config "github.com/resourced/resourced/config"
@@ -36,7 +37,7 @@ func TestShellRun(t *testing.T) {
 	if data == nil {
 		t.Errorf("Failed to run shell command. Data: %v", data)
 	}
-	if data["ExitStatus"].(float64) != 0 {
+	if runtime.GOOS == "darwin" && data["ExitStatus"].(float64) != 0 {
 		t.Errorf("Failed to run shell command. Data: %v", data)
 	}
 }

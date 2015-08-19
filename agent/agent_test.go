@@ -28,6 +28,10 @@ func createAgentForTest(t *testing.T) *Agent {
 func TestRun(t *testing.T) {
 	agent := createAgentForTest(t)
 
+	if len(agent.Configs.Readers) <= 0 {
+		t.Fatalf("Agent config readers should exist")
+	}
+
 	_, err := agent.Run(agent.Configs.Readers[1])
 	if err != nil {
 		t.Fatalf("Run should work. Error: %v", err)
