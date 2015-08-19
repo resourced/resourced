@@ -6,8 +6,8 @@ yum -y install git golang
 # Setup Go
 export GOPATH=/go
 rm -rf $GOPATH/pkg/linux_amd64
-echo 'GOPATH=/go' > /etc/profile.d/go.sh
-echo 'PATH=$GOPATH/bin:$PATH' >> /etc/profile.d/go.sh
+echo 'export GOPATH=/go' > /etc/profile.d/go.sh
+echo 'export PATH=$GOPATH/bin:$PATH' >> /etc/profile.d/go.sh
 
 # Place ENV variables in /home/vagrant/.bashrc
 if ! grep -Fxq "# Go and ResourceD Evironment Variables" /home/vagrant/.bashrc ; then

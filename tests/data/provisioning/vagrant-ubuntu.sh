@@ -7,6 +7,18 @@ apt-get install -y software-properties-common
 apt-get install -y docker.io
 ln -sf /usr/bin/docker.io /usr/local/bin/docker
 
+# Install mysql
+export DEBIAN_FRONTEND=noninteractive
+apt-get -q -y install mysql-server
+
+# Install Redis
+apt-get -q -y install redis-server
+service redis-server restart
+
+# Install memcache
+apt-get -q -y install memcached
+service memcached restart
+
 # Install Go, godeb will install the latest version of Go.
 curl https://godeb.s3.amazonaws.com/godeb-amd64.tar.gz | tar zx -C /usr/local/bin
 GOPATH=/go godeb install
@@ -14,8 +26,8 @@ GOPATH=/go godeb install
 # Setup Go
 export GOPATH=/go
 rm -rf $GOPATH/pkg/linux_amd64
-echo 'GOPATH=/go' > /etc/profile.d/go.sh
-echo 'PATH=$GOPATH/bin:$PATH' >> /etc/profile.d/go.sh
+echo 'export GOPATH=/go' > /etc/profile.d/go.sh
+echo 'export PATH=$GOPATH/bin:$PATH' >> /etc/profile.d/go.sh
 
 # Install supervisord
 apt-get install -y supervisor
@@ -42,4 +54,4 @@ supervisorctl update
 # Log file can be found here: /var/log/upstart/resourced.log
 ln -fs /go/src/github.com/resourced/resourced/tests/data/script-init/upstart/resourced.conf /etc/init/
 initctl reload-configuration
-service resourced start
+service resourced restart
