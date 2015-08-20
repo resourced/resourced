@@ -1,0 +1,9 @@
+GoStruct = "HipChat"
+Path = "/hipchat"
+Interval = "60s"
+
+[GoStructFields]
+Conditions = "false"
+AuthToken = "{auth-token}"
+RoomName = "{room-name}"
+Message = ""
