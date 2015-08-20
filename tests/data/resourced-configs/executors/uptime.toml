@@ -1,7 +1,0 @@
-GoStruct = "Shell"
-Path = "/uptime"
-Interval = "3s"
-
-[GoStructFields]
-Command = "uptime"
-Conditions = "/r/load-avg.LoadAvg1m > 2"
