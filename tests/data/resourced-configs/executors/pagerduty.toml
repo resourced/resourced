@@ -1,0 +1,11 @@
+GoStruct = "PagerDuty"
+Path = "/pagerduty"
+Interval = "3s"
+
+[GoStructFields]
+Conditions = "false"
+ServiceKey = "{pagerduty-service-key}"
+Description = ""
+
+# IncidentKey is optional
+IncidentKey = ""
