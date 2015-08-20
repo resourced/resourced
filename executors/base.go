@@ -178,9 +178,6 @@ func (b *Base) ConditionMetCount() int {
 }
 
 func (b *Base) LowThresholdExceeded() bool {
-	if b.LowThreshold == 0 {
-		return false
-	}
 	return ConditionMetByPathCounter[b.Path] > b.LowThreshold
 }
 

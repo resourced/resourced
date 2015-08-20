@@ -7,7 +7,6 @@ import (
 	"runtime"
 
 	"github.com/Sirupsen/logrus"
-
 	"github.com/resourced/resourced/agent"
 	resourced_config "github.com/resourced/resourced/config"
 	_ "github.com/resourced/resourced/readers/docker"

@@ -1,0 +1,7 @@
+GoStruct = "DiskCleaner"
+Path = "/disk-cleaner/home"
+Interval = "3s"
+
+[GoStructFields]
+Globs = ["~/*.log", "~/*.gz"]
+Conditions = "/r/df./tmp.UsePercent > 20"
