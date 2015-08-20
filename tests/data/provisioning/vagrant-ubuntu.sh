@@ -27,6 +27,18 @@ service redis-server restart
 apt-get -q -y install memcached
 service memcached restart
 
+# Install varnish
+apt-get -q -y install varnish
+service varnish restart
+
+# Install haproxy
+apt-get -q -y install haproxy
+service haproxy restart
+
+# Install nginx
+apt-get -q -y install nginx
+service nginx restart
+
 # Install Go, godeb will install the latest version of Go.
 curl https://godeb.s3.amazonaws.com/godeb-amd64.tar.gz | tar zx -C /usr/local/bin
 GOPATH=/go godeb install

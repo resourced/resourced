@@ -14,6 +14,7 @@ import (
 	_ "github.com/resourced/resourced/readers/mysql"
 	_ "github.com/resourced/resourced/readers/procfs"
 	_ "github.com/resourced/resourced/readers/redis"
+	_ "github.com/resourced/resourced/readers/varnish"
 )
 
 func init() {

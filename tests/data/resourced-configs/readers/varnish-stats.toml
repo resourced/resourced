@@ -1,0 +1,3 @@
+GoStruct = "VarnishStats"
+Path = "/varnish/stats"
+Interval = "3s"
