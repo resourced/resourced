@@ -10,6 +10,7 @@ import (
 	"github.com/resourced/resourced/agent"
 	resourced_config "github.com/resourced/resourced/config"
 	_ "github.com/resourced/resourced/readers/docker"
+	_ "github.com/resourced/resourced/readers/haproxy"
 	_ "github.com/resourced/resourced/readers/mcrouter"
 	_ "github.com/resourced/resourced/readers/mysql"
 	_ "github.com/resourced/resourced/readers/procfs"

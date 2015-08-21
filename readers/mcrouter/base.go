@@ -94,6 +94,11 @@ func NewStatsFromNetcat(data []byte) map[string]interface{} {
 	scanner := bufio.NewScanner(bytes.NewReader(data))
 	for scanner.Scan() {
 		parts := strings.Fields(scanner.Text())
+
+		if len(parts) == 0 {
+			continue
+		}
+
 		command := parts[0]
 
 		if command != "STAT" {

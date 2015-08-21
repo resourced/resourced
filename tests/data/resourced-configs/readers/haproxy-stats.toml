@@ -1,0 +1,7 @@
+GoStruct = "HAProxyStats"
+Path = "/haproxy/stats"
+Interval = "5s"
+
+[GoStructFields]
+# Url must point to the CSV version of stats
+Url = "http://localhost:1936/;csv"

@@ -107,6 +107,12 @@ func CSVtoJSON(csvInput string) ([]byte, error) {
 
 		if lineCount == 0 {
 			headers = record[:]
+
+			// Unfortunate hack, HAProxy CSV has 1 key that starts with #
+			if headers[0] == "# pxname" {
+				headers[0] = "pxname"
+			}
+
 			lineCount += 1
 		} else {
 			item.WriteString("{")
