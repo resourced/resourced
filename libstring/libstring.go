@@ -83,7 +83,7 @@ func GetIP(address string) net.IP {
 }
 
 // CSVtoJSON parses CSV to JSON
-func CSVtoJSON(csvInput string) (string, error) {
+func CSVtoJSON(csvInput string) ([]byte, error) {
 
 	csvReader := csv.NewReader(strings.NewReader(csvInput))
 	lineCount := 0
@@ -102,7 +102,7 @@ func CSVtoJSON(csvInput string) (string, error) {
 			break
 		} else if err != nil {
 			fmt.Println("Error:", err)
-			return "", err
+			return []byte(""), err
 		}
 
 		if lineCount == 0 {
@@ -123,5 +123,5 @@ func CSVtoJSON(csvInput string) (string, error) {
 			lineCount += 1
 		}
 	}
-	return result.String(), nil
+	return result.Bytes(), nil
 }
