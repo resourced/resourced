@@ -122,24 +122,4 @@ type GeneralConfig struct {
 		URL         string
 		AccessToken string
 	}
-	ResourcedStacks struct {
-		Root string
-
-		// PythonPath is the path to python executable.
-		PythonPath string
-
-		// PipPath is the path to pip executable.
-		PipPath string
-
-		// Conditions to match before running stacks/logic.
-		Conditions string
-
-		DryRun bool
-
-		// Configuration for git repo
-		Git struct {
-			HTTPS  string
-			Branch string
-		}
-	}
 }
