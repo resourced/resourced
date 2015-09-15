@@ -176,6 +176,7 @@ func AllInspectedContainers(endpoint string) ([]*CompleteDockerContainer, error)
 
 	for _, shortDescContainer := range shortDescContainers {
 		container := &CompleteDockerContainer{}
+		container.ID = shortDescContainer.ID
 		container.NiceImageName = shortDescContainer.Image
 		container.Command = shortDescContainer.Command
 		container.Status = shortDescContainer.Status
@@ -185,9 +186,8 @@ func AllInspectedContainers(endpoint string) ([]*CompleteDockerContainer, error)
 		go func(container *CompleteDockerContainer) {
 			defer wg.Done()
 
-			fullDescContainer, err := client.InspectContainer(shortDescContainer.ID)
+			fullDescContainer, err := client.InspectContainer(container.ID)
 			if err == nil && fullDescContainer != nil {
-				container.ID = fullDescContainer.ID
 				container.Created = fullDescContainer.Created
 				container.Path = fullDescContainer.Path
 				container.Args = fullDescContainer.Args
