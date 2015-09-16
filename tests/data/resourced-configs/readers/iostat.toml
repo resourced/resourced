@@ -1,0 +1,3 @@
+GoStruct = "IOStat"
+Path = "/iostat"
+Interval = "3s"

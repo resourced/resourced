@@ -1,7 +1,7 @@
 #!/bin/bash
 
 apt-get update
-apt-get install -y software-properties-common python-setuptools
+apt-get install -y software-properties-common python-setuptools sysstat
 
 # Install Docker
 apt-get install -y docker.io
