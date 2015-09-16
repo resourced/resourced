@@ -43,10 +43,10 @@ func (m *DockerContainersNetDev) Run() error {
 
 			data, err := linuxproc.ReadNetworkStat(fmt.Sprintf("/proc/%v/net/dev", pid))
 			if err == nil {
-				m.Data[container.NiceImageName+"-"+container.ID] = make(map[string]linuxproc.NetworkStat)
+				m.Data[container.Name] = make(map[string]linuxproc.NetworkStat)
 
 				for _, perIface := range data {
-					m.Data[container.NiceImageName+"-"+container.ID][perIface.Iface] = perIface
+					m.Data[container.Name][perIface.Iface] = perIface
 				}
 			}
 		}

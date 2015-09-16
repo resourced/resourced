@@ -55,7 +55,7 @@ func (m *DockerContainersCpu) Run() error {
 
 			data, err := gopsutil_docker.CgroupCPU(containerDir, m.CgroupBasePath)
 			if err == nil {
-				m.Data[container.Image+"-"+container.ID] = data
+				m.Data[container.Names[0]] = data
 			}
 		}
 	}
