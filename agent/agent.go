@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/Sirupsen/logrus"
+	"github.com/resourced/resourced/Godeps/_workspace/src/github.com/satori/go.uuid"
 	resourced_config "github.com/resourced/resourced/config"
 	"github.com/resourced/resourced/executors"
 	"github.com/resourced/resourced/host"
@@ -19,8 +20,6 @@ import (
 	"github.com/resourced/resourced/readers"
 	"github.com/resourced/resourced/storage"
 	"github.com/resourced/resourced/writers"
-	"github.com/resourced/resourced/wstrafficker"
-	"github.com/satori/go.uuid"
 )
 
 // New is the constructor for Agent struct.
@@ -44,11 +43,6 @@ func New() (*Agent, error) {
 		return nil, err
 	}
 
-	err = agent.setWSTrafficker()
-	if err != nil {
-		return nil, err
-	}
-
 	err = agent.setStorages()
 	if err != nil {
 		return nil, err
@@ -68,7 +62,6 @@ type Agent struct {
 	DbPath           string
 	Db               *storage.Storage
 	AllowedNetworks  []*net.IPNet
-	WSTrafficker     *wstrafficker.WSTrafficker
 }
 
 func (a *Agent) IsTLS() bool {
