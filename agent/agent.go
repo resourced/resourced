@@ -88,6 +88,18 @@ func (a *Agent) setAllowedNetworks() error {
 	return nil
 }
 
+// pathWithPrevPrefix prepends the short version of config.Kind to path.
+func (a *Agent) pathWithPrevPrefix(config resourced_config.Config) string {
+	if config.Kind == "reader" {
+		return a.pathWithKindPrefix("prev/r", config)
+	} else if config.Kind == "writer" {
+		return a.pathWithKindPrefix("prev/w", config)
+	} else if config.Kind == "executor" {
+		return a.pathWithKindPrefix("prev/x", config)
+	}
+	return config.Path
+}
+
 // pathWithPrefix prepends the short version of config.Kind to path.
 func (a *Agent) pathWithPrefix(config resourced_config.Config) string {
 	if config.Kind == "reader" {
@@ -362,6 +374,10 @@ func (a *Agent) saveRun(config resourced_config.Config, output []byte, err error
 		return err
 	}
 
+	// 1. Preserve previous result
+	a.Db.Set(a.pathWithPrevPrefix(config), a.Db.Get(a.pathWithPrefix(config)))
+
+	// 2. Set current result
 	a.Db.Set(a.pathWithPrefix(config), recordInJson)
 
 	return err

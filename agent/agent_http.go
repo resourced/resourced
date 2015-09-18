@@ -177,21 +177,28 @@ func (a *Agent) PathsGetHandler() func(w http.ResponseWriter, r *http.Request, p
 		payload["Writers"] = make([]string, len(a.Configs.Writers))
 		payload["Executors"] = make([]string, len(a.Configs.Executors))
 
+		payload["Readers-PreviousRun"] = make([]string, len(a.Configs.Readers))
+		payload["Writers-PreviousRun"] = make([]string, len(a.Configs.Writers))
+		payload["Executors-PreviousRun"] = make([]string, len(a.Configs.Executors))
+
 		for i, config := range a.Configs.Readers {
 			if config.Path != "" {
 				payload["Readers"][i] = a.pathWithPrefix(config)
+				payload["Readers-PreviousRun"][i] = a.pathWithPrevPrefix(config)
 			}
 		}
 
 		for i, config := range a.Configs.Writers {
 			if config.Path != "" {
 				payload["Writers"][i] = a.pathWithPrefix(config)
+				payload["Writers-PreviousRun"][i] = a.pathWithPrevPrefix(config)
 			}
 		}
 
 		for i, config := range a.Configs.Executors {
 			if config.Path != "" {
 				payload["Executors"][i] = a.pathWithPrefix(config)
+				payload["Executors-PreviousRun"][i] = a.pathWithPrevPrefix(config)
 			}
 		}
 
@@ -215,11 +222,14 @@ func (a *Agent) ReaderPathsGetHandler() func(w http.ResponseWriter, r *http.Requ
 	return func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 		w.Header().Set("Content-Type", "application/json")
 
-		payload := make([]string, len(a.Configs.Readers))
+		payload := make(map[string][]string)
+		payload["Readers"] = make([]string, len(a.Configs.Readers))
+		payload["Readers-PreviousRun"] = make([]string, len(a.Configs.Readers))
 
 		for i, config := range a.Configs.Readers {
 			if config.Path != "" {
-				payload[i] = a.pathWithPrefix(config)
+				payload["Readers"][i] = a.pathWithPrefix(config)
+				payload["Readers-PreviousRun"][i] = a.pathWithPrevPrefix(config)
 			}
 		}
 
@@ -243,11 +253,14 @@ func (a *Agent) WriterPathsGetHandler() func(w http.ResponseWriter, r *http.Requ
 	return func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 		w.Header().Set("Content-Type", "application/json")
 
-		payload := make([]string, len(a.Configs.Writers))
+		payload := make(map[string][]string)
+		payload["Writers"] = make([]string, len(a.Configs.Writers))
+		payload["Writers-PreviousRun"] = make([]string, len(a.Configs.Writers))
 
 		for i, config := range a.Configs.Writers {
 			if config.Path != "" {
-				payload[i] = a.pathWithPrefix(config)
+				payload["Writers"][i] = a.pathWithPrefix(config)
+				payload["Writers-PreviousRun"][i] = a.pathWithPrevPrefix(config)
 			}
 		}
 
@@ -271,11 +284,14 @@ func (a *Agent) ExecutorPathsGetHandler() func(w http.ResponseWriter, r *http.Re
 	return func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 		w.Header().Set("Content-Type", "application/json")
 
-		payload := make([]string, len(a.Configs.Executors))
+		payload := make(map[string][]string)
+		payload["Executors"] = make([]string, len(a.Configs.Executors))
+		payload["Executors-PreviousRun"] = make([]string, len(a.Configs.Executors))
 
 		for i, config := range a.Configs.Executors {
 			if config.Path != "" {
-				payload[i] = a.pathWithPrefix(config)
+				payload["Executors"][i] = a.pathWithPrefix(config)
+				payload["Executors-PreviousRun"][i] = a.pathWithPrevPrefix(config)
 			}
 		}
 
@@ -327,7 +343,12 @@ func (a *Agent) MapReadersGetHandlers() map[string]func(w http.ResponseWriter, r
 
 	for _, config := range a.Configs.Readers {
 		if config.Path != "" {
+			// Current
 			path := a.pathWithPrefix(config)
+			handlersMap[path] = a.handlerByPath(path, config)
+
+			// Previous Run
+			path = a.pathWithPrevPrefix(config)
 			handlersMap[path] = a.handlerByPath(path, config)
 		}
 	}
@@ -340,7 +361,12 @@ func (a *Agent) MapWritersGetHandlers() map[string]func(w http.ResponseWriter, r
 
 	for _, config := range a.Configs.Writers {
 		if config.Path != "" {
+			// Current
 			path := a.pathWithPrefix(config)
+			handlersMap[path] = a.handlerByPath(path, config)
+
+			// Previous Run
+			path = a.pathWithPrevPrefix(config)
 			handlersMap[path] = a.handlerByPath(path, config)
 		}
 	}
@@ -353,7 +379,12 @@ func (a *Agent) MapExecutorsGetHandlers() map[string]func(w http.ResponseWriter,
 
 	for _, config := range a.Configs.Executors {
 		if config.Path != "" {
+			// Current
 			path := a.pathWithPrefix(config)
+			handlersMap[path] = a.handlerByPath(path, config)
+
+			// Previous Run
+			path = a.pathWithPrevPrefix(config)
 			handlersMap[path] = a.handlerByPath(path, config)
 		}
 	}
