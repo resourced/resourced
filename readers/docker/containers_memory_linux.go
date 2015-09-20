@@ -51,7 +51,7 @@ func (m *DockerContainersMemory) Run() error {
 			}
 
 			data, err := gopsutil_docker.CgroupMem(containerDir, m.CgroupBasePath)
-			if err == nil {
+			if err == nil && len(container.Names) > 0 {
 				m.Data[container.Names[0]] = data
 			}
 		}
