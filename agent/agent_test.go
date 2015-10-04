@@ -2,7 +2,6 @@ package agent
 
 import (
 	"io/ioutil"
-	"net"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -15,6 +14,14 @@ import (
 )
 
 func createAgentForTest(t *testing.T) *Agent {
+	agent := createAgentWithAccessTokensForTest(t)
+
+	agent.AccessTokens = make([]string, 0)
+
+	return agent
+}
+
+func createAgentWithAccessTokensForTest(t *testing.T) *Agent {
 	os.Setenv("RESOURCED_CONFIG_DIR", os.ExpandEnv("$GOPATH/src/github.com/resourced/resourced/tests/resourced-configs"))
 
 	agent, err := New()
@@ -208,32 +215,5 @@ func TestCommonData(t *testing.T) {
 		if _, ok := record[key]; !ok {
 			t.Errorf("%v data should never be empty.", key)
 		}
-	}
-}
-
-func TestIsAllowed(t *testing.T) {
-	_, network, _ := net.ParseCIDR("127.0.0.1/8")
-	allowedNetworks := []*net.IPNet{network}
-
-	agent, err := New()
-	if err != nil {
-		t.Fatalf("Initializing agent should work. Error: %v", err)
-	}
-	agent.AllowedNetworks = allowedNetworks
-
-	goodIP := "127.0.0.1"
-	badIP := "10.0.0.1"
-	brokenIP := "batman"
-
-	if !agent.IsAllowed(goodIP) {
-		t.Errorf("'%s' should be allowed", goodIP)
-	}
-
-	if agent.IsAllowed(badIP) {
-		t.Errorf("'%s' should not be allowed", badIP)
-	}
-
-	if agent.IsAllowed(brokenIP) {
-		t.Errorf("Invalid IP address '%s' should not be allowed ", brokenIP)
 	}
 }

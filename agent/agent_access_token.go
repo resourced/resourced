@@ -44,3 +44,19 @@ func (a *Agent) setAccessTokens() error {
 
 	return nil
 }
+
+// Check if a given access token is allowed.
+func (a *Agent) IsAllowed(givenToken string) bool {
+	// Allow all if there are no AccessTokens defined.
+	if len(a.AccessTokens) == 0 {
+		return true
+	}
+
+	for _, token := range a.AccessTokens {
+		if token == givenToken {
+			return true
+		}
+	}
+
+	return false
+}

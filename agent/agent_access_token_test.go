@@ -5,7 +5,7 @@ import (
 )
 
 func TestSetAccessTokensDuringConstructor(t *testing.T) {
-	agent := createAgentForTest(t)
+	agent := createAgentWithAccessTokensForTest(t)
 
 	allTokens := len(agent.AccessTokens)
 
@@ -36,5 +36,15 @@ func TestSetAccessTokensDuringConstructor(t *testing.T) {
 
 	if correctTokensFound != allTokens {
 		t.Errorf("agent.AccessTokens is incorrect: %v", agent.AccessTokens)
+	}
+}
+
+func TestIsAllowed(t *testing.T) {
+	agent := createAgentWithAccessTokensForTest(t)
+
+	givenToken := "abc123"
+
+	if !agent.IsAllowed(givenToken) {
+		t.Errorf("IsAllowed is wrong. GivenToken: %v. AccessTokens: %v", givenToken, agent.AccessTokens)
 	}
 }

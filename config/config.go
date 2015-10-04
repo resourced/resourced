@@ -110,9 +110,8 @@ func NewGeneralConfig(configDir string) (GeneralConfig, error) {
 
 // GeneralConfig stores all other configuration data.
 type GeneralConfig struct {
-	Addr            string
-	LogLevel        string
-	AllowedNetworks string
+	Addr     string
+	LogLevel string
 
 	HTTPS struct {
 		CertFile string
