@@ -58,7 +58,6 @@ service supervisor restart
 if ! grep -Fxq "# Go and ResourceD Evironment Variables" /home/vagrant/.bashrc ; then
     echo -e "\n# Go and ResourceD Evironment Variables" >> /home/vagrant/.bashrc
     echo -e ". /etc/profile.d/go.sh" >> /home/vagrant/.bashrc
-    echo -e ". /etc/profile.d/resourced.sh" >> /home/vagrant/.bashrc
 fi
 
 # Install ResourceD
