@@ -15,6 +15,12 @@ import (
 // AuthorizeMiddleware wraps all other handlers; returns 403 for clients that aren't authorized to connect.
 func (a *Agent) AuthorizeMiddleware(h httprouter.Handle) httprouter.Handle {
 	return func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+		// Immediately forward request if there's no AccessTokens.
+		if a.AccessTokens == nil || len(a.AccessTokens) == 0 {
+			h(w, r, ps)
+			return
+		}
+
 		auth := r.Header.Get("Authorization")
 
 		if auth == "" {
