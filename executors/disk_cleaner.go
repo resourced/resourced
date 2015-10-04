@@ -78,6 +78,21 @@ func (dc *DiskCleaner) Run() error {
 }
 
 // ToJson serialize Data field to JSON.
+// If there are no meaningful results, ToJson returns nil.
 func (dc *DiskCleaner) ToJson() ([]byte, error) {
+	successOutputInterface, successFound := dc.Data["Success"]
+	failureOutputInterface, failureFound := dc.Data["Failure"]
+
+	if !successFound && !failureFound {
+		return nil, nil
+	}
+
+	successOutput := successOutputInterface.([]string)
+	failureOutput := failureOutputInterface.([]string)
+
+	if len(successOutput) == 0 && len(failureOutput) == 0 {
+		return nil, nil
+	}
+
 	return json.Marshal(dc.Data)
 }

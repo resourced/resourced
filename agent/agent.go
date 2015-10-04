@@ -322,6 +322,11 @@ func (a *Agent) saveRun(config resourced_config.Config, output []byte, err error
 		return nil
 	}
 
+	// Do not perform save if both output and error are empty.
+	if output == nil && err == nil {
+		return nil
+	}
+
 	record := a.commonData(config)
 
 	host, err := a.hostData()

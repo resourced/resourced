@@ -42,6 +42,18 @@ func (s *Shell) Run() error {
 }
 
 // ToJson serialize Data field to JSON.
+// If there are no meaningful results, ToJson returns nil.
 func (s *Shell) ToJson() ([]byte, error) {
+	output, outputFound := s.Data["Output"]
+	errorString, errorFound := s.Data["Error"]
+
+	if !outputFound && !errorFound {
+		return nil, nil
+	}
+
+	if output.(string) == "" && errorString.(string) == "" {
+		return nil, nil
+	}
+
 	return json.Marshal(s.Data)
 }
