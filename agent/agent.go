@@ -44,6 +44,11 @@ func New() (*Agent, error) {
 		return nil, err
 	}
 
+	err = agent.setAccessTokens()
+	if err != nil {
+		return nil, err
+	}
+
 	err = agent.setWSTrafficker()
 	if err != nil {
 		return nil, err
@@ -62,6 +67,7 @@ func New() (*Agent, error) {
 type Agent struct {
 	ID               string
 	Tags             map[string]string
+	AccessTokens     []string
 	Configs          *resourced_config.Configs
 	GeneralConfig    resourced_config.GeneralConfig
 	MetadataStorages *storage.MetadataStorages

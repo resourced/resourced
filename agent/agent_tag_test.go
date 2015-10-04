@@ -4,7 +4,7 @@ import (
 	"testing"
 )
 
-func TestConstructor(t *testing.T) {
+func TestSetTagsDuringConstructor(t *testing.T) {
 	agent := createAgentForTest(t)
 
 	if len(agent.Tags) == 0 {
