@@ -10,12 +10,12 @@
 
 1. Download the binary release [here](https://github.com/resourced/resourced/releases).
 
-2. Use supervisor/upstart/systemd to daemonize. [Click here for examples](https://github.com/resourced/resourced/tree/master/tests/data/script-init).
+2. Use supervisor/upstart/systemd to daemonize. [Click here for examples](https://github.com/resourced/resourced/tree/master/tests/script-init).
 
 
 ## Running the Server
 ```bash
-RESOURCED_CONFIG_DIR=$GOPATH/src/github.com/resourced/resourced/tests/data/resourced-configs \
+RESOURCED_CONFIG_DIR=$GOPATH/src/github.com/resourced/resourced/tests/resourced-configs \
 $GOPATH/bin/resourced
 ```
 
@@ -33,13 +33,13 @@ ResourceD requires only 1 environment variable to run.
 
 In there, you will see the following subdirectories or files:
 
-* `readers/` Put all the TOML configurations for readers here [(Example)](tests/data/resourced-configs/readers).
+* `readers/` Put all the TOML configurations for readers here [(Example)](tests/resourced-configs/readers).
 
-* `writers/` Put all the TOML configurations for writers here [(Example)](tests/data/resourced-configs/writers).
+* `writers/` Put all the TOML configurations for writers here [(Example)](tests/resourced-configs/writers).
 
-* `executors/` Put all the TOML configurations for executors here [(Example)](tests/data/resourced-configs/executors).
+* `executors/` Put all the TOML configurations for executors here [(Example)](tests/resourced-configs/executors).
 
-* `tags/` Each line in each file will be parsed as key=value tag [(Example)](tests/data/resourced-configs/tags).
+* `tags/` Each line in each file will be parsed as key=value tag [(Example)](tests/resourced-configs/tags).
 
 * `general.toml` All default settings are defined in `general.toml`.
 
@@ -50,7 +50,7 @@ ResourceD `readers` gather data on your server. The easiest way to create a read
 
 1. Write the script following this one requirement: **Output the JSON data through STDOUT**
 
-2. Write config file. [Click here for examples](https://github.com/resourced/resourced/tree/master/tests/data/resourced-configs/readers).
+2. Write config file. [Click here for examples](https://github.com/resourced/resourced/tree/master/tests/resourced-configs/readers).
 
 For more info, [follow this link](https://github.com/resourced/resourced/tree/master/docs/users/READERS.md).
 

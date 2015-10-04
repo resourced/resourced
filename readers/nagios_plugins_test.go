@@ -11,7 +11,7 @@ func TestNagiosPluginRun(t *testing.T) {
 	config := &resourced_config.Config{}
 	config.GoStruct = "NagiosPlugin"
 	config.GoStructFields = make(map[string]interface{})
-	config.GoStructFields["Command"] = "$GOPATH/src/github.com/resourced/resourced/tests/data/script-reader/nagios-plugin-check-disk.py"
+	config.GoStructFields["Command"] = "$GOPATH/src/github.com/resourced/resourced/tests/script-reader/nagios-plugin-check-disk.py"
 	config.Path = "/nagios/check-disk"
 	config.Interval = "3s"
 

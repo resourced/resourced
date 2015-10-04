@@ -5,4 +5,4 @@ Interval = "3s"
 
 [GoStructFields]
 HostAndPort = "localhost:5000"
-ConfigFile = "$GOPATH/src/github.com/resourced/resourced/tests/data/config-files/mcrouter.json"
+ConfigFile = "$GOPATH/src/github.com/resourced/resourced/tests/config-files/mcrouter.json"

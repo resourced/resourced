@@ -6,7 +6,7 @@ There are two ways to gather server data in ResourceD:
 
 Use `GoStruct = "Shell"` and specify the script's path in `[GoStructFields] Command`.
 
-Example: [darwin-memory.toml](https://github.com/resourced/resourced/blob/master/tests/data/resourced-configs/readers/darwin-memory.toml)
+Example: [darwin-memory.toml](https://github.com/resourced/resourced/blob/master/tests/resourced-configs/readers/darwin-memory.toml)
 
 
 **2. Using Go natively.**

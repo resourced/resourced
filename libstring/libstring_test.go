@@ -26,7 +26,7 @@ func TestExpandTildeAndEnv(t *testing.T) {
 		}
 	}
 
-	toBeTested = ExpandTildeAndEnv("$GOPATH/src/github.com/resourced/resourced/tests/data/script-reader/darwin-memory.py")
+	toBeTested = ExpandTildeAndEnv("$GOPATH/src/github.com/resourced/resourced/tests/script-reader/darwin-memory.py")
 	gopath := os.Getenv("GOPATH")
 
 	if !strings.HasPrefix(toBeTested, gopath) {

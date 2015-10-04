@@ -11,7 +11,7 @@ func TestShellRun(t *testing.T) {
 	config := &resourced_config.Config{}
 	config.GoStruct = "Shell"
 	config.GoStructFields = make(map[string]interface{})
-	config.GoStructFields["Command"] = "$GOPATH/src/github.com/resourced/resourced/tests/data/script-writer/stdin-stdout.py"
+	config.GoStructFields["Command"] = "$GOPATH/src/github.com/resourced/resourced/tests/script-writer/stdin-stdout.py"
 	config.ReaderPaths = []string{"/load-avg", "/free"}
 	config.Path = "/python/loadavg-uptime-free"
 	config.Interval = "1m"

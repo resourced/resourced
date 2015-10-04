@@ -26,6 +26,6 @@ mv $GOPATH/src/github.com/resourced/resourced/resourced /go/bin/resourced
 
 # SYSTEMD
 # Setup ResourceD on port :55555
-rm -f /etc/systemd/user/resourced.service && cp /go/src/github.com/resourced/resourced/tests/data/script-init/systemd/resourced.service /etc/systemd/user/resourced.service
+rm -f /etc/systemd/user/resourced.service && cp /go/src/github.com/resourced/resourced/tests/script-init/systemd/resourced.service /etc/systemd/user/resourced.service
 systemctl enable /etc/systemd/user/resourced.service
 systemctl start resourced

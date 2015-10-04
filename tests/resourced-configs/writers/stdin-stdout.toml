@@ -4,4 +4,4 @@ Path = "/python/loadavg-uptime-free"
 Interval = "1m"
 
 [GoStructFields]
-Command = "$GOPATH/src/github.com/resourced/resourced/tests/data/script-writer/stdin-stdout.py"
+Command = "$GOPATH/src/github.com/resourced/resourced/tests/script-writer/stdin-stdout.py"

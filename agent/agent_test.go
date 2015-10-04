@@ -15,7 +15,7 @@ import (
 )
 
 func createAgentForTest(t *testing.T) *Agent {
-	os.Setenv("RESOURCED_CONFIG_DIR", os.ExpandEnv("$GOPATH/src/github.com/resourced/resourced/tests/data/resourced-configs"))
+	os.Setenv("RESOURCED_CONFIG_DIR", os.ExpandEnv("$GOPATH/src/github.com/resourced/resourced/tests/resourced-configs"))
 
 	agent, err := New()
 	if err != nil {

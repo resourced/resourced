@@ -12,7 +12,7 @@ func TestShellRun(t *testing.T) {
 	config := &resourced_config.Config{}
 	config.GoStruct = "Shell"
 	config.GoStructFields = make(map[string]interface{})
-	config.GoStructFields["Command"] = "$GOPATH/src/github.com/resourced/resourced/tests/data/script-reader/darwin-memory.py"
+	config.GoStructFields["Command"] = "$GOPATH/src/github.com/resourced/resourced/tests/script-reader/darwin-memory.py"
 	config.Path = "/memory.darwin"
 	config.Interval = "3s"
 

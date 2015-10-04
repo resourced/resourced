@@ -11,14 +11,14 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
   config.vm.define "ubuntu" do |ubuntu|
     ubuntu.vm.box = "phusion/ubuntu-14.04-amd64"
-    ubuntu.vm.provision :shell, path: "tests/data/provisioning/vagrant-ubuntu.sh"
+    ubuntu.vm.provision :shell, path: "tests/provisioning/vagrant-ubuntu.sh"
     ubuntu.vm.network :private_network, type: :static, ip: "192.168.50.240"
   end
 
   config.vm.define "centos" do |centos|
     # centos.gui = true
     centos.vm.box = "metcalfc/centos70-docker"
-    centos.vm.provision :shell, path: "tests/data/provisioning/vagrant-centos.sh"
+    centos.vm.provision :shell, path: "tests/provisioning/vagrant-centos.sh"
     centos.vm.network :private_network, type: :static, ip: "192.168.50.241"
   end
 
