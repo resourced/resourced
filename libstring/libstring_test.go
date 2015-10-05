@@ -1,6 +1,7 @@
 package libstring
 
 import (
+	"encoding/json"
 	"os"
 	"runtime"
 	"strings"

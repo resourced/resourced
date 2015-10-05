@@ -1,10 +1,7 @@
 package storage
 
 import (
-	"bytes"
-	"compress/gzip"
 	"encoding/json"
-	"io/ioutil"
 	"sync"
 )
 
@@ -19,37 +16,18 @@ type Storage struct {
 	sync.RWMutex
 }
 
-// Set stores bytes in-memory with gzip lvl 9 compression.
 func (s *Storage) Set(key string, value []byte) {
-	var b bytes.Buffer
-
-	w, _ := gzip.NewWriterLevel(&b, 9)
-	w.Write(value)
-	w.Flush()
-	w.Close()
-
 	s.Lock()
-	s.Data[key] = b.Bytes()
+	s.Data[key] = value
 	s.Unlock()
 }
 
-// Get returns bytes after un-gzipping.
 func (s *Storage) Get(key string) []byte {
-	var compressedData []byte
+	var data []byte
 
-	s.RLock()
-	compressedData = s.Data[key]
-	s.RUnlock()
-
-	r, err := gzip.NewReader(bytes.NewReader(compressedData))
-	if err != nil {
-		return nil
-	}
-
-	data, err := ioutil.ReadAll(r)
-	if err != nil {
-		return nil
-	}
+	s.Lock()
+	data = s.Data[key]
+	s.Unlock()
 
 	return data
 }
