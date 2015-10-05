@@ -33,7 +33,7 @@ func NewDefaultConfigs(configDir string) error {
 	}
 
 	// Create subdirectories
-	for _, subdirConfigs := range []string{"readers", "writers", "executors", "tags"} {
+	for _, subdirConfigs := range []string{"readers", "writers", "executors", "tags", "access-tokens"} {
 		subdirPath := path.Join(configDir, subdirConfigs)
 
 		if _, err := os.Stat(subdirPath); err != nil {
