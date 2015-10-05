@@ -1,3 +1,8 @@
 GoStruct = "Ps"
 Path = "/ps"
 Interval = "3s"
+
+[GoStructFields]
+# NameFilter is a slice of string names.
+# Only processes containing these substrings will be displayed.
+NameFilter = ["firefox", "go", "redis-server"]
