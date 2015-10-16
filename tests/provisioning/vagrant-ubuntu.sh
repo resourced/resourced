@@ -58,7 +58,6 @@ service supervisor restart
 if ! grep -Fxq "# Go and ResourceD Evironment Variables" /home/vagrant/.bashrc ; then
     echo -e "\n# Go and ResourceD Evironment Variables" >> /home/vagrant/.bashrc
     echo -e ". /etc/profile.d/go.sh" >> /home/vagrant/.bashrc
-    echo -e ". /etc/profile.d/resourced.sh" >> /home/vagrant/.bashrc
 fi
 
 # Install ResourceD
@@ -67,12 +66,12 @@ GOPATH=/go go get ./... && GOPATH=/go go install github.com/resourced/resourced
 
 # SUPERVISORD
 # Setup ResourceD on port :55556
-ln -fs /go/src/github.com/resourced/resourced/tests/data/script-init/supervisord/resourced.conf /etc/supervisor/conf.d/
+ln -fs /go/src/github.com/resourced/resourced/tests/script-init/supervisord/resourced.conf /etc/supervisor/conf.d/
 supervisorctl update
 
 # UPSTART
 # Setup ResourceD on port :55555
 # Log file can be found here: /var/log/upstart/resourced.log
-ln -fs /go/src/github.com/resourced/resourced/tests/data/script-init/upstart/resourced.conf /etc/init/
+ln -fs /go/src/github.com/resourced/resourced/tests/script-init/upstart/resourced.conf /etc/init/
 initctl reload-configuration
 service resourced restart

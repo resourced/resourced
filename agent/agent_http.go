@@ -2,20 +2,41 @@ package agent
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"strings"
 
 	"github.com/julienschmidt/httprouter"
 	resourced_config "github.com/resourced/resourced/config"
+	"github.com/resourced/resourced/libhttp"
 )
 
 // AuthorizeMiddleware wraps all other handlers; returns 403 for clients that aren't authorized to connect.
 func (a *Agent) AuthorizeMiddleware(h httprouter.Handle) httprouter.Handle {
 	return func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-		if !a.IsAllowed(r.RemoteAddr) {
-			w.WriteHeader(403)
-			w.Write([]byte(fmt.Sprintf(`{"Error": "You are not authorized to connect."}`)))
+		// Immediately forward request if there's no AccessTokens.
+		if a.AccessTokens == nil || len(a.AccessTokens) == 0 {
+			h(w, r, ps)
+			return
+		}
+
+		auth := r.Header.Get("Authorization")
+
+		if auth == "" {
+			libhttp.BasicAuthUnauthorized(w, nil)
+			return
+		}
+
+		accessTokenString, _, ok := libhttp.ParseBasicAuth(auth)
+		if !ok {
+			libhttp.BasicAuthUnauthorized(w, nil)
+			return
+		}
+
+		if !a.IsAllowed(accessTokenString) {
+			err := errors.New("You are not authorized to connect")
+			libhttp.BasicAuthUnauthorized(w, err)
 			return
 		}
 

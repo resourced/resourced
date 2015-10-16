@@ -1,0 +1,6 @@
+GoStruct = "Shell"
+Path = "/memory.darwin"
+Interval = "3s"
+
+[GoStructFields]
+Command = "$GOPATH/src/github.com/resourced/resourced/tests/script-reader/darwin-memory.py"

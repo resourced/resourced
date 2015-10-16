@@ -2,9 +2,11 @@ package readers
 
 import (
 	"encoding/json"
+	"strconv"
+	"strings"
+
 	"github.com/cloudfoundry/gosigar"
 	gopsutil_process "github.com/shirou/gopsutil/process"
-	"strconv"
 )
 
 func init() {
@@ -14,11 +16,13 @@ func init() {
 func NewPs() IReader {
 	p := &Ps{}
 	p.Data = make(map[string]map[string]interface{})
+	p.NameFilter = make([]interface{}, 0)
 	return p
 }
 
 type Ps struct {
-	Data map[string]map[string]interface{}
+	Data       map[string]map[string]interface{}
+	NameFilter []interface{}
 }
 
 // Run gathers ps information from gosigar.
@@ -42,6 +46,24 @@ func (p *Ps) Run() error {
 		}
 		if err := time.Get(pid); err != nil {
 			continue
+		}
+
+		// If NameFilter is defined, skip process if its name does not match filter.
+		if len(p.NameFilter) > 0 {
+			matched := false
+
+			for _, nameFilterInterface := range p.NameFilter {
+				nameFilter := nameFilterInterface.(string)
+
+				if strings.Contains(state.Name, nameFilter) {
+					matched = true
+					break
+				}
+			}
+
+			if matched == false {
+				continue
+			}
 		}
 
 		procData := make(map[string]interface{})

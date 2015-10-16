@@ -33,7 +33,7 @@ func NewDefaultConfigs(configDir string) error {
 	}
 
 	// Create subdirectories
-	for _, subdirConfigs := range []string{"readers", "writers", "executors", "tags"} {
+	for _, subdirConfigs := range []string{"readers", "writers", "executors", "tags", "access-tokens"} {
 		subdirPath := path.Join(configDir, subdirConfigs)
 
 		if _, err := os.Stat(subdirPath); err != nil {
@@ -52,7 +52,7 @@ func NewDefaultConfigs(configDir string) error {
 				if subdirConfigs == "readers" {
 					output, err := exec.Command(
 						"svn", "checkout",
-						"https://github.com/resourced/resourced/trunk/tests/data/resourced-configs/readers",
+						"https://github.com/resourced/resourced/trunk/tests/resourced-configs/readers",
 						subdirPath,
 					).CombinedOutput()
 

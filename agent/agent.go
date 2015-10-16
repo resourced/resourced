@@ -4,18 +4,16 @@ package agent
 import (
 	"encoding/json"
 	"fmt"
-	"net"
 	"os"
 	"strings"
 	"time"
 
 	"github.com/Sirupsen/logrus"
+	"github.com/resourced/resourced-master/wstrafficker"
 	"github.com/resourced/resourced/Godeps/_workspace/src/github.com/satori/go.uuid"
 	resourced_config "github.com/resourced/resourced/config"
 	"github.com/resourced/resourced/executors"
 	"github.com/resourced/resourced/host"
-	"github.com/resourced/resourced/libnet"
-	"github.com/resourced/resourced/libstring"
 	"github.com/resourced/resourced/libtime"
 	"github.com/resourced/resourced/readers"
 	"github.com/resourced/resourced/storage"
@@ -33,12 +31,12 @@ func New() (*Agent, error) {
 		return nil, err
 	}
 
-	err = agent.setAllowedNetworks()
+	err = agent.setTags()
 	if err != nil {
 		return nil, err
 	}
 
-	err = agent.setTags()
+	err = agent.setAccessTokens()
 	if err != nil {
 		return nil, err
 	}
@@ -56,12 +54,13 @@ func New() (*Agent, error) {
 type Agent struct {
 	ID               string
 	Tags             map[string]string
+	AccessTokens     []string
 	Configs          *resourced_config.Configs
 	GeneralConfig    resourced_config.GeneralConfig
 	MetadataStorages *storage.MetadataStorages
 	DbPath           string
 	Db               *storage.Storage
-	AllowedNetworks  []*net.IPNet
+	WSTrafficker     *wstrafficker.WSTrafficker
 }
 
 func (a *Agent) IsTLS() bool {
@@ -69,16 +68,6 @@ func (a *Agent) IsTLS() bool {
 		return true
 	}
 	return false
-}
-
-func (a *Agent) setAllowedNetworks() error {
-	allowedNetworks, err := libnet.ParseCIDRs(a.GeneralConfig.AllowedNetworks)
-	if err != nil {
-		return err
-	}
-
-	a.AllowedNetworks = allowedNetworks
-	return nil
 }
 
 // pathWithPrefix prepends the short version of config.Kind to path.
@@ -328,6 +317,11 @@ func (a *Agent) saveRun(config resourced_config.Config, output []byte, err error
 		return nil
 	}
 
+	// Do not perform save if both output and error are empty.
+	if output == nil && err == nil {
+		return nil
+	}
+
 	record := a.commonData(config)
 
 	host, err := a.hostData()
@@ -391,26 +385,4 @@ func (a *Agent) RunAllForever() {
 	for _, config := range a.Configs.Executors {
 		a.RunForever(config)
 	}
-}
-
-// Check if a given IP:PORT is part of an allowed CIDR
-func (a *Agent) IsAllowed(address string) bool {
-	// Allow all if we allowed networks is not set
-	if len(a.AllowedNetworks) == 0 {
-		return true
-	}
-
-	ip := libstring.GetIP(address)
-	if ip == nil {
-		return false
-	}
-
-	// Check if IP is in one of our allowed networks
-	for _, network := range a.AllowedNetworks {
-		if network.Contains(ip) {
-			return true
-		}
-	}
-
-	return false
 }

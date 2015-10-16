@@ -1,3 +1,4 @@
+// +build docker
 package libdocker
 
 import (

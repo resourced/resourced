@@ -26,7 +26,7 @@ func TestRunGoStructWriterWithJsonFlattener(t *testing.T) {
 			agent.Run(readerConfig)
 
 			config := createConfigForAgentWriterTest(t)
-			config.GoStructFields["JsonProcessor"] = os.ExpandEnv("$GOPATH/src/github.com/resourced/resourced/tests/data/script-writer/json-flattener.py")
+			config.GoStructFields["JsonProcessor"] = os.ExpandEnv("$GOPATH/src/github.com/resourced/resourced/tests/script-writer/json-flattener.py")
 
 			writerData, err := agent.runGoStructWriter(config)
 			if err != nil {
@@ -54,7 +54,7 @@ func TestRunGoStructWriterWithInsightsDuFormatter(t *testing.T) {
 			agent.Run(readerConfig)
 
 			config := createConfigForAgentWriterTest(t)
-			config.GoStructFields["JsonProcessor"] = os.ExpandEnv("$GOPATH/src/github.com/resourced/resourced/tests/data/script-writer/insights/du-formatter.py")
+			config.GoStructFields["JsonProcessor"] = os.ExpandEnv("$GOPATH/src/github.com/resourced/resourced/tests/script-writer/insights/du-formatter.py")
 
 			writerData, err := agent.runGoStructWriter(config)
 			if err != nil {

@@ -55,7 +55,6 @@ func main() {
 	logFields := logrus.Fields{
 		"Addr":                a.GeneralConfig.Addr,
 		"LogLevel":            a.GeneralConfig.LogLevel,
-		"AllowedNetworks":     a.GeneralConfig.AllowedNetworks,
 		"ResourcedMaster.URL": a.GeneralConfig.ResourcedMaster.URL,
 	}
 
