@@ -3,6 +3,7 @@ package writers
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/marpaia/graphite-golang"
@@ -15,7 +16,10 @@ func init() {
 
 // NewGraphite is NewGraphite constructor.
 func NewGraphite() IWriter {
-	return &Graphite{}
+	g := &Graphite{}
+	g.Host = "localhost"
+	g.Port = 2003
+	return g
 }
 
 // Graphite is a writer that serialize readers data to New Relic Insights.
@@ -62,12 +66,15 @@ func (g *Graphite) Run() error {
 		g.grph = grph
 	}
 
+	if g.grph == nil {
+		return fmt.Errorf("Unable to connect to Graphite server: %s:%v", g.Host, g.Port)
+	}
+
 	metrics := make([]graphite.Metric, len(flattenData))
 
 	index := 0
-	for key, _ := range flattenData {
-		// TODO: Why... is value a string?
-		metrics[index] = graphite.NewMetric(key, "1", time.Now().Unix())
+	for key, value := range flattenData {
+		metrics[index] = graphite.NewMetric(key, fmt.Sprintf("%s", value), time.Now().Unix())
 		index = index + 1
 	}
 
