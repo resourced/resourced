@@ -1,0 +1,8 @@
+ReaderPaths = ["/load-avg", "/uptime", "/free"]
+Path = "/graphite"
+GoStruct = "Graphite"
+Interval = "30s"
+
+[GoStructFields]
+Host = "localhost"
+Port = 2003

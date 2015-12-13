@@ -11,7 +11,7 @@ import (
 )
 
 func init() {
-	Register("NewGraphite", NewGraphite)
+	Register("Graphite", NewGraphite)
 }
 
 // NewGraphite is NewGraphite constructor.
