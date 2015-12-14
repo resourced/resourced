@@ -2,11 +2,12 @@ package agent
 
 import (
 	"bufio"
-	"github.com/resourced/resourced/libstring"
 	"io/ioutil"
 	"os"
 	"path"
 	"strings"
+
+	"github.com/resourced/resourced/libstring"
 )
 
 func (a *Agent) setAccessTokens() error {
@@ -38,7 +39,12 @@ func (a *Agent) setAccessTokens() error {
 		for scanner.Scan() {
 			tokensPerLine := strings.Split(scanner.Text(), ",")
 
-			a.AccessTokens = append(a.AccessTokens, tokensPerLine...)
+			// Ensure that we ignore comments "//" or "#"
+			for _, tokenPerLine := range tokensPerLine {
+				if !strings.HasPrefix(tokenPerLine, "#") && !strings.HasPrefix(tokenPerLine, "//") {
+					a.AccessTokens = append(a.AccessTokens, strings.TrimSpace(tokenPerLine)
+				}
+			}
 		}
 	}
 
