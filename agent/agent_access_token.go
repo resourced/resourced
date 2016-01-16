@@ -42,7 +42,7 @@ func (a *Agent) setAccessTokens() error {
 			// Ensure that we ignore comments "//" or "#"
 			for _, tokenPerLine := range tokensPerLine {
 				if !strings.HasPrefix(tokenPerLine, "#") && !strings.HasPrefix(tokenPerLine, "//") {
-					a.AccessTokens = append(a.AccessTokens, strings.TrimSpace(tokenPerLine)
+					a.AccessTokens = append(a.AccessTokens, strings.TrimSpace(tokenPerLine))
 				}
 			}
 		}
