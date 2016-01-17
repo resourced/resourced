@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/Sirupsen/logrus"
-	"github.com/resourced/resourced-master/wstrafficker"
 	"github.com/resourced/resourced/Godeps/_workspace/src/github.com/satori/go.uuid"
 	resourced_config "github.com/resourced/resourced/config"
 	"github.com/resourced/resourced/executors"
@@ -60,7 +59,6 @@ type Agent struct {
 	MetadataStorages *storage.MetadataStorages
 	DbPath           string
 	Db               *storage.Storage
-	WSTrafficker     *wstrafficker.WSTrafficker
 }
 
 func (a *Agent) IsTLS() bool {
