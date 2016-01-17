@@ -1,7 +1,7 @@
 ReaderPaths = ["/load-avg", "/uptime", "/free", "/net/interfaces"]
 Path = "/resourced-master/host"
 GoStruct = "ResourcedMasterHost"
-Interval = "3s"
+Interval = "30s"
 
 [GoStructFields]
 Method = "POST"
