@@ -46,7 +46,17 @@ func (a *Agent) AuthorizeMiddleware(h httprouter.Handle) httprouter.Handle {
 	}
 }
 
-// RootGetHandler returns function that handles all readers and writers.
+// RootHeadHandler returns empty payload.
+func (a *Agent) RootHeadHandler() func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	return func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+		w.Header().Set("Content-Type", "application/json")
+
+		w.WriteHeader(200)
+		w.Write([]byte(""))
+	}
+}
+
+// RootGetHandler returns data from all readers and writers.
 func (a *Agent) RootGetHandler() func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	return func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 		w.Header().Set("Content-Type", "application/json")
@@ -407,6 +417,7 @@ func (a *Agent) metadataMasterGetHandler() func(w http.ResponseWriter, r *http.R
 func (a *Agent) HttpRouter() *httprouter.Router {
 	router := httprouter.New()
 
+	router.HEAD("/", a.AuthorizeMiddleware(a.RootHeadHandler()))
 	router.GET("/", a.AuthorizeMiddleware(a.RootGetHandler()))
 	router.GET("/paths", a.AuthorizeMiddleware(a.PathsGetHandler()))
 
