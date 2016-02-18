@@ -37,6 +37,7 @@ func main() {
 			if err != nil {
 				logrus.Fatal(err)
 			}
+			logrus.Infof("Generated default configurations inside %v", configDir)
 		}
 	}
 
