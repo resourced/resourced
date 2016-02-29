@@ -163,25 +163,35 @@ func (b *Base) IsConditionMet() bool {
 
 func (b *Base) conditionMet() {
 	b.Lock()
-	ConditionMetByPathCounter[b.Path] = ConditionMetByPathCounter[b.Path] + 1
-	b.Unlock()
+	defer b.Unlock()
+
+	ConditionMetByPathCounter[b.Path] = b.ConditionMetCount() + 1
 }
 
 func (b *Base) conditionNoLongerMet() {
 	b.Lock()
+	defer b.Unlock()
 	ConditionMetByPathCounter[b.Path] = 0
-	b.Unlock()
 }
 
 func (b *Base) ConditionMetCount() int {
+	b.RLock()
+	defer b.RUnlock()
+
 	return ConditionMetByPathCounter[b.Path]
 }
 
 func (b *Base) LowThresholdExceeded() bool {
+	b.RLock()
+	defer b.RUnlock()
+
 	return ConditionMetByPathCounter[b.Path] > b.LowThreshold
 }
 
 func (b *Base) HighThresholdExceeded() bool {
+	b.RLock()
+	defer b.RUnlock()
+
 	if b.HighThreshold == 0 {
 		return false
 	}
