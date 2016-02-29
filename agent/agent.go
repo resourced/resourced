@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/Sirupsen/logrus"
-	"github.com/resourced/resourced/Godeps/_workspace/src/github.com/satori/go.uuid"
 	resourced_config "github.com/resourced/resourced/config"
 	"github.com/resourced/resourced/executors"
 	"github.com/resourced/resourced/host"
@@ -17,6 +16,7 @@ import (
 	"github.com/resourced/resourced/readers"
 	"github.com/resourced/resourced/storage"
 	"github.com/resourced/resourced/writers"
+	"github.com/satori/go.uuid"
 )
 
 // New is the constructor for Agent struct.
