@@ -15,6 +15,8 @@ var executorConstructors = make(map[string]func() IExecutor)
 
 var ConditionMetByPathCounter = make(map[string]int)
 
+var ConditionMetByPathCounterMutex = &sync.RWMutex{}
+
 // Register makes any executor constructor available by name.
 func Register(name string, constructor func() IExecutor) {
 	if constructor == nil {
@@ -162,38 +164,39 @@ func (b *Base) IsConditionMet() bool {
 }
 
 func (b *Base) conditionMet() {
-	b.Lock()
-	defer b.Unlock()
+	ConditionMetByPathCounterMutex.Lock()
+	defer ConditionMetByPathCounterMutex.Unlock()
 
 	ConditionMetByPathCounter[b.Path] = b.ConditionMetCount() + 1
 }
 
 func (b *Base) conditionNoLongerMet() {
-	b.Lock()
-	defer b.Unlock()
+	ConditionMetByPathCounterMutex.Lock()
+	defer ConditionMetByPathCounterMutex.Unlock()
+
 	ConditionMetByPathCounter[b.Path] = 0
 }
 
 func (b *Base) ConditionMetCount() int {
-	b.RLock()
-	defer b.RUnlock()
+	ConditionMetByPathCounterMutex.RLock()
+	defer ConditionMetByPathCounterMutex.RUnlock()
 
 	return ConditionMetByPathCounter[b.Path]
 }
 
 func (b *Base) LowThresholdExceeded() bool {
-	b.RLock()
-	defer b.RUnlock()
+	ConditionMetByPathCounterMutex.RLock()
+	defer ConditionMetByPathCounterMutex.RUnlock()
 
-	return ConditionMetByPathCounter[b.Path] > b.LowThreshold
+	return b.ConditionMetCount() > b.LowThreshold
 }
 
 func (b *Base) HighThresholdExceeded() bool {
-	b.RLock()
-	defer b.RUnlock()
+	ConditionMetByPathCounterMutex.RLock()
+	defer ConditionMetByPathCounterMutex.RUnlock()
 
 	if b.HighThreshold == 0 {
 		return false
 	}
-	return ConditionMetByPathCounter[b.Path] > b.HighThreshold
+	return b.ConditionMetCount() > b.HighThreshold
 }
