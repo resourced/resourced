@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"sync"
 
 	"github.com/jmoiron/jsonq"
 	"github.com/robertkrimen/otto"
@@ -25,6 +26,7 @@ type QueryParser struct {
 	tags     map[string]string
 	data     map[string][]byte
 	metadata map[string][]byte
+	sync.RWMutex
 }
 
 func (qp *QueryParser) SetTags(tags map[string]string) {
@@ -100,6 +102,9 @@ func (qp *QueryParser) replaceTagsWithValue(query string) (string, error) {
 }
 
 func (qp *QueryParser) dataValue(datapath, jsonSelector string) (interface{}, error) {
+	qp.Lock()
+	defer qp.Unlock()
+
 	dataJsonBytes := qp.data[datapath]
 	var dataJson map[string]interface{}
 
