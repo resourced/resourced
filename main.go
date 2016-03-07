@@ -1,7 +1,9 @@
 package main
 
 import (
+	"crypto/tls"
 	"errors"
+	"net"
 	"net/http"
 	"os"
 	"runtime"
@@ -53,6 +55,57 @@ func main() {
 
 	a.RunAllForever()
 
+	// Graphite Settings
+	if a.GeneralConfig.Graphite.Addr != "" {
+		var graphiteListener net.Listener
+
+		logFields := logrus.Fields{
+			"Graphite.Addr": a.GeneralConfig.Graphite.Addr,
+			"LogLevel":      a.GeneralConfig.LogLevel,
+		}
+
+		if a.GeneralConfig.Graphite.CertFile != "" && a.GeneralConfig.Graphite.KeyFile != "" {
+			logFields["Graphite.CertFile"] = a.GeneralConfig.Graphite.CertFile
+			logFields["Graphite.KeyFile"] = a.GeneralConfig.Graphite.KeyFile
+
+			cert, err := tls.LoadX509KeyPair(a.GeneralConfig.Graphite.CertFile, a.GeneralConfig.Graphite.KeyFile)
+			if err != nil {
+				logrus.Fatal(err)
+			}
+
+			logrus.WithFields(logFields).Info("Running Graphite TCP+SSL server")
+
+			tlsConfig := &tls.Config{Certificates: []tls.Certificate{cert}}
+
+			graphiteListener, err = tls.Listen("tcp", a.GeneralConfig.Graphite.Addr, tlsConfig)
+			if err != nil {
+				logrus.Fatal(err)
+			}
+			defer graphiteListener.Close()
+
+		} else {
+			logrus.WithFields(logFields).Info("Running Graphite TCP server")
+
+			graphiteListener, err = net.Listen("tcp", a.GeneralConfig.Graphite.Addr)
+			if err != nil {
+				logrus.Fatal(err)
+			}
+			defer graphiteListener.Close()
+		}
+
+		if graphiteListener != nil {
+			go func(graphiteListener net.Listener) {
+				for {
+					conn, err := graphiteListener.Accept()
+					if err == nil {
+						go a.HandleGraphite(conn)
+					}
+				}
+			}(graphiteListener)
+		}
+	}
+
+	// HTTP Settings
 	logFields := logrus.Fields{
 		"Addr":                a.GeneralConfig.Addr,
 		"LogLevel":            a.GeneralConfig.LogLevel,

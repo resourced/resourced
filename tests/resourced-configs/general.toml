@@ -14,3 +14,10 @@ URL = "http://localhost:55655"
 
 # General purpose AccessToken, it will be used when AccessToken is not defined elsewhere.
 AccessToken = "{access-token}"
+
+[Graphite]
+# This is equivalent to Carbon TCP Listener.
+# Send your Graphite key-value data here.
+Addr = ":55556"
+CertFile = ""
+KeyFile = ""

@@ -121,4 +121,9 @@ type GeneralConfig struct {
 		URL         string
 		AccessToken string
 	}
+	Graphite struct {
+		Addr     string
+		CertFile string
+		KeyFile  string
+	}
 }
