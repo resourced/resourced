@@ -24,8 +24,3 @@ tags.environment != "prod"
 # Hostname matcher
 name == "didip-mac-mini.local"
 ```
-
-### Metadata:
-```
-metadata.path/to/data.JSONParent.JSONChild > 10
-```

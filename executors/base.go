@@ -8,7 +8,6 @@ import (
 
 	resourced_config "github.com/resourced/resourced/config"
 	"github.com/resourced/resourced/queryparser"
-	resourced_storage "github.com/resourced/resourced/storage"
 )
 
 var executorConstructors = make(map[string]func() IExecutor)
@@ -77,7 +76,6 @@ type IExecutor interface {
 	SetQueryParser(map[string][]byte)
 	SetReadersDataInBytes(map[string][]byte)
 	SetTags(map[string]string)
-	SetMetadataStorages(*resourced_storage.MetadataStorages)
 	IsConditionMet() bool
 	LowThresholdExceeded() bool
 	HighThresholdExceeded() bool
@@ -104,11 +102,6 @@ type Base struct {
 	Conditions string
 
 	ReadersDataBytes map[string][]byte
-
-	// MetadataStorages provides access to remote key-value data.
-	// For now there's only 1 backend: ResourceD Master.
-	// In the future: etcd or consul.
-	MetadataStorages *resourced_storage.MetadataStorages
 
 	qp *queryparser.QueryParser
 	sync.RWMutex
@@ -140,10 +133,6 @@ func (b *Base) SetReadersDataInBytes(readersJsonBytes map[string][]byte) {
 // SetTags assigns all host tags to qp (QueryParser).
 func (b *Base) SetTags(tags map[string]string) {
 	b.qp.SetTags(tags)
-}
-
-func (b *Base) SetMetadataStorages(metadataStorages *resourced_storage.MetadataStorages) {
-	b.MetadataStorages = metadataStorages
 }
 
 func (b *Base) IsConditionMet() bool {
