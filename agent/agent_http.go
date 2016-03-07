@@ -391,28 +391,6 @@ func (a *Agent) MapExecutorsGetHandlers() map[string]func(w http.ResponseWriter,
 	return handlersMap
 }
 
-// metadataMasterGetHandler returns function that proxy metadata query to ResourceD Master.
-func (a *Agent) metadataMasterGetHandler() func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-	return func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-		w.Header().Set("Content-Type", "application/json")
-
-		path := ps.ByName("path")
-
-		if strings.HasPrefix(path, "/") {
-			path = path[1:]
-		}
-
-		jsonBytes, err := a.MetadataStorages.ResourcedMaster.Get(path)
-		if err != nil {
-			w.WriteHeader(503)
-			w.Write([]byte(fmt.Sprintf(`{"Error": "%v"}`, err)))
-		}
-
-		w.WriteHeader(200)
-		w.Write(jsonBytes)
-	}
-}
-
 // HttpRouter returns HTTP router.
 func (a *Agent) HttpRouter() *httprouter.Router {
 	router := httprouter.New()
@@ -441,8 +419,6 @@ func (a *Agent) HttpRouter() *httprouter.Router {
 	for path, handler := range a.MapExecutorsGetHandlers() {
 		router.GET(path, a.AuthorizeMiddleware(handler))
 	}
-
-	router.GET("/metadata/resourced-master/*path", a.AuthorizeMiddleware(a.metadataMasterGetHandler()))
 
 	return router
 }
