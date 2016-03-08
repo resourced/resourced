@@ -2,6 +2,7 @@ package libmap
 
 import (
 	"encoding/json"
+	"strings"
 	"sync"
 )
 
@@ -48,16 +49,45 @@ type TSafeNestedMapInterface struct {
 }
 
 func (s *TSafeNestedMapInterface) initNestedMap(key string) {
-	// Split key by dot and loop deeper into the nesting & create the maps
+	// Split key by dot, loop deeper into the nesting & create the maps
+	keyParts := strings.Split(key, ".")
+
 	s.Lock()
+	m := s.Data
+
+	for i, keyPart := range keyParts {
+		if i == len(keyParts)-1 {
+			break
+		}
+
+		_, ok := m[keyPart]
+		if !ok {
+			m[keyPart] = make(map[string]interface{})
+		}
+
+		m = m[keyPart].(map[string]interface{})
+	}
 	s.Unlock()
 }
 
 func (s *TSafeNestedMapInterface) Set(key string, value interface{}) {
 	s.initNestedMap(key)
 
+	keyParts := strings.Split(key, ".")
+	lastPart := keyParts[len(keyParts)-1]
+
 	s.Lock()
-	s.Data[key] = value
+	m := s.Data
+
+	for i, keyPart := range keyParts {
+		if i == len(keyParts)-1 {
+			break
+		}
+
+		m = m[keyPart].(map[string]interface{})
+	}
+
+	m[lastPart] = value
 	s.Unlock()
 }
 
@@ -65,9 +95,21 @@ func (s *TSafeNestedMapInterface) Get(key string) interface{} {
 	var data interface{}
 
 	// Split key by dot and loop deeper into the nesting
+	keyParts := strings.Split(key, ".")
+	lastPart := keyParts[len(keyParts)-1]
 
 	s.RLock()
-	data = s.Data[key]
+	m := s.Data
+
+	for i, keyPart := range keyParts {
+		if i == len(keyParts)-1 {
+			break
+		}
+
+		m = m[keyPart].(map[string]interface{})
+	}
+
+	data = m[lastPart]
 	s.RUnlock()
 
 	return data
