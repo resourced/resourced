@@ -12,9 +12,9 @@ import (
 	resourced_config "github.com/resourced/resourced/config"
 	"github.com/resourced/resourced/executors"
 	"github.com/resourced/resourced/host"
+	"github.com/resourced/resourced/libmap"
 	"github.com/resourced/resourced/libtime"
 	"github.com/resourced/resourced/readers"
-	"github.com/resourced/resourced/storage"
 	"github.com/resourced/resourced/writers"
 	"github.com/satori/go.uuid"
 )
@@ -40,10 +40,8 @@ func New() (*Agent, error) {
 		return nil, err
 	}
 
-	err = agent.setStorages()
-	if err != nil {
-		return nil, err
-	}
+	agent.DB = libmap.NewTSafeMapBytes()
+	agent.GraphiteDB = libmap.NewTSafeNestedMapInterface()
 
 	return agent, err
 }
@@ -57,14 +55,8 @@ type Agent struct {
 	Configs       *resourced_config.Configs
 	GeneralConfig resourced_config.GeneralConfig
 	DbPath        string
-	Db            *storage.Storage
-}
-
-func (a *Agent) IsTLS() bool {
-	if a.GeneralConfig.HTTPS.CertFile != "" && a.GeneralConfig.HTTPS.KeyFile != "" {
-		return true
-	}
-	return false
+	DB            *libmap.TSafeMapBytes
+	GraphiteDB    *libmap.TSafeNestedMapInterface
 }
 
 // pathWithPrefix prepends the short version of config.Kind to path.
@@ -142,9 +134,22 @@ func (a *Agent) initGoStructWriter(config resourced_config.Config) (writers.IWri
 	readersData := make(map[string][]byte)
 
 	for _, readerPath := range config.ReaderPaths {
-		readerJsonBytes, err := a.GetRunByPath(a.pathWithKindPrefix("r", readerPath))
-		if err == nil {
-			readersData[readerPath] = readerJsonBytes
+		if strings.HasSuffix(readerPath, "/graphite") {
+			// Special Case: if readerPath contains /graphite
+			record := a.commonGraphiteData()
+			record["Data"] = a.GraphiteDB.Data
+
+			readerJsonBytes, err := json.Marshal(record)
+			if err == nil {
+				readersData[readerPath] = readerJsonBytes
+			}
+
+		} else {
+			// Normal Case: regular /r/reader
+			readerJsonBytes, err := a.GetRunByPath(a.pathWithKindPrefix("r", readerPath))
+			if err == nil {
+				readersData[readerPath] = readerJsonBytes
+			}
 		}
 	}
 
@@ -196,7 +201,7 @@ func (a *Agent) initGoStructExecutor(config resourced_config.Config) (executors.
 		return nil, err
 	}
 
-	executor.SetReadersDataInBytes(a.Db.Data)
+	executor.SetReadersDataInBytes(a.DB.Data)
 	executor.SetTags(a.Tags)
 
 	return executor, nil
@@ -294,6 +299,20 @@ func (a *Agent) commonData(config resourced_config.Config) map[string]interface{
 	return record
 }
 
+// commonGraphiteData gathers common information for graphite reader.
+func (a *Agent) commonGraphiteData() map[string]interface{} {
+	record := make(map[string]interface{})
+	record["UnixNano"] = time.Now().UnixNano()
+	record["Path"] = "/graphite"
+
+	host, err := a.hostData()
+	if err == nil {
+		record["Host"] = host
+	}
+
+	return record
+}
+
 // hostData builds host related information.
 func (a *Agent) hostData() (*host.Host, error) {
 	h, err := host.NewHostByHostname()
@@ -345,7 +364,7 @@ func (a *Agent) saveRun(config resourced_config.Config, output []byte, err error
 		return err
 	}
 
-	a.Db.Set(a.pathWithPrefix(config), recordInJson)
+	a.DB.Set(a.pathWithPrefix(config), recordInJson)
 
 	return err
 }
@@ -357,7 +376,7 @@ func (a *Agent) GetRun(config resourced_config.Config) ([]byte, error) {
 
 // GetRunByPath returns JSON data stored in local storage given path string.
 func (a *Agent) GetRunByPath(path string) ([]byte, error) {
-	return a.Db.Get(path), nil
+	return a.DB.Get(path), nil
 }
 
 // RunForever executes Run() in an infinite loop with a sleep of config.Interval.

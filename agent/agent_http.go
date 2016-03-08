@@ -246,13 +246,16 @@ func (a *Agent) ReaderPathsGetHandler() func(w http.ResponseWriter, r *http.Requ
 	return func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 		w.Header().Set("Content-Type", "application/json")
 
-		payload := make([]string, len(a.Configs.Readers))
+		// all /r/readers + /r/graphite
+		payload := make([]string, len(a.Configs.Readers)+1)
 
 		for i, config := range a.Configs.Readers {
 			if config.Path != "" {
 				payload[i] = a.pathWithPrefix(config)
 			}
 		}
+
+		payload[len(a.Configs.Readers)] = "/r/graphite"
 
 		payloadBytes, err := json.Marshal(payload)
 
@@ -391,6 +394,22 @@ func (a *Agent) MapExecutorsGetHandlers() map[string]func(w http.ResponseWriter,
 	return handlersMap
 }
 
+// ReadersGraphiteGetHandler returns renders graphite readers in JSON.
+func (a *Agent) ReadersGraphiteGetHandler() func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	return func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+		w.Header().Set("Content-Type", "application/json")
+
+		dataInBytes, err := a.GraphiteDB.ToJson()
+		if err != nil {
+			w.WriteHeader(500)
+			w.Write([]byte(fmt.Sprintf(`{"Error": "%v"}`, err.Error())))
+		} else {
+			w.WriteHeader(200)
+			w.Write(dataInBytes)
+		}
+	}
+}
+
 // HttpRouter returns HTTP router.
 func (a *Agent) HttpRouter() *httprouter.Router {
 	router := httprouter.New()
@@ -401,6 +420,8 @@ func (a *Agent) HttpRouter() *httprouter.Router {
 
 	router.GET("/r", a.AuthorizeMiddleware(a.ReadersGetHandler()))
 	router.GET("/r/paths", a.AuthorizeMiddleware(a.ReaderPathsGetHandler()))
+
+	router.GET("/r/graphite", a.AuthorizeMiddleware(a.ReadersGraphiteGetHandler()))
 
 	router.GET("/w", a.AuthorizeMiddleware(a.WritersGetHandler()))
 	router.GET("/w/paths", a.AuthorizeMiddleware(a.WriterPathsGetHandler()))

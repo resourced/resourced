@@ -27,10 +27,10 @@ func NewConfig(fullpath, kind string) (Config, error) {
 
 // NewConfigs creates Configs struct given configDir.
 func NewConfigs(configDir string) (*Configs, error) {
-	storage := &Configs{}
-	storage.Readers = make([]Config, 0)
-	storage.Writers = make([]Config, 0)
-	storage.Executors = make([]Config, 0)
+	configs := &Configs{}
+	configs.Readers = make([]Config, 0)
+	configs.Writers = make([]Config, 0)
+	configs.Executors = make([]Config, 0)
 
 	var err error
 
@@ -48,20 +48,20 @@ func NewConfigs(configDir string) (*Configs, error) {
 				conf, err := NewConfig(fullpath, configKind)
 				if err == nil {
 					if configKind == "reader" {
-						storage.Readers = append(storage.Readers, conf)
+						configs.Readers = append(configs.Readers, conf)
 					}
 					if configKind == "writer" {
-						storage.Writers = append(storage.Writers, conf)
+						configs.Writers = append(configs.Writers, conf)
 					}
 					if configKind == "executor" {
-						storage.Executors = append(storage.Executors, conf)
+						configs.Executors = append(configs.Executors, conf)
 					}
 				}
 			}
 		}
 	}
 
-	return storage, err
+	return configs, err
 }
 
 // Config is a unit of execution for a reader/writer.
