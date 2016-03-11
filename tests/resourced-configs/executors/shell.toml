@@ -3,12 +3,6 @@ Path = "/uptime"
 Interval = "3s"
 
 [GoStructFields]
-# When using a scripting language,
-# the script can access master's metadata API via HTTP. Examples:
-# Given key is foo/bar,
-#   POST   http://localhost:55655/api/metadata/foo/bar
-#   GET    http://localhost:55655/api/metadata/foo/bar
-#   DELETE http://localhost:55655/api/metadata/foo/bar
 Command = "uptime"
 
 # Example on how to read the following condition:

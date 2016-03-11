@@ -4,7 +4,6 @@ package agent
 import (
 	"encoding/json"
 	"fmt"
-	"os"
 	"strings"
 	"time"
 
@@ -42,6 +41,7 @@ func New() (*Agent, error) {
 
 	agent.DB = libmap.NewTSafeMapBytes()
 	agent.GraphiteDB = libmap.NewTSafeNestedMapInterface()
+	agent.ExecutorCounterDB = libmap.NewTSafeMapCounter()
 
 	return agent, err
 }
@@ -49,14 +49,15 @@ func New() (*Agent, error) {
 // Agent struct carries most of the functionality of ResourceD.
 // It collects information through readers and serve them up as HTTP+JSON.
 type Agent struct {
-	ID            string
-	Tags          map[string]string
-	AccessTokens  []string
-	Configs       *resourced_config.Configs
-	GeneralConfig resourced_config.GeneralConfig
-	DbPath        string
-	DB            *libmap.TSafeMapBytes
-	GraphiteDB    *libmap.TSafeNestedMapInterface
+	ID                string
+	Tags              map[string]string
+	AccessTokens      []string
+	Configs           *resourced_config.Configs
+	GeneralConfig     resourced_config.GeneralConfig
+	DbPath            string
+	DB                *libmap.TSafeMapBytes
+	GraphiteDB        *libmap.TSafeNestedMapInterface
+	ExecutorCounterDB *libmap.TSafeMapCounter
 }
 
 // pathWithPrefix prepends the short version of config.Kind to path.
@@ -164,12 +165,6 @@ func (a *Agent) initResourcedMasterWriter(config resourced_config.Config) (write
 
 	if config.GoStruct == "ResourcedMasterHost" {
 		apiPath = "/api/hosts"
-	} else if config.GoStruct == "ResourcedMasterExecutors" {
-		hostname, err := os.Hostname()
-		if err != nil {
-			return nil, err
-		}
-		apiPath = "/api/executors/" + hostname
 	}
 
 	urlFromConfigInterface, ok := config.GoStructFields["Url"]
@@ -202,7 +197,27 @@ func (a *Agent) initGoStructExecutor(config resourced_config.Config) (executors.
 	}
 
 	executor.SetReadersDataInBytes(a.DB.Data)
+	executor.SetCounterDB(a.ExecutorCounterDB)
 	executor.SetTags(a.Tags)
+
+	// Check if ResourcedMasterURL is not defined
+	// If so, set GeneralConfig.ResourcedMaster.URL as default
+	if config.ResourcedMasterURL == "" {
+		executor.SetResourcedMasterURL(a.GeneralConfig.ResourcedMaster.URL)
+	}
+
+	// Check if ResourcedMasterAccessToken is not defined
+	// If so, set GeneralConfig.ResourcedMaster.AccessToken as default
+	if config.ResourcedMasterAccessToken == "" {
+		executor.SetResourcedMasterAccessToken(a.GeneralConfig.ResourcedMaster.AccessToken)
+	}
+
+	host, err := a.hostData()
+	if err != nil {
+		return nil, err
+	}
+
+	executor.SetHostData(host)
 
 	return executor, nil
 }

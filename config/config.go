@@ -6,6 +6,7 @@ import (
 	"path"
 
 	"github.com/BurntSushi/toml"
+	"github.com/resourced/resourced/host"
 	"github.com/resourced/resourced/libstring"
 )
 
@@ -72,6 +73,7 @@ type Config struct {
 	GoStructFields map[string]interface{}
 	Path           string
 	Interval       string
+	Host           *host.Host
 
 	// There are 3 kinds: reader, writer, and executor
 	Kind string
@@ -81,9 +83,11 @@ type Config struct {
 	ReaderPaths []string
 
 	// Executor specific fields
-	LowThreshold  int64
-	HighThreshold int64
-	Conditions    string
+	LowThreshold               int64
+	HighThreshold              int64
+	Conditions                 string
+	ResourcedMasterURL         string
+	ResourcedMasterAccessToken string
 }
 
 // Configs stores all readers and writers configuration.

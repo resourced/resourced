@@ -6,12 +6,11 @@ import (
 	"io/ioutil"
 	"testing"
 
+	"github.com/resourced/resourced/libmap"
 	"github.com/resourced/resourced/libstring"
 )
 
 func TestDiskCleanerRun(t *testing.T) {
-	ResetConditionsMetByPath()
-
 	config := newConfigExecutorForTest(t)
 	config.GoStruct = "DiskCleaner"
 	config.Kind = "executor"
@@ -35,6 +34,9 @@ func TestDiskCleanerRun(t *testing.T) {
 	if err != nil {
 		t.Errorf("Shell constructor did not do its job. Error: %v", err)
 	}
+
+	counterDB := libmap.NewTSafeMapCounter()
+	executor.SetCounterDB(counterDB)
 
 	executor.Run()
 

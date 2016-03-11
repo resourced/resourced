@@ -3,11 +3,11 @@ package executors
 import (
 	"encoding/json"
 	"testing"
+
+	"github.com/resourced/resourced/libmap"
 )
 
 func TestShellRun(t *testing.T) {
-	ResetConditionsMetByPath()
-
 	config := newConfigExecutorForTest(t)
 
 	executor, err := NewGoStructByConfig(config)
@@ -17,6 +17,9 @@ func TestShellRun(t *testing.T) {
 	if err != nil {
 		t.Errorf("Shell constructor did not do its job. Error: %v", err)
 	}
+
+	counterDB := libmap.NewTSafeMapCounter()
+	executor.SetCounterDB(counterDB)
 
 	executor.Run()
 

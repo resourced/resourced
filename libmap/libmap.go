@@ -37,6 +37,45 @@ func (s *TSafeMapBytes) ToJson() ([]byte, error) {
 	return json.Marshal(s.Data)
 }
 
+func NewTSafeMapCounter() *TSafeMapCounter {
+	s := &TSafeMapCounter{}
+	s.Data = make(map[string]int)
+	return s
+}
+
+type TSafeMapCounter struct {
+	Data map[string]int
+	sync.RWMutex
+}
+
+func (s *TSafeMapCounter) Incr(key string, value int) {
+	s.Lock()
+	s.Data[key] = s.Data[key] + value
+	s.Unlock()
+}
+
+func (s *TSafeMapCounter) Get(key string) int {
+	s.RLock()
+	defer s.RUnlock()
+
+	data, ok := s.Data[key]
+	if !ok {
+		data = 0
+	}
+
+	return data
+}
+
+func (s *TSafeMapCounter) Reset(key string) {
+	s.Lock()
+	s.Data[key] = 0
+	s.Unlock()
+}
+
+func (s *TSafeMapCounter) ToJson() ([]byte, error) {
+	return json.Marshal(s.Data)
+}
+
 func NewTSafeNestedMapInterface() *TSafeNestedMapInterface {
 	s := &TSafeNestedMapInterface{}
 	s.Data = make(map[string]interface{})

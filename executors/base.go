@@ -2,19 +2,21 @@
 package executors
 
 import (
+	"bytes"
+	"encoding/json"
 	"errors"
+	"net/http"
 	"reflect"
-	"sync"
+
+	"github.com/Sirupsen/logrus"
 
 	resourced_config "github.com/resourced/resourced/config"
+	"github.com/resourced/resourced/host"
+	"github.com/resourced/resourced/libmap"
 	"github.com/resourced/resourced/queryparser"
 )
 
 var executorConstructors = make(map[string]func() IExecutor)
-
-var ConditionMetByPathCounter = make(map[string]int)
-
-var ConditionMetByPathCounterMutex = &sync.RWMutex{}
 
 // Register makes any executor constructor available by name.
 func Register(name string, constructor func() IExecutor) {
@@ -25,10 +27,6 @@ func Register(name string, constructor func() IExecutor) {
 		panic("executor: Register called twice for executor constructor " + name)
 	}
 	executorConstructors[name] = constructor
-}
-
-func ResetConditionsMetByPath() {
-	ConditionMetByPathCounter = make(map[string]int)
 }
 
 // NewGoStruct instantiates IExecutor
@@ -71,6 +69,10 @@ type IExecutor interface {
 	SetPath(string)
 	GetPath() string
 	SetInterval(string)
+	SetResourcedMasterURL(string)
+	SetResourcedMasterAccessToken(string)
+	SetHostData(*host.Host)
+	SetCounterDB(*libmap.TSafeMapCounter)
 	Run() error
 	ToJson() ([]byte, error)
 	SetQueryParser(map[string][]byte)
@@ -79,7 +81,6 @@ type IExecutor interface {
 	IsConditionMet() bool
 	LowThresholdExceeded() bool
 	HighThresholdExceeded() bool
-	ConditionMetCount() int
 }
 
 type Base struct {
@@ -93,18 +94,25 @@ type Base struct {
 	Interval string
 
 	// LowThreshold: minimum count of valid conditions
-	LowThreshold int
+	LowThreshold int64
 
 	// HighThreshold: maximum count of valid conditions
-	HighThreshold int
+	HighThreshold int64
 
-	// Conditions for when executor should run. It uses javascript.
+	// Conditions for when executor should run.
 	Conditions string
+
+	// Host data
+	Host *host.Host
+
+	ResourcedMasterURL         string
+	ResourcedMasterAccessToken string
 
 	ReadersDataBytes map[string][]byte
 
 	qp *queryparser.QueryParser
-	sync.RWMutex
+
+	counterDB *libmap.TSafeMapCounter
 }
 
 func (b *Base) SetPath(path string) {
@@ -123,6 +131,10 @@ func (b *Base) SetQueryParser(readersJsonBytes map[string][]byte) {
 	b.qp = queryparser.New(readersJsonBytes, nil)
 }
 
+func (b *Base) SetCounterDB(db *libmap.TSafeMapCounter) {
+	b.counterDB = db
+}
+
 // SetReadersDataInBytes pulls readers data and store them on ReadersData field.
 func (b *Base) SetReadersDataInBytes(readersJsonBytes map[string][]byte) {
 	b.ReadersDataBytes = readersJsonBytes
@@ -135,6 +147,18 @@ func (b *Base) SetTags(tags map[string]string) {
 	b.qp.SetTags(tags)
 }
 
+func (b *Base) SetResourcedMasterURL(resourcedMasterURL string) {
+	b.ResourcedMasterURL = resourcedMasterURL
+}
+
+func (b *Base) SetResourcedMasterAccessToken(resourcedMasterAccessToken string) {
+	b.ResourcedMasterAccessToken = resourcedMasterAccessToken
+}
+
+func (b *Base) SetHostData(hostData *host.Host) {
+	b.Host = hostData
+}
+
 func (b *Base) IsConditionMet() bool {
 	if b.Conditions == "" {
 		b.Conditions = "true"
@@ -144,48 +168,84 @@ func (b *Base) IsConditionMet() bool {
 	if err != nil {
 		return false
 	}
+
 	if result == true {
-		b.conditionMet()
+		// Condition is met, increment counter by 1
+		b.counterDB.Incr(b.Path, 1)
 	} else {
-		b.conditionNoLongerMet()
+		// Condition is no longer met, reset counter to 0
+		b.counterDB.Reset(b.Path)
 	}
 	return result
 }
 
-func (b *Base) conditionMet() {
-	ConditionMetByPathCounterMutex.Lock()
-	defer ConditionMetByPathCounterMutex.Unlock()
-
-	ConditionMetByPathCounter[b.Path] = b.ConditionMetCount() + 1
-}
-
-func (b *Base) conditionNoLongerMet() {
-	ConditionMetByPathCounterMutex.Lock()
-	defer ConditionMetByPathCounterMutex.Unlock()
-
-	ConditionMetByPathCounter[b.Path] = 0
-}
-
-func (b *Base) ConditionMetCount() int {
-	ConditionMetByPathCounterMutex.RLock()
-	defer ConditionMetByPathCounterMutex.RUnlock()
-
-	return ConditionMetByPathCounter[b.Path]
-}
-
 func (b *Base) LowThresholdExceeded() bool {
-	ConditionMetByPathCounterMutex.RLock()
-	defer ConditionMetByPathCounterMutex.RUnlock()
-
-	return b.ConditionMetCount() > b.LowThreshold
+	return int64(b.counterDB.Get(b.Path)) > b.LowThreshold
 }
 
 func (b *Base) HighThresholdExceeded() bool {
-	ConditionMetByPathCounterMutex.RLock()
-	defer ConditionMetByPathCounterMutex.RUnlock()
-
 	if b.HighThreshold == 0 {
 		return false
 	}
-	return b.ConditionMetCount() > b.HighThreshold
+	return int64(b.counterDB.Get(b.Path)) > b.HighThreshold
+}
+
+// NewHttpRequest builds and returns http.Request struct.
+func (b *Base) NewHttpRequest(dataJson []byte) (*http.Request, error) {
+	var err error
+
+	if b.ResourcedMasterURL == "" {
+		return nil, errors.New("ResourcedMasterURL is undefined.")
+	}
+
+	if b.ResourcedMasterAccessToken == "" {
+		return nil, errors.New("ResourcedMasterAccessToken is undefined.")
+	}
+
+	url := b.ResourcedMasterURL + "/api/executors"
+
+	req, err := http.NewRequest("POST", url, bytes.NewBuffer(dataJson))
+	if err != nil {
+		return nil, err
+	}
+
+	req.SetBasicAuth(b.ResourcedMasterAccessToken, "")
+
+	return req, err
+}
+
+// Send executor data to master
+func (b *Base) SendToMaster(data map[string]interface{}) error {
+	toSend := make(map[string]interface{})
+	toSend["Data"] = data
+	toSend["Host"] = b.Host
+
+	dataJson, err := json.Marshal(toSend)
+	if err != nil {
+		return err
+	}
+
+	req, err := b.NewHttpRequest(dataJson)
+	if err != nil {
+		return err
+	}
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+
+	if err != nil {
+		logrus.WithFields(logrus.Fields{
+			"Error":      err.Error(),
+			"req.URL":    req.URL.String(),
+			"req.Method": req.Method,
+		}).Error("Failed to send executor data to ResourceD Master")
+
+		return err
+	}
+
+	if resp.Body != nil {
+		resp.Body.Close()
+	}
+
+	return nil
 }

@@ -43,6 +43,11 @@ func (dc *DiskCleaner) Run() error {
 				dc.Data["Error"] = err.Error()
 				dc.Data["ExitStatus"] = 1
 
+				sendErr := dc.SendToMaster(dc.Data)
+				if sendErr != nil {
+					logrus.Error(sendErr)
+				}
+
 				return err
 			}
 
@@ -65,12 +70,9 @@ func (dc *DiskCleaner) Run() error {
 		dc.Data["Success"] = successOutput
 		dc.Data["Failure"] = failOutput
 
-		if len(failOutput) > 0 || len(successOutput) > 0 {
-			logrus.WithFields(logrus.Fields{
-				"Success":    successOutput,
-				"Failure":    failOutput,
-				"ExitStatus": dc.Data["ExitStatus"],
-			}).Info("Deleted files")
+		sendErr := dc.SendToMaster(dc.Data)
+		if sendErr != nil {
+			logrus.Error(sendErr)
 		}
 	}
 

@@ -3,5 +3,17 @@ Path = "/disk-cleaner/home"
 Interval = "3s"
 
 [GoStructFields]
-Globs = ["~/*.log", "~/*.gz"]
+# LowThreshold: minimum count of valid conditions to trigger.
+LowThreshold = 1
+
+# HighThreshold: maximum count of valid conditions to stop triggering.
+# HighThreshold = 100
+
 Conditions = "/r/df./tmp.UsePercent > 20"
+
+# Uncomment the followings to send executor data to master.
+# When they are commented, ResourcedMaster data on general.toml will be used.
+# ResourcedMasterURL = "http://localhost:55655"
+# ResourcedMasterAccessToken = "{access-token}"
+
+Globs = ["/private/tmp/*.log", "/tmp/*.gz", "~/*.log"]

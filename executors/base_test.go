@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	resourced_config "github.com/resourced/resourced/config"
+	"github.com/resourced/resourced/libmap"
 )
 
 func newConfigExecutorForTest(t *testing.T) resourced_config.Config {
@@ -19,8 +20,6 @@ func newConfigExecutorForTest(t *testing.T) resourced_config.Config {
 }
 
 func TestDynamicConstructor(t *testing.T) {
-	ResetConditionsMetByPath()
-
 	config := newConfigExecutorForTest(t)
 
 	executor, err := NewGoStructByConfig(config)
@@ -30,6 +29,9 @@ func TestDynamicConstructor(t *testing.T) {
 	if err != nil {
 		t.Errorf("Shell constructor did not do its job. Error: %v", err)
 	}
+
+	counterDB := libmap.NewTSafeMapCounter()
+	executor.SetCounterDB(counterDB)
 
 	// Test simple run, see if it works
 	executor.Run()
@@ -51,8 +53,6 @@ func TestDynamicConstructor(t *testing.T) {
 }
 
 func TestIsConditionMetDefaultQuery(t *testing.T) {
-	ResetConditionsMetByPath()
-
 	config := newConfigExecutorForTest(t)
 
 	executor, err := NewGoStructByConfig(config)
@@ -63,14 +63,15 @@ func TestIsConditionMetDefaultQuery(t *testing.T) {
 		t.Errorf("Shell constructor did not do its job. Error: %v", err)
 	}
 
+	counterDB := libmap.NewTSafeMapCounter()
+	executor.SetCounterDB(counterDB)
+
 	if executor.IsConditionMet() == false {
 		t.Fatalf("The default query is [true], so IsConditionMet should always be true. Value: %v", executor.IsConditionMet())
 	}
 }
 
 func TestIsConditionsMetCustomQuery(t *testing.T) {
-	ResetConditionsMetByPath()
-
 	config := newConfigExecutorForTest(t)
 	config.GoStructFields["Conditions"] = `/r/load-avg.LoadAvg1m < 100`
 
@@ -85,6 +86,8 @@ func TestIsConditionsMetCustomQuery(t *testing.T) {
 		t.Errorf("Shell constructor did not do its job. Error: %v", err)
 	}
 
+	counterDB := libmap.NewTSafeMapCounter()
+	executor.SetCounterDB(counterDB)
 	executor.SetReadersDataInBytes(data)
 
 	if executor.IsConditionMet() == false {
@@ -93,12 +96,10 @@ func TestIsConditionsMetCustomQuery(t *testing.T) {
 }
 
 func TestRunAndCheckConditionsMet(t *testing.T) {
-	ResetConditionsMetByPath()
-
 	config := newConfigExecutorForTest(t)
 	config.GoStructFields["Conditions"] = `/r/load-avg.LoadAvg1m < 100`
-	config.GoStructFields["LowThreshold"] = 1
-	config.GoStructFields["HighThreshold"] = 2
+	config.GoStructFields["LowThreshold"] = int64(1)
+	config.GoStructFields["HighThreshold"] = int64(2)
 
 	data := make(map[string][]byte)
 	data["/r/load-avg"] = []byte(`{"Data": {"LoadAvg1m": 0.904296875}}`)
@@ -111,6 +112,8 @@ func TestRunAndCheckConditionsMet(t *testing.T) {
 		t.Errorf("Shell constructor did not do its job. Error: %v", err)
 	}
 
+	counterDB := libmap.NewTSafeMapCounter()
+	executor.SetCounterDB(counterDB)
 	executor.SetReadersDataInBytes(data)
 
 	err = executor.Run()
@@ -119,10 +122,10 @@ func TestRunAndCheckConditionsMet(t *testing.T) {
 	}
 
 	if executor.LowThresholdExceeded() == true {
-		t.Errorf("Ran only 1 time. LowThreshold should not have been exceeded yet. ConditionMetByPathCounter: %v", ConditionMetByPathCounter["/x/uptime"])
+		t.Errorf("Ran only 1 time. LowThreshold should not have been exceeded yet. Counter: %v", counterDB.Get("/x/uptime"))
 	}
 	executor.Run()
 	if executor.HighThresholdExceeded() == true {
-		t.Errorf("Ran 2 times. LowThreshold should have been exceeded. ConditionMetByPathCounter: %v", ConditionMetByPathCounter["/x/uptime"])
+		t.Errorf("Ran 2 times. LowThreshold should have been exceeded. Counter: %v", counterDB.Get("/x/uptime"))
 	}
 }
