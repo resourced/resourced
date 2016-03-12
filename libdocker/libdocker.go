@@ -11,6 +11,7 @@ import (
 )
 
 var connections map[string]*dockerclient.Client
+var connectionsLock = &sync.RWMutex{}
 
 type CompleteDockerContainer struct {
 	NiceImageName string `json:"NiceImageName,omitempty" yaml:"NiceImageName,omitempty"`
@@ -43,7 +44,11 @@ func DockerClient(endpoint string) (*dockerclient.Client, error) {
 	}
 
 	// Do not create connection if one already exist.
-	if existingConnection, ok := connections[endpoint]; ok && existingConnection != nil {
+	connectionsLock.RLock()
+	existingConnection, ok := connections[endpoint]
+	connectionsLock.RUnlock()
+
+	if ok && existingConnection != nil {
 		return existingConnection, nil
 	}
 
@@ -59,7 +64,9 @@ func DockerClient(endpoint string) (*dockerclient.Client, error) {
 	}
 
 	if err == nil && conn != nil {
+		connectionsLock.Lock()
 		connections[endpoint] = conn
+		connectionsLock.Unlock()
 	}
 
 	return conn, err
