@@ -4,6 +4,8 @@ package config
 import (
 	"io/ioutil"
 	"path"
+	"strings"
+	"time"
 
 	"github.com/BurntSushi/toml"
 	"github.com/resourced/resourced/host"
@@ -88,6 +90,54 @@ type Config struct {
 	Conditions                 string
 	ResourcedMasterURL         string
 	ResourcedMasterAccessToken string
+}
+
+// CommonJsonData returns common information for every reader/writer/executor JSON interpretation.
+func (c *Config) CommonJsonData() map[string]interface{} {
+	record := make(map[string]interface{})
+	record["UnixNano"] = time.Now().UnixNano()
+	record["Path"] = c.Path
+
+	if c.Interval == "" {
+		c.Interval = "1m"
+	}
+	record["Interval"] = c.Interval
+
+	if c.GoStruct != "" {
+		record["GoStruct"] = c.GoStruct
+	}
+
+	return record
+}
+
+// PathWithPrefix prepends the short version of config.Kind to path.
+func (c *Config) PathWithPrefix() string {
+	if c.Kind == "reader" {
+		return c.PathWithKindPrefix("r", "")
+	} else if c.Kind == "writer" {
+		return c.PathWithKindPrefix("w", "")
+	} else if c.Kind == "executor" {
+		return c.PathWithKindPrefix("x", "")
+	}
+	return c.Path
+}
+
+// PathWithKindPrefix is common prepender function
+func (c *Config) PathWithKindPrefix(kind string, input string) string {
+	prefix := "/" + kind
+
+	if input != "" {
+		if strings.HasPrefix(input, prefix+"/") {
+			return input
+		} else {
+			return prefix + input
+		}
+
+	} else {
+		return prefix + c.Path
+	}
+
+	return ""
 }
 
 // Configs stores all readers and writers configuration.

@@ -60,37 +60,7 @@ type Agent struct {
 	ExecutorCounterDB *libmap.TSafeMapCounter
 }
 
-// pathWithPrefix prepends the short version of config.Kind to path.
-func (a *Agent) pathWithPrefix(config resourced_config.Config) string {
-	if config.Kind == "reader" {
-		return a.pathWithKindPrefix("r", config)
-	} else if config.Kind == "writer" {
-		return a.pathWithKindPrefix("w", config)
-	} else if config.Kind == "executor" {
-		return a.pathWithKindPrefix("x", config)
-	}
-	return config.Path
-}
-
-// pathWithKindPrefix is common function called by pathWithReaderPrefix or pathWithWriterPrefix
-func (a *Agent) pathWithKindPrefix(kind string, input interface{}) string {
-	prefix := "/" + kind
-
-	switch v := input.(type) {
-	case resourced_config.Config:
-		return prefix + v.Path
-	case string:
-		if strings.HasPrefix(v, prefix+"/") {
-			return v
-		} else {
-			return prefix + v
-		}
-	}
-	return ""
-}
-
-// Run executes a reader/writer config.
-// Run will save reader data as JSON in local db.
+// Run executes a reader/writer/executor config.
 func (a *Agent) Run(config resourced_config.Config) (output []byte, err error) {
 	if config.GoStruct != "" && config.Kind == "reader" {
 		output, err = a.runGoStructReader(config)
@@ -147,7 +117,7 @@ func (a *Agent) initGoStructWriter(config resourced_config.Config) (writers.IWri
 
 		} else {
 			// Normal Case: regular /r/reader
-			readerJsonBytes, err := a.GetRunByPath(a.pathWithKindPrefix("r", readerPath))
+			readerJsonBytes, err := a.GetRunByPath(config.PathWithKindPrefix("r", readerPath))
 			if err == nil {
 				readersData[readerPath] = readerJsonBytes
 			}
@@ -296,24 +266,6 @@ func (a *Agent) runGoStructExecutor(config resourced_config.Config) ([]byte, err
 	return a.runGoStruct(executor)
 }
 
-// commonData gathers common information for every reader and writer.
-func (a *Agent) commonData(config resourced_config.Config) map[string]interface{} {
-	record := make(map[string]interface{})
-	record["UnixNano"] = time.Now().UnixNano()
-	record["Path"] = config.Path
-
-	if config.Interval == "" {
-		config.Interval = "1m"
-	}
-	record["Interval"] = config.Interval
-
-	if config.GoStruct != "" {
-		record["GoStruct"] = config.GoStruct
-	}
-
-	return record
-}
-
 // commonGraphiteData gathers common information for graphite reader.
 func (a *Agent) commonGraphiteData() map[string]interface{} {
 	record := make(map[string]interface{})
@@ -352,7 +304,7 @@ func (a *Agent) saveRun(config resourced_config.Config, output []byte, err error
 		return nil
 	}
 
-	record := a.commonData(config)
+	record := config.CommonJsonData()
 
 	host, err := a.hostData()
 	if err != nil {
@@ -379,14 +331,14 @@ func (a *Agent) saveRun(config resourced_config.Config, output []byte, err error
 		return err
 	}
 
-	a.DB.Set(a.pathWithPrefix(config), recordInJson)
+	a.DB.Set(config.PathWithPrefix(), recordInJson)
 
 	return err
 }
 
 // GetRun returns the JSON data stored in local storage given Config struct.
 func (a *Agent) GetRun(config resourced_config.Config) ([]byte, error) {
-	return a.GetRunByPath(a.pathWithPrefix(config))
+	return a.GetRunByPath(config.PathWithPrefix())
 }
 
 // GetRunByPath returns JSON data stored in local storage given path string.

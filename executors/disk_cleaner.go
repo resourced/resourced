@@ -5,7 +5,6 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/Sirupsen/logrus"
 	"github.com/resourced/resourced/libstring"
 )
 
@@ -43,11 +42,6 @@ func (dc *DiskCleaner) Run() error {
 				dc.Data["Error"] = err.Error()
 				dc.Data["ExitStatus"] = 1
 
-				sendErr := dc.SendToMaster(dc.Data)
-				if sendErr != nil {
-					logrus.Error(sendErr)
-				}
-
 				return err
 			}
 
@@ -70,9 +64,10 @@ func (dc *DiskCleaner) Run() error {
 		dc.Data["Success"] = successOutput
 		dc.Data["Failure"] = failOutput
 
-		sendErr := dc.SendToMaster(dc.Data)
-		if sendErr != nil {
-			logrus.Error(sendErr)
+		if len(successOutput) > 0 && len(failOutput) > 0 {
+			go func() {
+				dc.SendToMaster(dc.Data)
+			}()
 		}
 	}
 

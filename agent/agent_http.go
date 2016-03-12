@@ -65,7 +65,7 @@ func (a *Agent) RootGetHandler() func(w http.ResponseWriter, r *http.Request, ps
 		arrayOfReaderJsonString := "[]"
 
 		for _, config := range a.Configs.Readers {
-			jsonData, err := a.GetRunByPath(a.pathWithPrefix(config))
+			jsonData, err := a.GetRunByPath(config.PathWithPrefix())
 			if err == nil && jsonData != nil {
 				readerJsonBytes = append(readerJsonBytes, string(jsonData))
 			}
@@ -78,7 +78,7 @@ func (a *Agent) RootGetHandler() func(w http.ResponseWriter, r *http.Request, ps
 		arrayOfWriterJsonString := "[]"
 
 		for _, config := range a.Configs.Writers {
-			jsonData, err := a.GetRunByPath(a.pathWithPrefix(config))
+			jsonData, err := a.GetRunByPath(config.PathWithPrefix())
 			if err == nil && jsonData != nil {
 				writerJsonBytes = append(writerJsonBytes, string(jsonData))
 			}
@@ -91,7 +91,7 @@ func (a *Agent) RootGetHandler() func(w http.ResponseWriter, r *http.Request, ps
 		arrayOfExecutorJsonString := "[]"
 
 		for _, config := range a.Configs.Executors {
-			jsonData, err := a.GetRunByPath(a.pathWithPrefix(config))
+			jsonData, err := a.GetRunByPath(config.PathWithPrefix())
 			if err == nil && jsonData != nil {
 				executorJsonBytes = append(executorJsonBytes, string(jsonData))
 			}
@@ -120,7 +120,7 @@ func (a *Agent) ReadersGetHandler() func(w http.ResponseWriter, r *http.Request,
 		arrayOfReaderJsonString := "[]"
 
 		for _, config := range a.Configs.Readers {
-			jsonData, err := a.GetRunByPath(a.pathWithPrefix(config))
+			jsonData, err := a.GetRunByPath(config.PathWithPrefix())
 			if err == nil && jsonData != nil {
 				readerJsonBytes = append(readerJsonBytes, string(jsonData))
 			}
@@ -149,7 +149,7 @@ func (a *Agent) WritersGetHandler() func(w http.ResponseWriter, r *http.Request,
 		arrayOfWriterJsonString := "[]"
 
 		for _, config := range a.Configs.Writers {
-			jsonData, err := a.GetRunByPath(a.pathWithPrefix(config))
+			jsonData, err := a.GetRunByPath(config.PathWithPrefix())
 			if err == nil && jsonData != nil {
 				writerJsonBytes = append(writerJsonBytes, string(jsonData))
 			}
@@ -178,7 +178,7 @@ func (a *Agent) ExecutorsGetHandler() func(w http.ResponseWriter, r *http.Reques
 		arrayOfWriterJsonString := "[]"
 
 		for _, config := range a.Configs.Executors {
-			jsonData, err := a.GetRunByPath(a.pathWithPrefix(config))
+			jsonData, err := a.GetRunByPath(config.PathWithPrefix())
 			if err == nil && jsonData != nil {
 				writerJsonBytes = append(writerJsonBytes, string(jsonData))
 			}
@@ -210,19 +210,19 @@ func (a *Agent) PathsGetHandler() func(w http.ResponseWriter, r *http.Request, p
 
 		for i, config := range a.Configs.Readers {
 			if config.Path != "" {
-				payload["Readers"][i] = a.pathWithPrefix(config)
+				payload["Readers"][i] = config.PathWithPrefix()
 			}
 		}
 
 		for i, config := range a.Configs.Writers {
 			if config.Path != "" {
-				payload["Writers"][i] = a.pathWithPrefix(config)
+				payload["Writers"][i] = config.PathWithPrefix()
 			}
 		}
 
 		for i, config := range a.Configs.Executors {
 			if config.Path != "" {
-				payload["Executors"][i] = a.pathWithPrefix(config)
+				payload["Executors"][i] = config.PathWithPrefix()
 			}
 		}
 
@@ -251,7 +251,7 @@ func (a *Agent) ReaderPathsGetHandler() func(w http.ResponseWriter, r *http.Requ
 
 		for i, config := range a.Configs.Readers {
 			if config.Path != "" {
-				payload[i] = a.pathWithPrefix(config)
+				payload[i] = config.PathWithPrefix()
 			}
 		}
 
@@ -281,7 +281,7 @@ func (a *Agent) WriterPathsGetHandler() func(w http.ResponseWriter, r *http.Requ
 
 		for i, config := range a.Configs.Writers {
 			if config.Path != "" {
-				payload[i] = a.pathWithPrefix(config)
+				payload[i] = config.PathWithPrefix()
 			}
 		}
 
@@ -309,7 +309,7 @@ func (a *Agent) ExecutorPathsGetHandler() func(w http.ResponseWriter, r *http.Re
 
 		for i, config := range a.Configs.Executors {
 			if config.Path != "" {
-				payload[i] = a.pathWithPrefix(config)
+				payload[i] = config.PathWithPrefix()
 			}
 		}
 
@@ -361,7 +361,7 @@ func (a *Agent) MapReadersGetHandlers() map[string]func(w http.ResponseWriter, r
 
 	for _, config := range a.Configs.Readers {
 		if config.Path != "" {
-			path := a.pathWithPrefix(config)
+			path := config.PathWithPrefix()
 			handlersMap[path] = a.handlerByPath(path, config)
 		}
 	}
@@ -374,7 +374,7 @@ func (a *Agent) MapWritersGetHandlers() map[string]func(w http.ResponseWriter, r
 
 	for _, config := range a.Configs.Writers {
 		if config.Path != "" {
-			path := a.pathWithPrefix(config)
+			path := config.PathWithPrefix()
 			handlersMap[path] = a.handlerByPath(path, config)
 		}
 	}
@@ -387,7 +387,7 @@ func (a *Agent) MapExecutorsGetHandlers() map[string]func(w http.ResponseWriter,
 
 	for _, config := range a.Configs.Executors {
 		if config.Path != "" {
-			path := a.pathWithPrefix(config)
+			path := config.PathWithPrefix()
 			handlersMap[path] = a.handlerByPath(path, config)
 		}
 	}

@@ -98,54 +98,6 @@ func TestHttpRouter(t *testing.T) {
 	}
 }
 
-func TestPathWithPrefix(t *testing.T) {
-	agent := createAgentForTest(t)
-
-	config := agent.Configs.Readers[1]
-
-	path := agent.pathWithPrefix(config)
-	if !strings.HasPrefix(path, "/r") {
-		t.Errorf("Path should have been prefixed with /r. Path: %v", path)
-	}
-	if strings.HasPrefix(path, "/w") {
-		t.Errorf("Path is prefixed incorrectly. Path: %v", path)
-	}
-}
-
-func TestpathWithKindPrefix(t *testing.T) {
-	agent := createAgentForTest(t)
-
-	toBeTested := agent.pathWithKindPrefix("r", "/stuff")
-	if toBeTested != "/r/stuff" {
-		t.Errorf("Path is prefixed incorrectly. toBeTested: %v", toBeTested)
-	}
-
-	toBeTested = agent.pathWithKindPrefix("r", "/r/stuff")
-	if toBeTested != "/r/stuff" {
-		t.Errorf("Path is prefixed incorrectly. toBeTested: %v", toBeTested)
-	}
-
-	toBeTested = agent.pathWithKindPrefix("w", "/stuff")
-	if toBeTested != "/w/stuff" {
-		t.Errorf("Path is prefixed incorrectly. toBeTested: %v", toBeTested)
-	}
-
-	toBeTested = agent.pathWithKindPrefix("w", "/w/stuff")
-	if toBeTested != "/w/stuff" {
-		t.Errorf("Path is prefixed incorrectly. toBeTested: %v", toBeTested)
-	}
-
-	toBeTested = agent.pathWithKindPrefix("x", "/stuff")
-	if toBeTested != "/w/stuff" {
-		t.Errorf("Path is prefixed incorrectly. toBeTested: %v", toBeTested)
-	}
-
-	toBeTested = agent.pathWithKindPrefix("x", "/x/stuff")
-	if toBeTested != "/x/stuff" {
-		t.Errorf("Path is prefixed incorrectly. toBeTested: %v", toBeTested)
-	}
-}
-
 func TestInitGoStructReader(t *testing.T) {
 	agent := createAgentForTest(t)
 
@@ -192,28 +144,6 @@ func TestInitGoStructWriter(t *testing.T) {
 		goStructField := reflect.ValueOf(writer).Elem().FieldByName(field)
 		if goStructField.String() != value {
 			t.Errorf("writer.%s is not set through the config. Url: %v", field, goStructField.String())
-		}
-	}
-}
-
-func TestCommonData(t *testing.T) {
-	agent := createAgentForTest(t)
-
-	var config resourced_config.Config
-	for _, c := range agent.Configs.Readers {
-		if c.GoStruct == "DockerContainersMemory" {
-			config = c
-			break
-		}
-	}
-
-	record := agent.commonData(config)
-	if len(record) == 0 {
-		t.Error("common data should never be empty")
-	}
-	for _, key := range []string{"UnixNano", "Path", "Interval"} {
-		if _, ok := record[key]; !ok {
-			t.Errorf("%v data should never be empty.", key)
 		}
 	}
 }
