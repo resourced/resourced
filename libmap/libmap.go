@@ -24,13 +24,10 @@ func (s *TSafeMapBytes) Set(key string, value []byte) {
 }
 
 func (s *TSafeMapBytes) Get(key string) []byte {
-	var data []byte
+	s.RLock()
+	defer s.RUnlock()
 
-	s.Lock()
-	data = s.Data[key]
-	s.Unlock()
-
-	return data
+	return s.Data[key]
 }
 
 func (s *TSafeMapBytes) ToJson() ([]byte, error) {

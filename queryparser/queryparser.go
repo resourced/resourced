@@ -9,23 +9,29 @@ import (
 
 	"github.com/jmoiron/jsonq"
 	"github.com/robertkrimen/otto"
+
+	"github.com/resourced/resourced/libmap"
 )
 
 func New(data map[string][]byte, tags map[string]string) *QueryParser {
 	hostname, _ := os.Hostname()
 
+	libmap.NewTSafeMapBytes()
+
 	qp := &QueryParser{}
 	qp.hostname = hostname
 	qp.tags = tags
-	qp.data = data
+
+	qp.data = libmap.NewTSafeMapBytes()
+	qp.data.Data = data
+
 	return qp
 }
 
 type QueryParser struct {
 	hostname string
 	tags     map[string]string
-	data     map[string][]byte
-	metadata map[string][]byte
+	data     *libmap.TSafeMapBytes
 	sync.RWMutex
 }
 
@@ -102,10 +108,7 @@ func (qp *QueryParser) replaceTagsWithValue(query string) (string, error) {
 }
 
 func (qp *QueryParser) dataValue(datapath, jsonSelector string) (interface{}, error) {
-	qp.Lock()
-	defer qp.Unlock()
-
-	dataJsonBytes := qp.data[datapath]
+	dataJsonBytes := qp.data.Get(datapath)
 	var dataJson map[string]interface{}
 
 	err := json.Unmarshal(dataJsonBytes, &dataJson)
