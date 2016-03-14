@@ -30,7 +30,7 @@ func TestDynamicConstructor(t *testing.T) {
 		t.Errorf("Shell constructor did not do its job. Error: %v", err)
 	}
 
-	counterDB := libmap.NewTSafeMapCounter()
+	counterDB := libmap.NewTSafeMapCounter(nil)
 	executor.SetCounterDB(counterDB)
 
 	// Test simple run, see if it works
@@ -63,7 +63,7 @@ func TestIsConditionMetDefaultQuery(t *testing.T) {
 		t.Errorf("Shell constructor did not do its job. Error: %v", err)
 	}
 
-	counterDB := libmap.NewTSafeMapCounter()
+	counterDB := libmap.NewTSafeMapCounter(nil)
 	executor.SetCounterDB(counterDB)
 
 	if executor.IsConditionMet() == false {
@@ -86,7 +86,7 @@ func TestIsConditionsMetCustomQuery(t *testing.T) {
 		t.Errorf("Shell constructor did not do its job. Error: %v", err)
 	}
 
-	counterDB := libmap.NewTSafeMapCounter()
+	counterDB := libmap.NewTSafeMapCounter(nil)
 	executor.SetCounterDB(counterDB)
 	executor.SetReadersDataInBytes(data)
 
@@ -112,7 +112,7 @@ func TestRunAndCheckConditionsMet(t *testing.T) {
 		t.Errorf("Shell constructor did not do its job. Error: %v", err)
 	}
 
-	counterDB := libmap.NewTSafeMapCounter()
+	counterDB := libmap.NewTSafeMapCounter(nil)
 	executor.SetCounterDB(counterDB)
 	executor.SetReadersDataInBytes(data)
 

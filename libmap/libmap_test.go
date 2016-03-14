@@ -7,7 +7,7 @@ import (
 func TestTSafeMapBytesSetGet(t *testing.T) {
 	testData := `{"Free": 1000, "Used": 500}`
 
-	s := NewTSafeMapBytes()
+	s := NewTSafeMapBytes(nil)
 	s.Set("/free", []byte(testData))
 
 	if string(s.Get("/free")) != testData {
@@ -16,7 +16,7 @@ func TestTSafeMapBytesSetGet(t *testing.T) {
 }
 
 func TestTSafeNestedMapInterfaceInitNestedMap(t *testing.T) {
-	m := NewTSafeNestedMapInterface()
+	m := NewTSafeNestedMapInterface(nil)
 	m.initNestedMap("aaa.bbb.ccc")
 
 	if m.Data["aaa"] == nil {
@@ -36,7 +36,7 @@ func TestTSafeNestedMapInterfaceInitNestedMap(t *testing.T) {
 }
 
 func TestTSafeNestedMapInterfaceSetGet(t *testing.T) {
-	m := NewTSafeNestedMapInterface()
+	m := NewTSafeNestedMapInterface(nil)
 
 	m.Set("aaa.bbb.ccc", 42)
 

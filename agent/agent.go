@@ -39,9 +39,9 @@ func New() (*Agent, error) {
 		return nil, err
 	}
 
-	agent.DB = libmap.NewTSafeMapBytes()
-	agent.GraphiteDB = libmap.NewTSafeNestedMapInterface()
-	agent.ExecutorCounterDB = libmap.NewTSafeMapCounter()
+	agent.DB = libmap.NewTSafeMapBytes(nil)
+	agent.GraphiteDB = libmap.NewTSafeNestedMapInterface(nil)
+	agent.ExecutorCounterDB = libmap.NewTSafeMapCounter(nil)
 
 	return agent, err
 }
@@ -108,7 +108,7 @@ func (a *Agent) initGoStructWriter(config resourced_config.Config) (writers.IWri
 		if strings.HasSuffix(readerPath, "/graphite") {
 			// Special Case: if readerPath contains /graphite
 			record := a.commonGraphiteData()
-			record["Data"] = a.GraphiteDB.Data
+			record["Data"] = a.GraphiteDB.All()
 
 			readerJsonBytes, err := json.Marshal(record)
 			if err == nil {
@@ -166,7 +166,7 @@ func (a *Agent) initGoStructExecutor(config resourced_config.Config) (executors.
 		return nil, err
 	}
 
-	executor.SetReadersDataInBytes(a.DB.Data)
+	executor.SetReadersDataInBytes(a.DB.All())
 	executor.SetCounterDB(a.ExecutorCounterDB)
 	executor.SetTags(a.Tags)
 

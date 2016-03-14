@@ -18,7 +18,7 @@ func TestShellRun(t *testing.T) {
 		t.Errorf("Shell constructor did not do its job. Error: %v", err)
 	}
 
-	counterDB := libmap.NewTSafeMapCounter()
+	counterDB := libmap.NewTSafeMapCounter(nil)
 	executor.SetCounterDB(counterDB)
 
 	executor.Run()

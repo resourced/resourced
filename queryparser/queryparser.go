@@ -16,14 +16,11 @@ import (
 func New(data map[string][]byte, tags map[string]string) *QueryParser {
 	hostname, _ := os.Hostname()
 
-	libmap.NewTSafeMapBytes()
-
 	qp := &QueryParser{}
 	qp.hostname = hostname
 	qp.tags = tags
 
-	qp.data = libmap.NewTSafeMapBytes()
-	qp.data.Data = data
+	qp.data = libmap.NewTSafeMapBytes(data)
 
 	return qp
 }

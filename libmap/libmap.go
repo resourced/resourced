@@ -6,20 +6,24 @@ import (
 	"sync"
 )
 
-func NewTSafeMapBytes() *TSafeMapBytes {
+func NewTSafeMapBytes(data map[string][]byte) *TSafeMapBytes {
 	s := &TSafeMapBytes{}
-	s.Data = make(map[string][]byte)
+	if data == nil {
+		s.data = make(map[string][]byte)
+	} else {
+		s.data = data
+	}
 	return s
 }
 
 type TSafeMapBytes struct {
-	Data map[string][]byte
+	data map[string][]byte
 	sync.RWMutex
 }
 
 func (s *TSafeMapBytes) Set(key string, value []byte) {
 	s.Lock()
-	s.Data[key] = value
+	s.data[key] = value
 	s.Unlock()
 }
 
@@ -27,27 +31,35 @@ func (s *TSafeMapBytes) Get(key string) []byte {
 	s.RLock()
 	defer s.RUnlock()
 
-	return s.Data[key]
+	return s.data[key]
+}
+
+func (s *TSafeMapBytes) All() map[string][]byte {
+	return s.data
 }
 
 func (s *TSafeMapBytes) ToJson() ([]byte, error) {
-	return json.Marshal(s.Data)
+	return json.Marshal(s.data)
 }
 
-func NewTSafeMapCounter() *TSafeMapCounter {
+func NewTSafeMapCounter(data map[string]int) *TSafeMapCounter {
 	s := &TSafeMapCounter{}
-	s.Data = make(map[string]int)
+	if data == nil {
+		s.data = make(map[string]int)
+	} else {
+		s.data = data
+	}
 	return s
 }
 
 type TSafeMapCounter struct {
-	Data map[string]int
+	data map[string]int
 	sync.RWMutex
 }
 
 func (s *TSafeMapCounter) Incr(key string, value int) {
 	s.Lock()
-	s.Data[key] = s.Data[key] + value
+	s.data[key] = s.data[key] + value
 	s.Unlock()
 }
 
@@ -55,7 +67,7 @@ func (s *TSafeMapCounter) Get(key string) int {
 	s.RLock()
 	defer s.RUnlock()
 
-	data, ok := s.Data[key]
+	data, ok := s.data[key]
 	if !ok {
 		data = 0
 	}
@@ -65,22 +77,30 @@ func (s *TSafeMapCounter) Get(key string) int {
 
 func (s *TSafeMapCounter) Reset(key string) {
 	s.Lock()
-	s.Data[key] = 0
+	s.data[key] = 0
 	s.Unlock()
 }
 
-func (s *TSafeMapCounter) ToJson() ([]byte, error) {
-	return json.Marshal(s.Data)
+func (s *TSafeMapCounter) All() map[string]int {
+	return s.data
 }
 
-func NewTSafeNestedMapInterface() *TSafeNestedMapInterface {
+func (s *TSafeMapCounter) ToJson() ([]byte, error) {
+	return json.Marshal(s.data)
+}
+
+func NewTSafeNestedMapInterface(data map[string]interface{}) *TSafeNestedMapInterface {
 	s := &TSafeNestedMapInterface{}
-	s.Data = make(map[string]interface{})
+	if data == nil {
+		s.data = make(map[string]interface{})
+	} else {
+		s.data = data
+	}
 	return s
 }
 
 type TSafeNestedMapInterface struct {
-	Data map[string]interface{}
+	data map[string]interface{}
 	sync.RWMutex
 }
 
@@ -89,7 +109,7 @@ func (s *TSafeNestedMapInterface) initNestedMap(key string) {
 	keyParts := strings.Split(key, ".")
 
 	s.Lock()
-	m := s.Data
+	m := s.data
 
 	for i, keyPart := range keyParts {
 		if i == len(keyParts)-1 {
@@ -113,7 +133,7 @@ func (s *TSafeNestedMapInterface) Set(key string, value interface{}) {
 	lastPart := keyParts[len(keyParts)-1]
 
 	s.Lock()
-	m := s.Data
+	m := s.data
 
 	for i, keyPart := range keyParts {
 		if i == len(keyParts)-1 {
@@ -135,7 +155,7 @@ func (s *TSafeNestedMapInterface) Get(key string) interface{} {
 	lastPart := keyParts[len(keyParts)-1]
 
 	s.RLock()
-	m := s.Data
+	m := s.data
 
 	for i, keyPart := range keyParts {
 		if i == len(keyParts)-1 {
@@ -151,6 +171,10 @@ func (s *TSafeNestedMapInterface) Get(key string) interface{} {
 	return data
 }
 
+func (s *TSafeNestedMapInterface) All() map[string]interface{} {
+	return s.data
+}
+
 func (s *TSafeNestedMapInterface) ToJson() ([]byte, error) {
-	return json.Marshal(s.Data)
+	return json.Marshal(s.data)
 }

@@ -39,9 +39,13 @@ func DockerClient(endpoint string) (*dockerclient.Client, error) {
 		}
 	}
 
+	connectionsLock.RLock()
 	if connections == nil {
+		connectionsLock.Lock()
 		connections = make(map[string]*dockerclient.Client)
+		connectionsLock.Unlock()
 	}
+	connectionsLock.RUnlock()
 
 	// Do not create connection if one already exist.
 	connectionsLock.RLock()
