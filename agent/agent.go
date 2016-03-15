@@ -364,7 +364,7 @@ func (a *Agent) RunForever(config resourced_config.Config) {
 }
 
 // SendLog sends log lines to master.
-func (a *Agent) SendLog(config resourced_config.TCPConfig) error {
+func (a *Agent) SendLog(config resourced_config.LogReceiverConfig) error {
 	loglines := a.LogDB.Get("Loglines")
 	if len(loglines) <= 0 {
 		return nil
@@ -396,7 +396,7 @@ func (a *Agent) SendLog(config resourced_config.TCPConfig) error {
 	client := &http.Client{}
 	resp, err := client.Do(req)
 
-	if resp.Body != nil {
+	if resp != nil && resp.Body != nil {
 		defer resp.Body.Close()
 	}
 
@@ -416,8 +416,8 @@ func (a *Agent) SendLog(config resourced_config.TCPConfig) error {
 }
 
 // SendLogForever sends log lines to master in an infinite loop.
-func (a *Agent) SendLogForever(config resourced_config.TCPConfig) {
-	go func(a *Agent, config resourced_config.TCPConfig) {
+func (a *Agent) SendLogForever(config resourced_config.LogReceiverConfig) {
+	go func(a *Agent, config resourced_config.LogReceiverConfig) {
 		for {
 			a.SendLog(config)
 			libtime.SleepString(config.WriteToMasterInterval)

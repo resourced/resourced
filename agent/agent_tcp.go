@@ -12,18 +12,18 @@ import (
 	resourced_config "github.com/resourced/resourced/config"
 )
 
-func (a *Agent) NewTCPServer(config resourced_config.TCPConfig, name string) (net.Listener, error) {
-	if config.Addr != "" {
+func (a *Agent) NewTCPServer(config resourced_config.ITCPServer, name string) (net.Listener, error) {
+	if config.GetAddr() != "" {
 		logFields := logrus.Fields{
-			"LogReceiver.Addr": config.Addr,
+			"LogReceiver.Addr": config.GetAddr(),
 			"LogLevel":         a.GeneralConfig.LogLevel,
 		}
 
-		if config.CertFile != "" && config.KeyFile != "" {
-			logFields["LogReceiver.CertFile"] = config.CertFile
-			logFields["LogReceiver.KeyFile"] = config.KeyFile
+		if config.GetCertFile() != "" && config.GetKeyFile() != "" {
+			logFields["LogReceiver.CertFile"] = config.GetCertFile()
+			logFields["LogReceiver.KeyFile"] = config.GetKeyFile()
 
-			cert, err := tls.LoadX509KeyPair(config.CertFile, config.KeyFile)
+			cert, err := tls.LoadX509KeyPair(config.GetCertFile(), config.GetKeyFile())
 			if err != nil {
 				logrus.WithFields(logFields).Fatal(err)
 				return nil, err
@@ -33,12 +33,12 @@ func (a *Agent) NewTCPServer(config resourced_config.TCPConfig, name string) (ne
 
 			tlsConfig := &tls.Config{Certificates: []tls.Certificate{cert}}
 
-			return tls.Listen("tcp", config.Addr, tlsConfig)
+			return tls.Listen("tcp", config.GetAddr(), tlsConfig)
 
 		} else {
 			logrus.WithFields(logFields).Info("Running " + name + " server")
 
-			return net.Listen("tcp", config.Addr)
+			return net.Listen("tcp", config.GetAddr())
 		}
 	}
 

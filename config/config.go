@@ -13,22 +13,6 @@ import (
 	"github.com/resourced/resourced/libstring"
 )
 
-// NewConfig creates Config struct given fullpath and kind.
-func NewConfig(fullpath, kind string) (Config, error) {
-	fullpath = libstring.ExpandTildeAndEnv(fullpath)
-
-	var config Config
-	_, err := toml.DecodeFile(fullpath, &config)
-
-	if config.Interval == "" {
-		config.Interval = "1m"
-	}
-
-	config.Kind = kind
-
-	return config, err
-}
-
 // NewConfigs creates Configs struct given configDir.
 func NewConfigs(configDir string) (*Configs, error) {
 	configs := &Configs{}
@@ -66,6 +50,29 @@ func NewConfigs(configDir string) (*Configs, error) {
 	}
 
 	return configs, err
+}
+
+// Configs stores all readers, writers, and executors configuration.
+type Configs struct {
+	Readers   []Config
+	Writers   []Config
+	Executors []Config
+}
+
+// NewConfig creates Config struct given fullpath and kind.
+func NewConfig(fullpath, kind string) (Config, error) {
+	fullpath = libstring.ExpandTildeAndEnv(fullpath)
+
+	var config Config
+	_, err := toml.DecodeFile(fullpath, &config)
+
+	if config.Interval == "" {
+		config.Interval = "1m"
+	}
+
+	config.Kind = kind
+
+	return config, err
 }
 
 // Config is a unit of execution for a reader/writer.
@@ -141,13 +148,6 @@ func (c *Config) PathWithKindPrefix(kind string, input string) string {
 	return ""
 }
 
-// Configs stores all readers and writers configuration.
-type Configs struct {
-	Readers   []Config
-	Writers   []Config
-	Executors []Config
-}
-
 // NewGeneralConfig is the constructor for GeneralConfig.
 func NewGeneralConfig(configDir string) (GeneralConfig, error) {
 	configDir = libstring.ExpandTildeAndEnv(configDir)
@@ -163,11 +163,34 @@ func NewGeneralConfig(configDir string) (GeneralConfig, error) {
 	return config, err
 }
 
+type ITCPServer interface {
+	GetAddr() string
+	GetCertFile() string
+	GetKeyFile() string
+}
+
 type TCPConfig struct {
-	Addr                  string
-	CertFile              string
-	KeyFile               string
-	WriteToMasterInterval string
+	Addr     string
+	CertFile string
+	KeyFile  string
+}
+
+func (c TCPConfig) GetAddr() string {
+	return c.Addr
+}
+
+func (c TCPConfig) GetCertFile() string {
+	return c.CertFile
+}
+
+func (c TCPConfig) GetKeyFile() string {
+	return c.KeyFile
+}
+
+type LogReceiverConfig struct {
+	TCPConfig
+	WriteToMasterInterval  string
+	AutoPruneStorageLength int64
 }
 
 // GeneralConfig stores all other configuration data.
@@ -184,5 +207,5 @@ type GeneralConfig struct {
 		AccessToken string
 	}
 	Graphite    TCPConfig
-	LogReceiver TCPConfig
+	LogReceiver LogReceiverConfig
 }

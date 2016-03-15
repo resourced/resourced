@@ -216,6 +216,10 @@ func (b *Base) NewHttpRequest(dataJson []byte) (*http.Request, error) {
 
 // Send executor data to master
 func (b *Base) SendToMaster(loglines []string) error {
+	if loglines == nil {
+		return nil
+	}
+
 	toSend := make(map[string]interface{})
 	toSend["Loglines"] = loglines
 	toSend["Host"] = b.Host
@@ -233,7 +237,7 @@ func (b *Base) SendToMaster(loglines []string) error {
 	client := &http.Client{}
 	resp, err := client.Do(req)
 
-	if resp.Body != nil {
+	if resp != nil && resp.Body != nil {
 		defer resp.Body.Close()
 	}
 
