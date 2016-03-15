@@ -410,6 +410,22 @@ func (a *Agent) ReadersGraphiteGetHandler() func(w http.ResponseWriter, r *http.
 	}
 }
 
+// LogsGetHandler returns renders graphite readers in JSON.
+func (a *Agent) LogsGetHandler() func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	return func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+		w.Header().Set("Content-Type", "application/json")
+
+		dataInBytes, err := a.LogDB.ToJson()
+		if err != nil {
+			w.WriteHeader(500)
+			w.Write([]byte(fmt.Sprintf(`{"Error": "%v"}`, err.Error())))
+		} else {
+			w.WriteHeader(200)
+			w.Write(dataInBytes)
+		}
+	}
+}
+
 // HttpRouter returns HTTP router.
 func (a *Agent) HttpRouter() *httprouter.Router {
 	router := httprouter.New()
@@ -428,6 +444,8 @@ func (a *Agent) HttpRouter() *httprouter.Router {
 
 	router.GET("/x", a.AuthorizeMiddleware(a.ExecutorsGetHandler()))
 	router.GET("/x/paths", a.AuthorizeMiddleware(a.ExecutorPathsGetHandler()))
+
+	router.GET("/logs", a.AuthorizeMiddleware(a.LogsGetHandler()))
 
 	for path, handler := range a.MapReadersGetHandlers() {
 		router.GET(path, a.AuthorizeMiddleware(handler))

@@ -21,3 +21,10 @@ AccessToken = "{access-token}"
 Addr = ":55556"
 CertFile = ""
 KeyFile = ""
+
+[LogReceiver]
+# Send your logs over TCP here.
+Addr = ":55557"
+CertFile = ""
+KeyFile = ""
+WriteToMasterInterval = "60s"

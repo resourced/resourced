@@ -1,7 +1,6 @@
 package main
 
 import (
-	"crypto/tls"
 	"errors"
 	"net"
 	"net/http"
@@ -56,53 +55,39 @@ func main() {
 	a.RunAllForever()
 
 	// Graphite Settings
-	if a.GeneralConfig.Graphite.Addr != "" {
-		var graphiteListener net.Listener
+	graphiteListener, err := a.NewTCPServer(a.GeneralConfig.Graphite, "Graphite TCP")
+	if err != nil {
+		logrus.Fatal(err)
+	}
+	if graphiteListener != nil {
+		defer graphiteListener.Close()
 
-		logFields := logrus.Fields{
-			"Graphite.Addr": a.GeneralConfig.Graphite.Addr,
-			"LogLevel":      a.GeneralConfig.LogLevel,
-		}
-
-		if a.GeneralConfig.Graphite.CertFile != "" && a.GeneralConfig.Graphite.KeyFile != "" {
-			logFields["Graphite.CertFile"] = a.GeneralConfig.Graphite.CertFile
-			logFields["Graphite.KeyFile"] = a.GeneralConfig.Graphite.KeyFile
-
-			cert, err := tls.LoadX509KeyPair(a.GeneralConfig.Graphite.CertFile, a.GeneralConfig.Graphite.KeyFile)
-			if err != nil {
-				logrus.Fatal(err)
-			}
-
-			logrus.WithFields(logFields).Info("Running Graphite TCP+SSL server")
-
-			tlsConfig := &tls.Config{Certificates: []tls.Certificate{cert}}
-
-			graphiteListener, err = tls.Listen("tcp", a.GeneralConfig.Graphite.Addr, tlsConfig)
-			if err != nil {
-				logrus.Fatal(err)
-			}
-			defer graphiteListener.Close()
-
-		} else {
-			logrus.WithFields(logFields).Info("Running Graphite TCP server")
-
-			graphiteListener, err = net.Listen("tcp", a.GeneralConfig.Graphite.Addr)
-			if err != nil {
-				logrus.Fatal(err)
-			}
-			defer graphiteListener.Close()
-		}
-
-		if graphiteListener != nil {
-			go func(graphiteListener net.Listener) {
-				for {
-					conn, err := graphiteListener.Accept()
-					if err == nil {
-						go a.HandleGraphite(conn)
-					}
+		go func(graphiteListener net.Listener) {
+			for {
+				conn, err := graphiteListener.Accept()
+				if err == nil {
+					go a.HandleGraphite(conn)
 				}
-			}(graphiteListener)
-		}
+			}
+		}(graphiteListener)
+	}
+
+	// LogReceiver TCP Settings
+	logReceiverListener, err := a.NewTCPServer(a.GeneralConfig.LogReceiver, "Log Receiver TCP")
+	if err != nil {
+		logrus.Fatal(err)
+	}
+	if logReceiverListener != nil {
+		defer logReceiverListener.Close()
+
+		go func(logReceiverListener net.Listener) {
+			for {
+				conn, err := logReceiverListener.Accept()
+				if err == nil {
+					go a.HandleLog(conn)
+				}
+			}
+		}(logReceiverListener)
 	}
 
 	// HTTP Settings

@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/BurntSushi/toml"
+
 	"github.com/resourced/resourced/host"
 	"github.com/resourced/resourced/libstring"
 )
@@ -162,6 +163,13 @@ func NewGeneralConfig(configDir string) (GeneralConfig, error) {
 	return config, err
 }
 
+type TCPConfig struct {
+	Addr                  string
+	CertFile              string
+	KeyFile               string
+	WriteToMasterInterval string
+}
+
 // GeneralConfig stores all other configuration data.
 type GeneralConfig struct {
 	Addr     string
@@ -175,9 +183,6 @@ type GeneralConfig struct {
 		URL         string
 		AccessToken string
 	}
-	Graphite struct {
-		Addr     string
-		CertFile string
-		KeyFile  string
-	}
+	Graphite    TCPConfig
+	LogReceiver TCPConfig
 }

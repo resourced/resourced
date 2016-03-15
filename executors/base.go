@@ -233,6 +233,10 @@ func (b *Base) SendToMaster(loglines []string) error {
 	client := &http.Client{}
 	resp, err := client.Do(req)
 
+	if resp.Body != nil {
+		defer resp.Body.Close()
+	}
+
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
 			"Error":      err.Error(),
@@ -241,10 +245,6 @@ func (b *Base) SendToMaster(loglines []string) error {
 		}).Error("Failed to send executor data to ResourceD Master")
 
 		return err
-	}
-
-	if resp.Body != nil {
-		resp.Body.Close()
 	}
 
 	return nil

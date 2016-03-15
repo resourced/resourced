@@ -2,12 +2,16 @@
 package agent
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
+	"net/http"
 	"strings"
 	"time"
 
 	"github.com/Sirupsen/logrus"
+	"github.com/satori/go.uuid"
+
 	resourced_config "github.com/resourced/resourced/config"
 	"github.com/resourced/resourced/executors"
 	"github.com/resourced/resourced/host"
@@ -15,7 +19,6 @@ import (
 	"github.com/resourced/resourced/libtime"
 	"github.com/resourced/resourced/readers"
 	"github.com/resourced/resourced/writers"
-	"github.com/satori/go.uuid"
 )
 
 // New is the constructor for Agent struct.
@@ -39,9 +42,12 @@ func New() (*Agent, error) {
 		return nil, err
 	}
 
-	agent.DB = libmap.NewTSafeMapBytes(nil)
+	agent.ReaderDB = libmap.NewTSafeMapBytes(nil)
 	agent.GraphiteDB = libmap.NewTSafeNestedMapInterface(nil)
 	agent.ExecutorCounterDB = libmap.NewTSafeMapCounter(nil)
+	agent.LogDB = libmap.NewTSafeMapStrings(map[string][]string{
+		"Loglines": make([]string, 0),
+	})
 
 	return agent, err
 }
@@ -55,9 +61,10 @@ type Agent struct {
 	Configs           *resourced_config.Configs
 	GeneralConfig     resourced_config.GeneralConfig
 	DbPath            string
-	DB                *libmap.TSafeMapBytes
+	ReaderDB          *libmap.TSafeMapBytes
 	GraphiteDB        *libmap.TSafeNestedMapInterface
 	ExecutorCounterDB *libmap.TSafeMapCounter
+	LogDB             *libmap.TSafeMapStrings
 }
 
 // Run executes a reader/writer/executor config.
@@ -166,7 +173,7 @@ func (a *Agent) initGoStructExecutor(config resourced_config.Config) (executors.
 		return nil, err
 	}
 
-	executor.SetReadersDataInBytes(a.DB.All())
+	executor.SetReadersDataInBytes(a.ReaderDB.All())
 	executor.SetCounterDB(a.ExecutorCounterDB)
 	executor.SetTags(a.Tags)
 
@@ -331,7 +338,7 @@ func (a *Agent) saveRun(config resourced_config.Config, output []byte, err error
 		return err
 	}
 
-	a.DB.Set(config.PathWithPrefix(), recordInJson)
+	a.ReaderDB.Set(config.PathWithPrefix(), recordInJson)
 
 	return err
 }
@@ -343,7 +350,7 @@ func (a *Agent) GetRun(config resourced_config.Config) ([]byte, error) {
 
 // GetRunByPath returns JSON data stored in local storage given path string.
 func (a *Agent) GetRunByPath(path string) ([]byte, error) {
-	return a.DB.Get(path), nil
+	return a.ReaderDB.Get(path), nil
 }
 
 // RunForever executes Run() in an infinite loop with a sleep of config.Interval.
@@ -356,7 +363,69 @@ func (a *Agent) RunForever(config resourced_config.Config) {
 	}(a, config)
 }
 
-// RunAllForever executes all readers & writers in an infinite loop.
+// SendLog sends log lines to master.
+func (a *Agent) SendLog(config resourced_config.TCPConfig) error {
+	loglines := a.LogDB.Get("Loglines")
+	if len(loglines) <= 0 {
+		return nil
+	}
+
+	toSend := make(map[string]interface{})
+	toSend["Loglines"] = loglines
+
+	host, err := a.hostData()
+	if err != nil {
+		return err
+	}
+	toSend["Host"] = host
+
+	dataJson, err := json.Marshal(toSend)
+	if err != nil {
+		return err
+	}
+
+	url := a.GeneralConfig.ResourcedMaster.URL + "/api/logs"
+
+	req, err := http.NewRequest("POST", url, bytes.NewBuffer(dataJson))
+	if err != nil {
+		return err
+	}
+
+	req.SetBasicAuth(a.GeneralConfig.ResourcedMaster.AccessToken, "")
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+
+	if resp.Body != nil {
+		defer resp.Body.Close()
+	}
+
+	if err != nil {
+		logrus.WithFields(logrus.Fields{
+			"Error":      err.Error(),
+			"req.URL":    req.URL.String(),
+			"req.Method": req.Method,
+		}).Error("Failed to send logs data to ResourceD Master")
+
+		return err
+	}
+
+	a.LogDB.Reset("Loglines")
+
+	return nil
+}
+
+// SendLogForever sends log lines to master in an infinite loop.
+func (a *Agent) SendLogForever(config resourced_config.TCPConfig) {
+	go func(a *Agent, config resourced_config.TCPConfig) {
+		for {
+			a.SendLog(config)
+			libtime.SleepString(config.WriteToMasterInterval)
+		}
+	}(a, config)
+}
+
+// RunAllForever runs everything in an infinite loop.
 func (a *Agent) RunAllForever() {
 	for _, config := range a.Configs.Readers {
 		a.RunForever(config)
@@ -367,4 +436,6 @@ func (a *Agent) RunAllForever() {
 	for _, config := range a.Configs.Executors {
 		a.RunForever(config)
 	}
+
+	a.SendLogForever(a.GeneralConfig.LogReceiver)
 }
