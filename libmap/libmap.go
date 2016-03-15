@@ -23,19 +23,27 @@ type TSafeMapBytes struct {
 
 func (s *TSafeMapBytes) Set(key string, value []byte) {
 	s.Lock()
+	defer s.Unlock()
 	s.data[key] = value
-	s.Unlock()
 }
 
 func (s *TSafeMapBytes) Get(key string) []byte {
-	s.RLock()
-	defer s.RUnlock()
+	s.Lock()
+	defer s.Unlock()
 
 	return s.data[key]
 }
 
 func (s *TSafeMapBytes) All() map[string][]byte {
-	return s.data
+	s.Lock()
+	defer s.Unlock()
+
+	copydata := make(map[string][]byte)
+	for key, value := range s.data {
+		copydata[key] = value
+	}
+
+	return copydata
 }
 
 func (s *TSafeMapBytes) ToJson() ([]byte, error) {
@@ -82,7 +90,15 @@ func (s *TSafeMapCounter) Reset(key string) {
 }
 
 func (s *TSafeMapCounter) All() map[string]int {
-	return s.data
+	s.Lock()
+	defer s.Unlock()
+
+	copydata := make(map[string]int)
+	for key, value := range s.data {
+		copydata[key] = value
+	}
+
+	return copydata
 }
 
 func (s *TSafeMapCounter) ToJson() ([]byte, error) {
@@ -172,7 +188,15 @@ func (s *TSafeNestedMapInterface) Get(key string) interface{} {
 }
 
 func (s *TSafeNestedMapInterface) All() map[string]interface{} {
-	return s.data
+	s.Lock()
+	defer s.Unlock()
+
+	copydata := make(map[string]interface{})
+	for key, value := range s.data {
+		copydata[key] = value
+	}
+
+	return copydata
 }
 
 func (s *TSafeNestedMapInterface) ToJson() ([]byte, error) {
