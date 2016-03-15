@@ -6,7 +6,7 @@ Interval = "3s"
 Command = "uptime"
 
 # Example on how to read the following condition:
-# 1. /r/load-avg is the JSON endpoint.
+# 1. /r/load-avg is the path to reader JSON.
 # 2. Dot (.) notation is used to drill deeper into the JSON nested structures.
 # 3. You can use && or || for multiple conditions.
 Conditions = "/r/load-avg.LoadAvg1m > 2"

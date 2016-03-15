@@ -1,6 +1,6 @@
 GoStruct = "DiskCleaner"
 Path = "/disk-cleaner/home"
-Interval = "3s"
+Interval = "60s"
 
 [GoStructFields]
 # LowThreshold: minimum count of valid conditions to trigger.
@@ -9,7 +9,11 @@ LowThreshold = 1
 # HighThreshold: maximum count of valid conditions to stop triggering.
 # HighThreshold = 100
 
-Conditions = "/r/df./tmp.UsePercent > 20"
+# Example on how to read the following condition:
+# 1. /r/df is the path to reader JSON.
+# 2. Dot (.) notation is used to drill deeper into the JSON nested structures.
+# 3. You can use && or || for multiple conditions.
+Conditions = "/r/df./tmp.UsePercent < 20 || /r/df./.UsePercent < 25"
 
 # Uncomment the followings to send executor data to master.
 # When they are commented, ResourcedMaster data on general.toml will be used.

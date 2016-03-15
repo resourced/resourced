@@ -215,9 +215,9 @@ func (b *Base) NewHttpRequest(dataJson []byte) (*http.Request, error) {
 }
 
 // Send executor data to master
-func (b *Base) SendToMaster(data map[string]interface{}) error {
+func (b *Base) SendToMaster(loglines []string) error {
 	toSend := make(map[string]interface{})
-	toSend["Data"] = data
+	toSend["Loglines"] = loglines
 	toSend["Host"] = b.Host
 
 	dataJson, err := json.Marshal(toSend)
