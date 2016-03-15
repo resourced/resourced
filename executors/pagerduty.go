@@ -2,7 +2,9 @@ package executors
 
 import (
 	"encoding/json"
+	"fmt"
 
+	"github.com/Sirupsen/logrus"
 	"github.com/dselans/pagerduty"
 )
 
@@ -38,11 +40,21 @@ func (pd *PagerDuty) Run() error {
 
 		response, statusCode, err := pagerduty.Submit(event)
 
-		pd.Data["IncidentKey"] = response.IncidentKey
-		pd.Data["Status"] = response.Status
-		pd.Data["StatusCode"] = statusCode
-		pd.Data["Message"] = response.Message
-		pd.Data["Errors"] = response.Errors
+		if response != nil {
+			pd.Data["IncidentKey"] = response.IncidentKey
+			pd.Data["Status"] = response.Status
+			pd.Data["StatusCode"] = statusCode
+			pd.Data["Message"] = response.Message
+			pd.Data["Errors"] = response.Errors
+
+			go func() {
+				loglines := pd.formatBeforeSendingToMaster(pd.Data)
+				err := pd.SendToMaster(loglines)
+				if err != nil {
+					logrus.Error(err)
+				}
+			}()
+		}
 
 		if err != nil {
 			return err
@@ -55,4 +67,23 @@ func (pd *PagerDuty) Run() error {
 // ToJson serialize Data field to JSON.
 func (pd *PagerDuty) ToJson() ([]byte, error) {
 	return json.Marshal(pd.Data)
+}
+
+func (pd *PagerDuty) formatBeforeSendingToMaster(data map[string]interface{}) []string {
+	logline := fmt.Sprintf("Conditions: %v. IncidentKey: %v. ", pd.Conditions, pd.IncidentKey)
+
+	if status, ok := data["Status"]; ok {
+		logline = logline + fmt.Sprintf("Status: %v. ", status)
+	}
+	if statusCode, ok := data["StatusCode"]; ok {
+		logline = logline + fmt.Sprintf("StatusCode: %v. ", statusCode)
+	}
+	if message, ok := data["Message"]; ok {
+		logline = logline + fmt.Sprintf("Message: %v. ", message)
+	}
+	if errors, ok := data["Errors"]; ok && len(errors.([]string)) > 0 {
+		logline = logline + fmt.Sprintf("Errors: %v. ", errors)
+	}
+
+	return []string{logline}
 }

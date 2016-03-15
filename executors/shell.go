@@ -2,6 +2,9 @@ package executors
 
 import (
 	"encoding/json"
+	"fmt"
+
+	"github.com/Sirupsen/logrus"
 
 	"github.com/resourced/resourced/libprocess"
 )
@@ -36,6 +39,13 @@ func (s *Shell) Run() error {
 		} else {
 			s.Data["ExitStatus"] = 0
 		}
+
+		go func() {
+			err := s.SendToMaster([]string{fmt.Sprintf("Conditions: %v. Output: %v.", s.Conditions, string(output))})
+			if err != nil {
+				logrus.Error(err)
+			}
+		}()
 	}
 
 	return nil

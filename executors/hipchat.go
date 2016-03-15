@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/Sirupsen/logrus"
 	"github.com/tbruyelle/hipchat-go/hipchat"
 )
 
@@ -38,7 +39,9 @@ func (hc *HipChat) Run() error {
 			return err
 		}
 
-		hc.Data["Message"] = fmt.Sprintf("Conditions: %v, Message: %v", hc.Conditions, hc.Message)
+		message := fmt.Sprintf("Conditions: %v. Message: %v.", hc.Conditions, hc.Message)
+
+		hc.Data["Message"] = message
 
 		notificationReq := &hipchat.NotificationRequest{Message: hc.Data["Message"].(string)}
 
@@ -50,6 +53,13 @@ func (hc *HipChat) Run() error {
 				}
 			}
 		}
+
+		go func() {
+			err := hc.SendToMaster([]string{message})
+			if err != nil {
+				logrus.Error(err)
+			}
+		}()
 
 		if err != nil {
 			return err
