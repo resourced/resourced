@@ -28,3 +28,6 @@ Addr = ":55557"
 CertFile = ""
 KeyFile = ""
 WriteToMasterInterval = "60s"
+
+# To prevent memory leak, clean all logs when storage capacity reached N.
+AutoPruneLength = 10000

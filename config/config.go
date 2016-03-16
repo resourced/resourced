@@ -189,8 +189,8 @@ func (c TCPConfig) GetKeyFile() string {
 
 type LogReceiverConfig struct {
 	TCPConfig
-	WriteToMasterInterval  string
-	AutoPruneStorageLength int64
+	WriteToMasterInterval string
+	AutoPruneLength       int64
 }
 
 // GeneralConfig stores all other configuration data.

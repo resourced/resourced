@@ -372,6 +372,7 @@ func (a *Agent) SendLog(config resourced_config.LogReceiverConfig) error {
 
 	toSend := make(map[string]interface{})
 	toSend["Loglines"] = loglines
+	toSend["Filename"] = ""
 
 	host, err := a.hostData()
 	if err != nil {
@@ -415,11 +416,20 @@ func (a *Agent) SendLog(config resourced_config.LogReceiverConfig) error {
 	return nil
 }
 
+func (a *Agent) PruneLogs(config resourced_config.LogReceiverConfig) error {
+	loglines := a.LogDB.Get("Loglines")
+	if int64(len(loglines)) > config.AutoPruneLength {
+		a.LogDB.Reset("Loglines")
+	}
+	return nil
+}
+
 // SendLogForever sends log lines to master in an infinite loop.
 func (a *Agent) SendLogForever(config resourced_config.LogReceiverConfig) {
 	go func(a *Agent, config resourced_config.LogReceiverConfig) {
 		for {
 			a.SendLog(config)
+			a.PruneLogs(config)
 			libtime.SleepString(config.WriteToMasterInterval)
 		}
 	}(a, config)
