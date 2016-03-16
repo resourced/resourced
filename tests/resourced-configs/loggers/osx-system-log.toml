@@ -1,0 +1,5 @@
+GoStruct = "Base"
+Path = "/osx/system"
+
+[GoStructFields]
+File = "/private/var/log/system.log"
