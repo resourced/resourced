@@ -25,7 +25,7 @@ func NewConfigs(configDir string) (*Configs, error) {
 
 	configDir = libstring.ExpandTildeAndEnv(configDir)
 
-	for _, configKind := range []string{"reader", "writer", "executor", "log"} {
+	for _, configKind := range []string{"reader", "writer", "executor", "logger"} {
 		configKindPlural := configKind + "s"
 
 		configFiles, err := ioutil.ReadDir(path.Join(configDir, configKindPlural))
@@ -45,7 +45,7 @@ func NewConfigs(configDir string) (*Configs, error) {
 					if configKind == "executor" {
 						configs.Executors = append(configs.Executors, conf)
 					}
-					if configKind == "log" {
+					if configKind == "logger" {
 						configs.Loggers = append(configs.Loggers, conf)
 					}
 				}

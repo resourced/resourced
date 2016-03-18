@@ -41,7 +41,7 @@ func New() (*Agent, error) {
 		return nil, err
 	}
 
-	agent.ReaderDB = libmap.NewTSafeMapBytes(nil)
+	agent.ResultDB = libmap.NewTSafeMapBytes(nil)
 	agent.GraphiteDB = libmap.NewTSafeNestedMapInterface(nil)
 	agent.ExecutorCounterDB = libmap.NewTSafeMapCounter(nil)
 	agent.TCPLogDB = libmap.NewTSafeMapStrings(map[string][]string{
@@ -60,7 +60,7 @@ type Agent struct {
 	Configs           *resourced_config.Configs
 	GeneralConfig     resourced_config.GeneralConfig
 	DbPath            string
-	ReaderDB          *libmap.TSafeMapBytes
+	ResultDB          *libmap.TSafeMapBytes
 	GraphiteDB        *libmap.TSafeNestedMapInterface
 	ExecutorCounterDB *libmap.TSafeMapCounter
 	TCPLogDB          *libmap.TSafeMapStrings
@@ -172,7 +172,7 @@ func (a *Agent) initGoStructExecutor(config resourced_config.Config) (executors.
 		return nil, err
 	}
 
-	executor.SetReadersDataInBytes(a.ReaderDB.All())
+	executor.SetReadersDataInBytes(a.ResultDB.All())
 	executor.SetCounterDB(a.ExecutorCounterDB)
 	executor.SetTags(a.Tags)
 
@@ -337,24 +337,24 @@ func (a *Agent) saveRun(config resourced_config.Config, output []byte, err error
 		return err
 	}
 
-	a.ReaderDB.Set(config.PathWithPrefix(), recordInJson)
+	a.ResultDB.Set(config.PathWithPrefix(), recordInJson)
 
 	return err
 }
 
 // GetRunByPath returns JSON data stored in local storage given path string.
 func (a *Agent) GetRunByPath(path string) ([]byte, error) {
-	return a.ReaderDB.Get(path), nil
+	return a.ResultDB.Get(path), nil
 }
 
 // RunForever executes Run() in an infinite loop with a sleep of config.Interval.
 func (a *Agent) RunForever(config resourced_config.Config) {
-	go func(a *Agent, config resourced_config.Config) {
+	go func(config resourced_config.Config) {
 		for {
 			a.Run(config)
 			libtime.SleepString(config.Interval)
 		}
-	}(a, config)
+	}(config)
 }
 
 // RunAllForever runs everything in an infinite loop.
@@ -369,6 +369,7 @@ func (a *Agent) RunAllForever() {
 		a.RunForever(config)
 	}
 	for _, config := range a.Configs.Loggers {
+		println(config.Path)
 		logger, err := loggers.NewGoStructByConfig(config)
 		if err != nil {
 			continue
@@ -377,6 +378,18 @@ func (a *Agent) RunAllForever() {
 		go func() {
 			logger.RunBlocking()
 		}()
+
+		go func(config resourced_config.Config, logger loggers.ILogger) {
+			for {
+				output, err := logger.ToJson()
+				println(string(output))
+				if err == nil {
+					a.saveRun(config, output, err)
+				}
+
+				libtime.SleepString(config.Interval)
+			}
+		}(config, logger)
 	}
 	a.SendTCPLogForever(a.GeneralConfig.LogReceiver)
 }
