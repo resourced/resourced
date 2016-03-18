@@ -342,11 +342,6 @@ func (a *Agent) saveRun(config resourced_config.Config, output []byte, err error
 	return err
 }
 
-// GetRun returns the JSON data stored in local storage given Config struct.
-func (a *Agent) GetRun(config resourced_config.Config) ([]byte, error) {
-	return a.GetRunByPath(config.PathWithPrefix())
-}
-
 // GetRunByPath returns JSON data stored in local storage given path string.
 func (a *Agent) GetRunByPath(path string) ([]byte, error) {
 	return a.ReaderDB.Get(path), nil

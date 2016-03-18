@@ -45,25 +45,6 @@ func TestRun(t *testing.T) {
 	}
 }
 
-func TestGetRun(t *testing.T) {
-	agent := createAgentForTest(t)
-
-	config := agent.Configs.Readers[1]
-
-	_, err := agent.Run(config)
-	if err != nil {
-		t.Fatalf("Run should work. Error: %v", err)
-	}
-
-	output, err := agent.GetRun(config)
-	if err != nil {
-		t.Fatalf("GetRun should work. Error: %v", err)
-	}
-	if string(output) == "" {
-		t.Errorf("GetRun should return JSON data. Output: %v", string(output))
-	}
-}
-
 func TestHttpRouter(t *testing.T) {
 	agent := createAgentForTest(t)
 
