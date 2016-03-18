@@ -1,7 +1,8 @@
-// Package readers provides objects that gathers resource data from a host.
-package readers
+// Package loggers provides objects that gathers resource data from a host.
+package loggers
 
 import (
+	"encoding/json"
 	"errors"
 	"reflect"
 
@@ -62,7 +63,7 @@ func NewGoStructByConfig(config resourced_config.Config) (ILogger, error) {
 
 // ILogger is generic interface for all readers.
 type ILogger interface {
-	Run() error
+	RunBlocking()
 	ToJson() ([]byte, error)
 }
 
@@ -80,14 +81,12 @@ type Base struct {
 }
 
 // Run tails the file continuously.
-func (b *Base) Run() error {
+func (b *Base) RunBlocking() {
 	t, err := tail.TailFile(b.File, tail.Config{Follow: true})
-	if err != nil {
-		return err
-	}
-
-	for line := range t.Lines {
-		b.Data.Append("Loglines", line.Text)
+	if err == nil {
+		for line := range t.Lines {
+			b.Data.Append("Loglines", line.Text)
+		}
 	}
 }
 

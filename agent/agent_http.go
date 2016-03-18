@@ -415,7 +415,7 @@ func (a *Agent) LogsTCPGetHandler() func(w http.ResponseWriter, r *http.Request,
 	return func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 		w.Header().Set("Content-Type", "application/json")
 
-		dataInBytes, err := a.LogDB.ToJson()
+		dataInBytes, err := a.TCPLogDB.ToJson()
 		if err != nil {
 			w.WriteHeader(500)
 			w.Write([]byte(fmt.Sprintf(`{"Error": "%v"}`, err.Error())))

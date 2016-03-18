@@ -67,7 +67,7 @@ func (a *Agent) HandleGraphite(conn net.Conn) {
 func (a *Agent) HandleLog(conn net.Conn) {
 	dataInBytes, err := ioutil.ReadAll(conn)
 	if err == nil {
-		a.LogDB.Append("Loglines", string(dataInBytes))
+		a.TCPLogDB.Append("Loglines", string(dataInBytes))
 	}
 
 	conn.Write([]byte(""))

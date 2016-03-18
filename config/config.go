@@ -19,12 +19,13 @@ func NewConfigs(configDir string) (*Configs, error) {
 	configs.Readers = make([]Config, 0)
 	configs.Writers = make([]Config, 0)
 	configs.Executors = make([]Config, 0)
+	configs.Loggers = make([]Config, 0)
 
 	var err error
 
 	configDir = libstring.ExpandTildeAndEnv(configDir)
 
-	for _, configKind := range []string{"reader", "writer", "executor"} {
+	for _, configKind := range []string{"reader", "writer", "executor", "log"} {
 		configKindPlural := configKind + "s"
 
 		configFiles, err := ioutil.ReadDir(path.Join(configDir, configKindPlural))
@@ -44,6 +45,9 @@ func NewConfigs(configDir string) (*Configs, error) {
 					if configKind == "executor" {
 						configs.Executors = append(configs.Executors, conf)
 					}
+					if configKind == "log" {
+						configs.Loggers = append(configs.Loggers, conf)
+					}
 				}
 			}
 		}
@@ -57,6 +61,7 @@ type Configs struct {
 	Readers   []Config
 	Writers   []Config
 	Executors []Config
+	Loggers   []Config
 }
 
 // NewConfig creates Config struct given fullpath and kind.
@@ -85,7 +90,7 @@ type Config struct {
 	Interval       string
 	Host           *host.Host
 
-	// There are 3 kinds: reader, writer, and executor
+	// There are 4 kinds: reader, writer, executor, and log
 	Kind string
 
 	// Writer specific fields
@@ -126,6 +131,8 @@ func (c *Config) PathWithPrefix() string {
 		return c.PathWithKindPrefix("w", "")
 	} else if c.Kind == "executor" {
 		return c.PathWithKindPrefix("x", "")
+	} else if c.Kind == "log" {
+		return c.PathWithKindPrefix("logs", "")
 	}
 	return c.Path
 }

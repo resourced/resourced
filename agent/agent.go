@@ -17,6 +17,7 @@ import (
 	"github.com/resourced/resourced/host"
 	"github.com/resourced/resourced/libmap"
 	"github.com/resourced/resourced/libtime"
+	"github.com/resourced/resourced/loggers"
 	"github.com/resourced/resourced/readers"
 	"github.com/resourced/resourced/writers"
 )
@@ -45,7 +46,7 @@ func New() (*Agent, error) {
 	agent.ReaderDB = libmap.NewTSafeMapBytes(nil)
 	agent.GraphiteDB = libmap.NewTSafeNestedMapInterface(nil)
 	agent.ExecutorCounterDB = libmap.NewTSafeMapCounter(nil)
-	agent.LogDB = libmap.NewTSafeMapStrings(map[string][]string{
+	agent.TCPLogDB = libmap.NewTSafeMapStrings(map[string][]string{
 		"Loglines": make([]string, 0),
 	})
 
@@ -64,10 +65,10 @@ type Agent struct {
 	ReaderDB          *libmap.TSafeMapBytes
 	GraphiteDB        *libmap.TSafeNestedMapInterface
 	ExecutorCounterDB *libmap.TSafeMapCounter
-	LogDB             *libmap.TSafeMapStrings
+	TCPLogDB          *libmap.TSafeMapStrings
 }
 
-// Run executes a reader/writer/executor config.
+// Run executes a reader/writer/executor/log config.
 func (a *Agent) Run(config resourced_config.Config) (output []byte, err error) {
 	if config.GoStruct != "" && config.Kind == "reader" {
 		output, err = a.runGoStructReader(config)
@@ -365,7 +366,7 @@ func (a *Agent) RunForever(config resourced_config.Config) {
 
 // SendLog sends log lines to master.
 func (a *Agent) SendLog(config resourced_config.LogReceiverConfig) error {
-	loglines := a.LogDB.Get("Loglines")
+	loglines := a.TCPLogDB.Get("Loglines")
 	if len(loglines) <= 0 {
 		return nil
 	}
@@ -411,25 +412,25 @@ func (a *Agent) SendLog(config resourced_config.LogReceiverConfig) error {
 		return err
 	}
 
-	a.LogDB.Reset("Loglines")
+	a.TCPLogDB.Reset("Loglines")
 
 	return nil
 }
 
-func (a *Agent) PruneLogs(config resourced_config.LogReceiverConfig) error {
-	loglines := a.LogDB.Get("Loglines")
+func (a *Agent) PruneTCPLogs(config resourced_config.LogReceiverConfig) error {
+	loglines := a.TCPLogDB.Get("Loglines")
 	if int64(len(loglines)) > config.AutoPruneLength {
-		a.LogDB.Reset("Loglines")
+		a.TCPLogDB.Reset("Loglines")
 	}
 	return nil
 }
 
-// SendLogForever sends log lines to master in an infinite loop.
-func (a *Agent) SendLogForever(config resourced_config.LogReceiverConfig) {
+// SendTCPLogForever sends log lines to master in an infinite loop.
+func (a *Agent) SendTCPLogForever(config resourced_config.LogReceiverConfig) {
 	go func(a *Agent, config resourced_config.LogReceiverConfig) {
 		for {
 			a.SendLog(config)
-			a.PruneLogs(config)
+			a.PruneTCPLogs(config)
 			libtime.SleepString(config.WriteToMasterInterval)
 		}
 	}(a, config)
@@ -446,6 +447,15 @@ func (a *Agent) RunAllForever() {
 	for _, config := range a.Configs.Executors {
 		a.RunForever(config)
 	}
+	for _, config := range a.Configs.Loggers {
+		logger, err := loggers.NewGoStructByConfig(config)
+		if err != nil {
+			continue
+		}
 
-	a.SendLogForever(a.GeneralConfig.LogReceiver)
+		go func() {
+			logger.RunBlocking()
+		}()
+	}
+	a.SendTCPLogForever(a.GeneralConfig.LogReceiver)
 }
