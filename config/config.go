@@ -131,7 +131,7 @@ func (c *Config) PathWithPrefix() string {
 		return c.PathWithKindPrefix("w", "")
 	} else if c.Kind == "executor" {
 		return c.PathWithKindPrefix("x", "")
-	} else if c.Kind == "log" {
+	} else if c.Kind == "logger" {
 		return c.PathWithKindPrefix("logs", "")
 	}
 	return c.Path
@@ -198,6 +198,10 @@ type LogReceiverConfig struct {
 	TCPConfig
 	WriteToMasterInterval string
 	AutoPruneLength       int64
+}
+
+func (l LogReceiverConfig) GetAutoPruneLength() int64 {
+	return l.AutoPruneLength
 }
 
 // GeneralConfig stores all other configuration data.

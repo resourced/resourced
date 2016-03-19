@@ -2,7 +2,6 @@
 package loggers
 
 import (
-	"encoding/json"
 	"errors"
 	"reflect"
 
@@ -64,7 +63,9 @@ func NewGoStructByConfig(config resourced_config.Config) (ILogger, error) {
 // ILogger is generic interface for all readers.
 type ILogger interface {
 	RunBlocking()
-	ToJson() ([]byte, error)
+	GetData() *libmap.TSafeMapStrings
+	GetFile() string
+	GetAutoPruneLength() int64
 }
 
 func NewBase() ILogger {
@@ -72,12 +73,15 @@ func NewBase() ILogger {
 	b.Data = libmap.NewTSafeMapStrings(map[string][]string{
 		"Loglines": make([]string, 0),
 	})
+	b.AutoPruneLength = 1000000
+
 	return b
 }
 
 type Base struct {
-	File string
-	Data *libmap.TSafeMapStrings
+	File            string
+	Data            *libmap.TSafeMapStrings
+	AutoPruneLength int64
 }
 
 // Run tails the file continuously.
@@ -90,7 +94,17 @@ func (b *Base) RunBlocking() {
 	}
 }
 
-// ToJson serialize Data field to JSON.
-func (b *Base) ToJson() ([]byte, error) {
-	return json.Marshal(b.Data.All())
+// GetData returns data.
+func (b *Base) GetData() *libmap.TSafeMapStrings {
+	return b.Data
+}
+
+// GetFile returns data.
+func (b *Base) GetFile() string {
+	return b.File
+}
+
+// GetAutoPruneLength returns AutoPruneLength
+func (b *Base) GetAutoPruneLength() int64 {
+	return b.AutoPruneLength
 }

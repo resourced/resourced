@@ -370,6 +370,7 @@ func (a *Agent) RunAllForever() {
 	}
 	for _, config := range a.Configs.Loggers {
 		println(config.Path)
+
 		logger, err := loggers.NewGoStructByConfig(config)
 		if err != nil {
 			continue
@@ -381,12 +382,14 @@ func (a *Agent) RunAllForever() {
 
 		go func(config resourced_config.Config, logger loggers.ILogger) {
 			for {
-				output, err := logger.ToJson()
-				println(string(output))
-				if err == nil {
-					a.saveRun(config, output, err)
+				output, err := a.SendLog(logger.GetData(), logger.GetFile())
+				if err != nil {
+					libtime.SleepString(config.Interval)
+					continue
 				}
 
+				a.saveRun(config, output, err)
+				a.PruneLogs(logger, logger.GetData())
 				libtime.SleepString(config.Interval)
 			}
 		}(config, logger)

@@ -1,5 +1,7 @@
 GoStruct = "Base"
 Path = "/osx/system"
+Interval = "30s"
 
 [GoStructFields]
 File = "/private/var/log/system.log"
+AutoPruneLength = 1000000

@@ -8,36 +8,41 @@ import (
 	"github.com/Sirupsen/logrus"
 
 	resourced_config "github.com/resourced/resourced/config"
+	"github.com/resourced/resourced/libmap"
 	"github.com/resourced/resourced/libtime"
 )
 
-// SendTCPLog sends log lines to master.
-func (a *Agent) SendTCPLog(config resourced_config.LogReceiverConfig) error {
-	loglines := a.TCPLogDB.Get("Loglines")
+type IAutoPrune interface {
+	GetAutoPruneLength() int64
+}
+
+// SendLog sends log lines to master.
+func (a *Agent) SendLog(logdb *libmap.TSafeMapStrings, filename string) ([]byte, error) {
+	loglines := logdb.Get("Loglines")
 	if len(loglines) <= 0 {
-		return nil
+		return nil, nil
 	}
 
 	toSend := make(map[string]interface{})
 	toSend["Loglines"] = loglines
-	toSend["Filename"] = ""
+	toSend["Filename"] = filename
 
 	host, err := a.hostData()
 	if err != nil {
-		return err
+		return nil, err
 	}
 	toSend["Host"] = host
 
 	dataJson, err := json.Marshal(toSend)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	url := a.GeneralConfig.ResourcedMaster.URL + "/api/logs"
 
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(dataJson))
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	req.SetBasicAuth(a.GeneralConfig.ResourcedMaster.AccessToken, "")
@@ -56,18 +61,18 @@ func (a *Agent) SendTCPLog(config resourced_config.LogReceiverConfig) error {
 			"req.Method": req.Method,
 		}).Error("Failed to send logs data to ResourceD Master")
 
-		return err
+		return nil, err
 	}
 
-	a.TCPLogDB.Reset("Loglines")
+	logdb.Reset("Loglines")
 
-	return nil
+	return json.Marshal(toSend)
 }
 
-func (a *Agent) PruneTCPLogs(config resourced_config.LogReceiverConfig) error {
-	loglines := a.TCPLogDB.Get("Loglines")
-	if int64(len(loglines)) > config.AutoPruneLength {
-		a.TCPLogDB.Reset("Loglines")
+func (a *Agent) PruneLogs(autoPrunner IAutoPrune, logdb *libmap.TSafeMapStrings) error {
+	loglines := logdb.Get("Loglines")
+	if int64(len(loglines)) > autoPrunner.GetAutoPruneLength() {
+		logdb.Reset("Loglines")
 	}
 	return nil
 }
@@ -76,8 +81,8 @@ func (a *Agent) PruneTCPLogs(config resourced_config.LogReceiverConfig) error {
 func (a *Agent) SendTCPLogForever(config resourced_config.LogReceiverConfig) {
 	go func(a *Agent, config resourced_config.LogReceiverConfig) {
 		for {
-			a.SendTCPLog(config)
-			a.PruneTCPLogs(config)
+			a.SendLog(a.TCPLogDB, "")
+			a.PruneLogs(config, a.TCPLogDB)
 			libtime.SleepString(config.WriteToMasterInterval)
 		}
 	}(a, config)
