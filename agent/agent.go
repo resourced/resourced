@@ -380,13 +380,19 @@ func (a *Agent) RunAllForever() {
 
 		go func(config resourced_config.Config, logger loggers.ILogger) {
 			for {
-				output, err := a.SendLog(logger.GetData(), logger.GetFile())
+				loglines, err := a.SendLog(logger.GetData(), logger.GetFile())
 				if err != nil {
 					libtime.SleepString(config.Interval)
 					continue
 				}
 
-				a.saveRun(config, output, err)
+				outputJson, err := json.Marshal(loglines)
+				if err != nil {
+					libtime.SleepString(config.Interval)
+					continue
+				}
+
+				a.saveRun(config, outputJson, err)
 				a.PruneLogs(logger, logger.GetData())
 				libtime.SleepString(config.Interval)
 			}

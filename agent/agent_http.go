@@ -489,7 +489,6 @@ func (a *Agent) LogsTCPGetHandler() func(w http.ResponseWriter, r *http.Request,
 
 		data := a.LogPayload(a.TCPLogDB, "")
 		dataInBytes, err := json.Marshal(data)
-		println(string(dataInBytes))
 		if err != nil {
 			w.WriteHeader(500)
 			w.Write([]byte(fmt.Sprintf(`{"Error": "%v"}`, err.Error())))
