@@ -369,8 +369,6 @@ func (a *Agent) RunAllForever() {
 		a.RunForever(config)
 	}
 	for _, config := range a.Configs.Loggers {
-		println(config.Path)
-
 		logger, err := loggers.NewGoStructByConfig(config)
 		if err != nil {
 			continue

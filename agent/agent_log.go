@@ -16,24 +16,31 @@ type IAutoPrune interface {
 	GetAutoPruneLength() int64
 }
 
-// SendLog sends log lines to master.
-func (a *Agent) SendLog(logdb *libmap.TSafeMapStrings, filename string) ([]byte, error) {
-	loglines := logdb.Get("Loglines")
-	if len(loglines) <= 0 {
-		return nil, nil
-	}
-
+// LogPayload packages the log data before sending to master.
+func (a *Agent) LogPayload(logdb *libmap.TSafeMapStrings, filename string) map[string]interface{} {
 	toSend := make(map[string]interface{})
-	toSend["Loglines"] = loglines
+	toSend["Loglines"] = logdb.Get("Loglines")
 	toSend["Filename"] = filename
 
 	host, err := a.hostData()
 	if err != nil {
-		return nil, err
+		return toSend
 	}
 	toSend["Host"] = host
 
-	dataJson, err := json.Marshal(toSend)
+	return toSend
+}
+
+// SendLog sends log lines to master.
+func (a *Agent) SendLog(logdb *libmap.TSafeMapStrings, filename string) ([]byte, error) {
+	data := a.LogPayload(logdb, filename)
+
+	loglines := data["Loglines"].([]string)
+	if len(loglines) <= 0 {
+		return nil, nil
+	}
+
+	dataJson, err := json.Marshal(data)
 	if err != nil {
 		return nil, err
 	}
@@ -66,7 +73,7 @@ func (a *Agent) SendLog(logdb *libmap.TSafeMapStrings, filename string) ([]byte,
 
 	logdb.Reset("Loglines")
 
-	return json.Marshal(toSend)
+	return dataJson, err
 }
 
 func (a *Agent) PruneLogs(autoPrunner IAutoPrune, logdb *libmap.TSafeMapStrings) error {
