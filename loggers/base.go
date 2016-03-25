@@ -3,6 +3,7 @@ package loggers
 
 import (
 	"errors"
+	"os"
 	"reflect"
 
 	"github.com/hpcloud/tail"
@@ -86,7 +87,10 @@ type Base struct {
 
 // Run tails the file continuously.
 func (b *Base) RunBlocking() {
-	t, err := tail.TailFile(b.File, tail.Config{Follow: true})
+	t, err := tail.TailFile(b.File, tail.Config{
+		Follow:   true,
+		Location: &tail.SeekInfo{Offset: 0, Whence: os.SEEK_END},
+	})
 	if err == nil {
 		for line := range t.Lines {
 			b.Data.Append("Loglines", line.Text)
