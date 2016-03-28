@@ -220,9 +220,12 @@ func (b *Base) SendToMaster(loglines []string) error {
 		return nil
 	}
 
+	data := make(map[string]interface{})
+	data["Loglines"] = loglines
+
 	toSend := make(map[string]interface{})
-	toSend["Loglines"] = loglines
 	toSend["Host"] = b.Host
+	toSend["Data"] = data
 
 	dataJson, err := json.Marshal(toSend)
 	if err != nil {
