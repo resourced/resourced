@@ -13,6 +13,7 @@ import (
 	_ "github.com/resourced/resourced/readers/docker"
 	_ "github.com/resourced/resourced/readers/haproxy"
 	_ "github.com/resourced/resourced/readers/mcrouter"
+	_ "github.com/resourced/resourced/readers/memcache"
 	_ "github.com/resourced/resourced/readers/mysql"
 	_ "github.com/resourced/resourced/readers/procfs"
 	_ "github.com/resourced/resourced/readers/redis"
