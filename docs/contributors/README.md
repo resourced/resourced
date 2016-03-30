@@ -6,9 +6,7 @@ This section is dedicated for current or future ResourceD contributors.
 
 1. Go programming language with version > 1.2.
 
-2. [Godep](https://github.com/tools/godep).
-
-3. [Vagrant](https://www.vagrantup.com/), to build Linux binary.
+2. [Vagrant](https://www.vagrantup.com/), to build Linux binary.
 
 
 **Q: How to run the daemon?**
@@ -27,7 +25,7 @@ There are a few ways to run tests:
 1. On your laptop:
     ```bash
     cd $GOPATH/src/github.com/resourced/resourced
-    godep go test ./...
+    go test ./...
     ```
 
 2. Inside docker container:
@@ -57,10 +55,12 @@ Please use `go fmt` everywhere. If you use SublimeText, feel free to install `Go
 
 **Q: What is the general architecture?**
 
-ResourceD has 3 components: Reader, Writer, and HTTP server.
+ResourceD has 4 components: Reader, Writer, Executor, and Logger. They all run in their own goroutines.
 
-* Reader scrapes information on your server and returns JSON data. Each reader runs in its own goroutine.
+* Reader scrapes information on your server and returns JSON data.
 
-* Writer reads the JSON data, process it further, and sends it to other places. Each writer runs in its own goroutine.
+* Writer reads the JSON data, process it further, and sends it to other places.
 
-* HTTP server serves the JSON data locally.
+* Executor executes logic based on expression performed on readers data.
+
+* Logger tails a log file and forwards the log lines to master.
