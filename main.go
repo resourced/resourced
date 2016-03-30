@@ -9,7 +9,6 @@ import (
 
 	"github.com/Sirupsen/logrus"
 	"github.com/resourced/resourced/agent"
-	resourced_config "github.com/resourced/resourced/config"
 	_ "github.com/resourced/resourced/readers/docker"
 	_ "github.com/resourced/resourced/readers/haproxy"
 	_ "github.com/resourced/resourced/readers/mcrouter"
@@ -30,17 +29,6 @@ func main() {
 	if configDir == "" {
 		err := errors.New("RESOURCED_CONFIG_DIR is required")
 		logrus.Fatal(err)
-	}
-
-	// Create default configDir if necessary
-	if _, err := os.Stat(configDir); err != nil {
-		if os.IsNotExist(err) {
-			err := resourced_config.NewDefaultConfigs(configDir)
-			if err != nil {
-				logrus.Fatal(err)
-			}
-			logrus.Infof("Generated default configurations inside %v", configDir)
-		}
 	}
 
 	a, err := agent.New()
