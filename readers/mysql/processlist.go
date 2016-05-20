@@ -3,7 +3,9 @@ package mysql
 import (
 	"database/sql"
 	"encoding/json"
+
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/jmoiron/sqlx"
 	"github.com/resourced/resourced/readers"
 )
 
@@ -25,14 +27,16 @@ type MysqlProcesslist struct {
 }
 
 type Processlist struct {
-	Id      int            `db:"Id"`
-	User    string         `db:"User"`
-	Host    string         `db:"Host"`
-	Db      sql.NullString `db:"db"`
-	Command string         `db:"Command"`
-	Time    int            `db:"Time"`
-	State   string         `db:"State"`
-	Info    string         `db:"Info"`
+	Id           int            `db:"Id"`
+	User         string         `db:"User"`
+	Host         string         `db:"Host"`
+	Db           sql.NullString `db:"db"`
+	Command      string         `db:"Command"`
+	Time         int            `db:"Time"`
+	State        string         `db:"State"`
+	Info         string         `db:"Info"`
+	RowsSent     int            `db:"Rows_sent"`
+	RowsExamined int            `db:"Rows_examined"`
 }
 
 func (m *MysqlProcesslist) Run() error {
@@ -51,12 +55,14 @@ func (m *MysqlProcesslist) Run() error {
 	for rows.Next() {
 		var plist Processlist
 
-		err := rows.StructScan(&plist)
+		err := scanRows(rows, &plist)
 		if err == nil {
 			if m.Data[plist.Host] == nil {
 				m.Data[plist.Host] = make([]Processlist, 0)
 			}
 			m.Data[plist.Host] = append(m.Data[plist.Host], plist)
+		} else {
+			return err
 		}
 	}
 
@@ -66,4 +72,31 @@ func (m *MysqlProcesslist) Run() error {
 // ToJson serialize Data field to JSON.
 func (m *MysqlProcesslist) ToJson() ([]byte, error) {
 	return json.Marshal(m.Data)
+}
+
+func scanRows(rows *sqlx.Rows, plist *Processlist) error {
+	var info sql.NullString
+	columns, err := rows.Columns()
+	if err != nil {
+		return err
+	}
+
+	// Percona has the Rows_examined and Rows_sent columns
+	if columns[len(columns)-1] == "Rows_examined" {
+		err := rows.Scan(&plist.Id, &plist.User, &plist.Host, &plist.Db, &plist.Command, &plist.Time, &plist.State, &info, &plist.RowsSent, &plist.RowsExamined)
+		if err != nil {
+			return err
+		}
+	} else {
+		err := rows.Scan(&plist.Id, &plist.User, &plist.Host, &plist.Db, &plist.Command, &plist.Time, &plist.State, &info)
+		if err != nil {
+			return err
+		}
+		plist.RowsSent = 0
+		plist.RowsSent = 0
+	}
+
+	plist.Info = info.String
+
+	return nil
 }
