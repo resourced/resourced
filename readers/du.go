@@ -4,10 +4,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/cloudfoundry/gosigar"
-	gopsutil_disk "github.com/shirou/gopsutil/disk"
 	"os"
 	"strings"
+
+	"github.com/cloudfoundry/gosigar"
+	gopsutil_disk "github.com/shirou/gopsutil/disk"
 )
 
 func init() {
@@ -41,7 +42,7 @@ func (d *Du) buildData(path string) error {
 		return errors.New(fmt.Sprintf("%v is not a directory.", path))
 	}
 
-	duStat, err := gopsutil_disk.DiskUsage(path)
+	duStat, err := gopsutil_disk.Usage(path)
 	if err == nil {
 		d.Data[path] = make(map[string]interface{})
 		d.Data[path]["Path"] = duStat.Path

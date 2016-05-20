@@ -2,6 +2,7 @@ package readers
 
 import (
 	"encoding/json"
+
 	gopsutil_net "github.com/shirou/gopsutil/net"
 )
 
@@ -12,17 +13,17 @@ func init() {
 
 func NewNetIO() IReader {
 	n := &NetIO{}
-	n.Data = make(map[string]gopsutil_net.NetIOCountersStat)
+	n.Data = make(map[string]gopsutil_net.IOCountersStat)
 	return n
 }
 
 type NetIO struct {
-	Data map[string]gopsutil_net.NetIOCountersStat
+	Data map[string]gopsutil_net.IOCountersStat
 }
 
 // Run gathers network IO data from gopsutil.
 func (n *NetIO) Run() error {
-	dataSlice, err := gopsutil_net.NetIOCounters(true)
+	dataSlice, err := gopsutil_net.IOCounters(true)
 	if err != nil {
 		return err
 	}
@@ -43,17 +44,17 @@ func (n *NetIO) ToJson() ([]byte, error) {
 
 func NewNetInterfaces() IReader {
 	n := &NetInterfaces{}
-	n.Data = make(map[string]gopsutil_net.NetInterfaceStat)
+	n.Data = make(map[string]gopsutil_net.InterfaceStat)
 	return n
 }
 
 type NetInterfaces struct {
-	Data map[string]gopsutil_net.NetInterfaceStat
+	Data map[string]gopsutil_net.InterfaceStat
 }
 
 // Run gathers network interfaces data from gopsutil.
 func (n *NetInterfaces) Run() error {
-	dataSlice, err := gopsutil_net.NetInterfaces()
+	dataSlice, err := gopsutil_net.Interfaces()
 	if err != nil {
 		return err
 	}

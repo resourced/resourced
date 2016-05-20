@@ -2,6 +2,7 @@ package readers
 
 import (
 	"encoding/json"
+
 	gopsutil_cpu "github.com/shirou/gopsutil/cpu"
 )
 
@@ -12,18 +13,18 @@ func init() {
 // NewCpuInfo is CpuInfo constructor.
 func NewCpuInfo() IReader {
 	c := &CpuInfo{}
-	c.Data = make(map[string][]gopsutil_cpu.CPUInfoStat)
+	c.Data = make(map[string][]gopsutil_cpu.InfoStat)
 	return c
 }
 
 // CpuInfo is a reader that scrapes cpu info data.
 // Data source: https://github.com/shirou/gopsutil/tree/master/cpu
 type CpuInfo struct {
-	Data map[string][]gopsutil_cpu.CPUInfoStat
+	Data map[string][]gopsutil_cpu.InfoStat
 }
 
 func (c *CpuInfo) Run() error {
-	data, err := gopsutil_cpu.CPUInfo()
+	data, err := gopsutil_cpu.Info()
 	if err != nil {
 		return err
 	}
@@ -41,19 +42,19 @@ func (c *CpuInfo) ToJson() ([]byte, error) {
 // NewCpuStat is CpuStat constructor.
 func NewCpuStat() *CpuStat {
 	c := &CpuStat{}
-	c.Data = make(map[string][]gopsutil_cpu.CPUTimesStat)
+	c.Data = make(map[string][]gopsutil_cpu.TimesStat)
 	return c
 }
 
 // CpuStat is a reader that scrapes cpu stat data.
 // Data source: https://github.com/shirou/gopsutil/tree/master/cpu
 type CpuStat struct {
-	Data map[string][]gopsutil_cpu.CPUTimesStat
+	Data map[string][]gopsutil_cpu.TimesStat
 }
 
 // Run gathers gopsutil_cpu.CPUTimes data.
 func (c *CpuStat) Run() error {
-	data, err := gopsutil_cpu.CPUTimes(true)
+	data, err := gopsutil_cpu.Times(true)
 	if err != nil {
 		return err
 	}

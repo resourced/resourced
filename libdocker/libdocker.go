@@ -2,12 +2,13 @@
 package libdocker
 
 import (
-	dockerclient "github.com/fsouza/go-dockerclient"
-	"github.com/resourced/resourced/libstring"
 	"os"
 	"path"
 	"strconv"
 	"sync"
+
+	dockerclient "github.com/fsouza/go-dockerclient"
+	"github.com/resourced/resourced/libstring"
 )
 
 var connections map[string]*dockerclient.Client
@@ -86,13 +87,8 @@ func InfoAndVersion(endpoint string) (map[string]interface{}, error) {
 		return nil, err
 	}
 
-	info, err := client.Info()
-	if err != nil {
-		return nil, err
-	}
-
 	versionAsMap := version.Map()
-	infoAsMap := info.Map()
+	infoAsMap := version.Map()
 
 	data := make(map[string]interface{})
 
@@ -104,19 +100,19 @@ func InfoAndVersion(endpoint string) (map[string]interface{}, error) {
 
 	for key, value := range infoAsMap {
 		if libstring.StringInSlice(key, []string{"NGoroutines", "Containers", "Images", "MemTotal"}) {
-			data[key] = info.GetInt64(key)
+			data[key] = version.GetInt64(key)
 
 		} else if key == "NFd" {
-			data["NumFileDescriptors"] = info.GetInt64(key)
+			data["NumFileDescriptors"] = version.GetInt64(key)
 
 		} else if key == "NEventsListener" {
-			data["NumEventsListeners"] = info.GetInt64(key)
+			data["NumEventsListeners"] = version.GetInt64(key)
 
 		} else if key == "NCPU" {
-			data["NumCPUs"] = info.GetInt64(key)
+			data["NumCPUs"] = version.GetInt64(key)
 
 		} else if libstring.StringInSlice(key, []string{"Debug", "IPv4Forwarding", "MemoryLimit", "SwapLimit"}) {
-			data[key] = info.GetBool(key)
+			data[key] = version.GetBool(key)
 
 		} else if key == "Driver" {
 			driverMap := data["Driver"].(map[string]interface{})
@@ -124,7 +120,7 @@ func InfoAndVersion(endpoint string) (map[string]interface{}, error) {
 
 		} else if key == "DriverStatus" {
 			tupleSlice := make([][]string, 2)
-			info.GetJSON(key, &tupleSlice)
+			version.GetJSON(key, &tupleSlice)
 
 			for _, tuple := range tupleSlice {
 				tupleKey := tuple[0]
@@ -145,7 +141,7 @@ func InfoAndVersion(endpoint string) (map[string]interface{}, error) {
 
 		} else if key == "RegistryConfig" {
 			registryConfig := make(map[string]interface{})
-			err := info.GetJSON(key, &registryConfig)
+			err := version.GetJSON(key, &registryConfig)
 			if err == nil {
 				data[key] = registryConfig
 			}

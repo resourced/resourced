@@ -2,6 +2,7 @@ package readers
 
 import (
 	"encoding/json"
+
 	gopsutil_host "github.com/shirou/gopsutil/host"
 )
 
@@ -22,7 +23,7 @@ type HostInfo struct {
 
 // Run gathers host information from gopsutil.
 func (h *HostInfo) Run() error {
-	data, err := gopsutil_host.HostInfo()
+	data, err := gopsutil_host.Info()
 	if err != nil {
 		return err
 	}
