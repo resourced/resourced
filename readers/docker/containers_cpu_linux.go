@@ -17,7 +17,7 @@ func init() {
 
 func NewDockerContainersCpu() readers.IReader {
 	m := &DockerContainersCpu{}
-	m.Data = make(map[string]*gopsutil_cpu.CPUTimesStat)
+	m.Data = make(map[string]*gopsutil_cpu.TimesStat)
 	return m
 }
 
@@ -26,7 +26,7 @@ func NewDockerContainersCpu() readers.IReader {
 // * https://github.com/shirou/gopsutil/tree/master/cpu
 // * https://github.com/shirou/gopsutil/blob/master/docker/docker_linux.go
 type DockerContainersCpu struct {
-	Data           map[string]*gopsutil_cpu.CPUTimesStat
+	Data           map[string]*gopsutil_cpu.TimesStat
 	DockerHost     string
 	CgroupBasePath string
 }
