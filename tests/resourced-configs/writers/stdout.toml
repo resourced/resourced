@@ -4,4 +4,4 @@ GoStruct = "StdOut"
 Interval = "1m"
 
 [GoStructFields]
-JsonProcessor = "$GOPATH/src/github.com/resourced/resourced/tests/script-writer/json-flattener.py"
+JsonProcessor = "./tests/script-writer/json-flattener.py"
