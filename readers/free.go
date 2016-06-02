@@ -74,6 +74,8 @@ func (m *Free) Run() error {
 	m.Data["Swap"]["UsedMB"] = swap.Used / 1000 / 1000
 	m.Data["Swap"]["UsedGB"] = swap.Used / 1000 / 1000 / 1000
 
+	m.Data["Swap"]["UsedPercent"] = int(float64(swap.Used) / float64(swap.Total) * 100)
+
 	m.Data["Swap"]["Free"] = swap.Free
 	m.Data["Swap"]["FreeMB"] = swap.Free / 1000 / 1000
 	m.Data["Swap"]["FreeGB"] = swap.Free / 1000 / 1000 / 1000
