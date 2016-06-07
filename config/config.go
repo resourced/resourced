@@ -194,6 +194,11 @@ func (c TCPConfig) GetKeyFile() string {
 	return c.KeyFile
 }
 
+type GraphiteConfig struct {
+	TCPConfig
+	StatsInterval string
+}
+
 type LogReceiverConfig struct {
 	TCPConfig
 	WriteToMasterInterval string
@@ -218,6 +223,6 @@ type GeneralConfig struct {
 		URL         string
 		AccessToken string
 	}
-	Graphite    TCPConfig
+	Graphite    GraphiteConfig
 	LogReceiver LogReceiverConfig
 }

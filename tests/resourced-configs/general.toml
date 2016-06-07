@@ -24,6 +24,7 @@ AccessToken = "{access-token}"
 Addr = ":55556"
 CertFile = ""
 KeyFile = ""
+StatsInterval = "60s"
 
 [LogReceiver]
 # Send your logs over TCP here.

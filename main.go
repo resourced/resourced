@@ -6,8 +6,11 @@ import (
 	"net/http"
 	"os"
 	"runtime"
+	"time"
 
 	"github.com/Sirupsen/logrus"
+	metrics_graphite "github.com/cyberdelia/go-metrics-graphite"
+
 	"github.com/resourced/resourced/agent"
 	_ "github.com/resourced/resourced/readers/docker"
 	_ "github.com/resourced/resourced/readers/haproxy"
@@ -78,6 +81,17 @@ func main() {
 			}
 		}(logReceiverListener)
 	}
+
+	// Publish metrics to self graphite endpoint.
+	addr, err := net.ResolveTCPAddr("tcp", a.GeneralConfig.Graphite.GetAddr())
+	if err != nil {
+		logrus.Fatal(err)
+	}
+	statsInterval, err := time.ParseDuration(a.GeneralConfig.Graphite.StatsInterval)
+	if err != nil {
+		logrus.Fatal(err)
+	}
+	go metrics_graphite.Graphite(a.NewMetricsRegistry(), statsInterval, "resourced_agent", addr)
 
 	// HTTP Settings
 	logFields := logrus.Fields{
