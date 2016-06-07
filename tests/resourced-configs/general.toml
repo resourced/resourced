@@ -4,6 +4,9 @@ Addr = ":55555"
 # Valid LogLevel are: debug, info, warning, error, fatal, panic
 LogLevel = "info"
 
+# in-memory readers data expiration. The unit is second.
+TTL = 300
+
 [HTTPS]
 CertFile = ""
 KeyFile = ""
@@ -12,7 +15,7 @@ KeyFile = ""
 # Url is the root endpoint to Resourced Master
 URL = "http://localhost:55655"
 
-# General purpose AccessToken, it will be used when AccessToken is not defined elsewhere.
+# AccessToken to connect to master
 AccessToken = "{access-token}"
 
 [Graphite]

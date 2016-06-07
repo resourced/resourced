@@ -4,7 +4,21 @@ import (
 	"encoding/json"
 	"strings"
 	"sync"
+
+	gocache "github.com/patrickmn/go-cache"
 )
+
+func AllNonExpiredCache(cache *gocache.Cache) map[string]gocache.Item {
+	newMap := make(map[string]gocache.Item)
+
+	for key, item := range cache.Items() {
+		if !item.Expired() {
+			newMap[key] = item
+		}
+	}
+
+	return newMap
+}
 
 // NewTSafeMapBytes creates an instance of TSafeMapBytes
 func NewTSafeMapBytes(data map[string][]byte) *TSafeMapBytes {

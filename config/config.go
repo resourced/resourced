@@ -208,6 +208,7 @@ func (l LogReceiverConfig) GetAutoPruneLength() int64 {
 type GeneralConfig struct {
 	Addr     string
 	LogLevel string
+	TTL      int
 
 	HTTPS struct {
 		CertFile string

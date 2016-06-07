@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/Sirupsen/logrus"
+	gocache "github.com/patrickmn/go-cache"
 	"github.com/satori/go.uuid"
 
 	resourced_config "github.com/resourced/resourced/config"
@@ -41,7 +42,7 @@ func New() (*Agent, error) {
 		return nil, err
 	}
 
-	agent.ResultDB = libmap.NewTSafeMapBytes(nil)
+	agent.ResultDB = gocache.New(time.Duration(agent.GeneralConfig.TTL)*time.Second, 10*time.Second)
 	agent.GraphiteDB = libmap.NewTSafeNestedMapInterface(nil)
 	agent.ExecutorCounterDB = libmap.NewTSafeMapCounter(nil)
 	agent.TCPLogDB = libmap.NewTSafeMapStrings(map[string][]string{
@@ -60,7 +61,7 @@ type Agent struct {
 	Configs           *resourced_config.Configs
 	GeneralConfig     resourced_config.GeneralConfig
 	DbPath            string
-	ResultDB          *libmap.TSafeMapBytes
+	ResultDB          *gocache.Cache
 	GraphiteDB        *libmap.TSafeNestedMapInterface
 	ExecutorCounterDB *libmap.TSafeMapCounter
 	TCPLogDB          *libmap.TSafeMapStrings
@@ -172,7 +173,14 @@ func (a *Agent) initGoStructExecutor(config resourced_config.Config) (executors.
 		return nil, err
 	}
 
-	executor.SetReadersDataInBytes(a.ResultDB.All())
+	goodItems := libmap.AllNonExpiredCache(a.ResultDB)
+	goodItemsInBytes := make(map[string][]byte)
+
+	for key, item := range goodItems {
+		goodItemsInBytes[key] = item.Object.([]byte)
+	}
+
+	executor.SetReadersDataInBytes(goodItemsInBytes)
 	executor.SetCounterDB(a.ExecutorCounterDB)
 	executor.SetTags(a.Tags)
 
@@ -337,14 +345,18 @@ func (a *Agent) saveRun(config resourced_config.Config, output []byte, err error
 		return err
 	}
 
-	a.ResultDB.Set(config.PathWithPrefix(), recordInJson)
+	a.ResultDB.Set(config.PathWithPrefix(), recordInJson, gocache.DefaultExpiration)
 
 	return err
 }
 
 // GetRunByPath returns JSON data stored in local storage given path string.
 func (a *Agent) GetRunByPath(path string) ([]byte, error) {
-	return a.ResultDB.Get(path), nil
+	valueInterface, found := a.ResultDB.Get(path)
+	if found {
+		return valueInterface.([]byte), nil
+	}
+	return nil, nil
 }
 
 // RunForever executes Run() in an infinite loop with a sleep of config.Interval.
