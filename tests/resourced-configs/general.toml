@@ -24,7 +24,11 @@ AccessToken = "{access-token}"
 Addr = ":55556"
 CertFile = ""
 KeyFile = ""
+
+# Every X interval, report agent's own stats to graphite endpoint
 StatsInterval = "60s"
+
+# When matched, agent will not keep track of graphite metric
 Blacklist = [
 	".min$"
 ]
