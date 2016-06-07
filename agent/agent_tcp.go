@@ -4,6 +4,7 @@ import (
 	"crypto/tls"
 	"io/ioutil"
 	"net"
+	"regexp"
 	"strconv"
 	"strings"
 
@@ -55,7 +56,19 @@ func (a *Agent) HandleGraphite(conn net.Conn) {
 			value, err := strconv.ParseFloat(dataInChunks[1], 64)
 
 			if err == nil {
-				a.GraphiteDB.Set(key, value)
+				// Loop through blacklist and set key-value if everything is good
+				doSetValue := false
+
+				for _, blacklistRegex := range a.GeneralConfig.Graphite.Blacklist {
+					match, err := regexp.MatchString(blacklistRegex, key)
+					if !match || err != nil {
+						doSetValue = true
+					}
+				}
+
+				if doSetValue {
+					a.GraphiteDB.Set(key, value)
+				}
 			}
 		}
 	}

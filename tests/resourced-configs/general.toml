@@ -25,6 +25,9 @@ Addr = ":55556"
 CertFile = ""
 KeyFile = ""
 StatsInterval = "60s"
+Blacklist = [
+	".min$"
+]
 
 [LogReceiver]
 # Send your logs over TCP here.

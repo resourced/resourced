@@ -197,6 +197,7 @@ func (c TCPConfig) GetKeyFile() string {
 type GraphiteConfig struct {
 	TCPConfig
 	StatsInterval string
+	Blacklist     []string
 }
 
 type LogReceiverConfig struct {
