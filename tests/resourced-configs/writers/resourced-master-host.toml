@@ -1,4 +1,4 @@
-ReaderPaths = ["/uptime", "/free", "/df", "/iostat", "/net/io", "/net/interfaces", "/cpu/info"]
+ReaderPaths = ["/uptime", "/free", "/df", "/iostat", "/net/io", "/net/interfaces", "/cpu/info", "/graphite"]
 Path = "/resourced-master/host"
 GoStruct = "ResourcedMasterHost"
 Interval = "30s"
