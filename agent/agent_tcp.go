@@ -57,12 +57,15 @@ func (a *Agent) HandleGraphite(conn net.Conn) {
 
 			if err == nil {
 				// Loop through blacklist and set key-value if everything is good
-				doSetValue := false
+				doSetValue := true
 
 				for _, blacklistRegex := range a.GeneralConfig.Graphite.Blacklist {
 					match, err := regexp.MatchString(blacklistRegex, key)
-					if !match || err != nil {
+					if err != nil {
 						doSetValue = true
+					} else if match {
+						doSetValue = false
+						break
 					}
 				}
 
