@@ -91,7 +91,7 @@ func main() {
 	if err != nil {
 		logrus.Fatal(err)
 	}
-	go metrics_graphite.Graphite(a.NewMetricsRegistry(), statsInterval, "resourced_agent", addr)
+	go metrics_graphite.Graphite(a.NewMetricsRegistry(), statsInterval, "ResourcedAgent", addr)
 
 	// HTTP Settings
 	logFields := logrus.Fields{
