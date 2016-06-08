@@ -1,7 +1,7 @@
 {
 	"ImportPath": "github.com/resourced/resourced",
-	"GoVersion": "go1.6",
-	"GodepVersion": "v73",
+	"GoVersion": "go1.7",
+	"GodepVersion": "v74",
 	"Deps": [
 		{
 			"ImportPath": "github.com/BurntSushi/toml",
@@ -25,6 +25,10 @@
 			"ImportPath": "github.com/cloudfoundry/gosigar",
 			"Comment": "scotty_09012012-28-ge949f42",
 			"Rev": "e949f427d77a939c605a87205a56b84434bc29e5"
+		},
+		{
+			"ImportPath": "github.com/cyberdelia/go-metrics-graphite",
+			"Rev": "7e54b5c2aa6eaff4286c44129c3def899dff528c"
 		},
 		{
 			"ImportPath": "github.com/docker/docker/opts",
@@ -189,6 +193,14 @@
 			"ImportPath": "github.com/opencontainers/runc/libcontainer/user",
 			"Comment": "v0.1.1-170-g6c485e6",
 			"Rev": "6c485e6902bb9dd77b8234042b8f00e20ef87a18"
+		},
+		{
+			"ImportPath": "github.com/patrickmn/go-cache",
+			"Rev": "1881a9bccb818787f68c52bfba648c6cf34c34fa"
+		},
+		{
+			"ImportPath": "github.com/rcrowley/go-metrics",
+			"Rev": "eeba7bd0dd01ace6e690fa833b3f22aaec29af43"
 		},
 		{
 			"ImportPath": "github.com/robertkrimen/otto",
