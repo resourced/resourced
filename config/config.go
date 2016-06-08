@@ -4,6 +4,7 @@ package config
 import (
 	"io/ioutil"
 	"path"
+	"regexp"
 	"strings"
 	"time"
 
@@ -167,6 +168,14 @@ func NewGeneralConfig(configDir string) (GeneralConfig, error) {
 		config.LogLevel = "info"
 	}
 
+	config.Graphite.BlacklistCompiled = make([]*regexp.Regexp, 0)
+	for _, reg := range config.Graphite.Blacklist {
+		regCompiled, err := regexp.Compile(reg)
+		if err == nil {
+			config.Graphite.BlacklistCompiled = append(config.Graphite.BlacklistCompiled, regCompiled)
+		}
+	}
+
 	return config, err
 }
 
@@ -196,8 +205,9 @@ func (c TCPConfig) GetKeyFile() string {
 
 type GraphiteConfig struct {
 	TCPConfig
-	StatsInterval string
-	Blacklist     []string
+	StatsInterval     string
+	Blacklist         []string
+	BlacklistCompiled []*regexp.Regexp
 }
 
 type LogReceiverConfig struct {
