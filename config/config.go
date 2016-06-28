@@ -168,11 +168,11 @@ func NewGeneralConfig(configDir string) (GeneralConfig, error) {
 		config.LogLevel = "info"
 	}
 
-	config.Graphite.BlacklistCompiled = make([]*regexp.Regexp, 0)
-	for _, reg := range config.Graphite.Blacklist {
+	config.MetricReceiver.BlacklistCompiled = make([]*regexp.Regexp, 0)
+	for _, reg := range config.MetricReceiver.Blacklist {
 		regCompiled, err := regexp.Compile(reg)
 		if err == nil {
-			config.Graphite.BlacklistCompiled = append(config.Graphite.BlacklistCompiled, regCompiled)
+			config.MetricReceiver.BlacklistCompiled = append(config.MetricReceiver.BlacklistCompiled, regCompiled)
 		}
 	}
 
@@ -203,7 +203,7 @@ func (c TCPConfig) GetKeyFile() string {
 	return c.KeyFile
 }
 
-type GraphiteConfig struct {
+type MetricReceiverConfig struct {
 	TCPConfig
 	StatsInterval     string
 	Blacklist         []string
@@ -234,6 +234,6 @@ type GeneralConfig struct {
 		URL         string
 		AccessToken string
 	}
-	Graphite    GraphiteConfig
-	LogReceiver LogReceiverConfig
+	MetricReceiver MetricReceiverConfig
+	LogReceiver    LogReceiverConfig
 }

@@ -18,9 +18,11 @@ URL = "http://localhost:55655"
 # AccessToken to connect to master
 AccessToken = "{access-token}"
 
-[Graphite]
-# This is equivalent to Carbon TCP Listener.
-# Send your Graphite key-value data here.
+[MetricReceiver]
+# Metrics endpoints can receive both Graphite or StatsD payloads.
+# Send your custom metrics here.
+# The wire protocol are both TCP and UDP.
+# TLS files are only used for TCP connection.
 Addr = ":55556"
 CertFile = ""
 KeyFile = ""

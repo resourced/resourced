@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+	"io/ioutil"
 	"net"
 	"net/http"
 	"os"
@@ -12,6 +13,7 @@ import (
 	metrics_graphite "github.com/cyberdelia/go-metrics-graphite"
 
 	"github.com/resourced/resourced/agent"
+	"github.com/resourced/resourced/libtime"
 	_ "github.com/resourced/resourced/readers/docker"
 	_ "github.com/resourced/resourced/readers/haproxy"
 	_ "github.com/resourced/resourced/readers/mcrouter"
@@ -46,22 +48,59 @@ func main() {
 
 	a.RunAllForever()
 
-	// Graphite Settings
-	graphiteListener, err := a.NewTCPServer(a.GeneralConfig.Graphite, "Graphite TCP")
+	// Metrics TCP Settings
+	metricTCPListener, err := a.NewTCPServer(a.GeneralConfig.MetricReceiver, "Metrics Receiver TCP")
 	if err != nil {
 		logrus.Fatal(err)
 	}
-	if graphiteListener != nil {
-		defer graphiteListener.Close()
+	if metricTCPListener != nil {
+		defer metricTCPListener.Close()
 
-		go func(graphiteListener net.Listener) {
+		go func(metricTCPListener net.Listener) {
 			for {
-				conn, err := graphiteListener.Accept()
-				if err == nil {
-					go a.HandleGraphite(conn)
+				conn, err := metricTCPListener.Accept()
+				if err != nil {
+					libtime.SleepString("1s")
+					continue
 				}
+
+				dataInBytes, err := ioutil.ReadAll(conn)
+				if err != nil {
+					libtime.SleepString("1s")
+					continue
+				}
+
+				go a.HandleGraphite(dataInBytes)
+				go a.HandleStatsD(dataInBytes)
+
+				conn.Write([]byte(""))
+				conn.Close()
 			}
-		}(graphiteListener)
+		}(metricTCPListener)
+	}
+
+	// Metrics UDP Settings
+	metricUDPListener, err := a.NewUDPServer(a.GeneralConfig.MetricReceiver, "Metrics Receiver UDP")
+	if err != nil {
+		logrus.Fatal(err)
+	}
+	if metricUDPListener != nil {
+		defer metricUDPListener.Close()
+
+		go func(metricUDPListener *net.UDPConn) {
+			bufferReader := make([]byte, 1024)
+
+			for {
+				n, _, err := metricUDPListener.ReadFromUDP(bufferReader)
+				if err != nil {
+					libtime.SleepString("1s")
+					continue
+				}
+
+				go a.HandleGraphite(bufferReader[0:n])
+				go a.HandleStatsD(bufferReader[0:n])
+			}
+		}(metricUDPListener)
 	}
 
 	// LogReceiver TCP Settings
@@ -75,19 +114,31 @@ func main() {
 		go func(logReceiverListener net.Listener) {
 			for {
 				conn, err := logReceiverListener.Accept()
-				if err == nil {
-					go a.HandleLog(conn)
+				if err != nil {
+					libtime.SleepString("1s")
+					continue
 				}
+
+				dataInBytes, err := ioutil.ReadAll(conn)
+				if err != nil {
+					libtime.SleepString("1s")
+					continue
+				}
+
+				go a.HandleLog(dataInBytes)
+
+				conn.Write([]byte(""))
+				conn.Close()
 			}
 		}(logReceiverListener)
 	}
 
 	// Publish metrics to self graphite endpoint.
-	addr, err := net.ResolveTCPAddr("tcp", a.GeneralConfig.Graphite.GetAddr())
+	addr, err := net.ResolveTCPAddr("tcp", a.GeneralConfig.MetricReceiver.GetAddr())
 	if err != nil {
 		logrus.Fatal(err)
 	}
-	statsInterval, err := time.ParseDuration(a.GeneralConfig.Graphite.StatsInterval)
+	statsInterval, err := time.ParseDuration(a.GeneralConfig.MetricReceiver.StatsInterval)
 	if err != nil {
 		logrus.Fatal(err)
 	}
