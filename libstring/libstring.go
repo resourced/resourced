@@ -77,3 +77,15 @@ func GetIP(address string) net.IP {
 	// Convert to IP object
 	return net.ParseIP(splitAddress[0])
 }
+
+func FindHostnameChunkInMetricKey(key string) int {
+	chunks := strings.Split(key, ".")
+
+	for i, chunk := range chunks {
+		if strings.HasSuffix(chunk, "_com") || strings.Contains(chunk, "_net") || strings.Contains(chunk, "_org") || strings.Contains(chunk, "_edu") || strings.Contains(chunk, "_gov") || strings.Contains(chunk, "_mil") {
+			return i
+		}
+	}
+
+	return -1
+}
