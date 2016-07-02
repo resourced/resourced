@@ -109,11 +109,11 @@ func (a *Agent) saveRawMetricToResultDB(key string, value interface{}) {
 }
 
 func (a *Agent) HandleGraphite(dataInBytes []byte) {
-	for _, data := range strings.Split(string(dataInBytes), "\n") {
-		dataInChunks := strings.Split(data, " ")
+	for _, singleMetric := range strings.Split(string(dataInBytes), "\n") {
+		dataInChunks := strings.Split(singleMetric, " ")
 
 		logFields := logrus.Fields{
-			"Metric": string(dataInBytes),
+			"Metric": singleMetric,
 		}
 
 		if len(dataInChunks) >= 2 {
