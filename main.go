@@ -133,16 +133,22 @@ func main() {
 		}(logReceiverListener)
 	}
 
-	// Publish metrics to self graphite endpoint.
+	// Create TCP connection to publish metrics to localhost
 	addr, err := net.ResolveTCPAddr("tcp", a.GeneralConfig.MetricReceiver.GetAddr())
 	if err != nil {
 		logrus.Fatal(err)
 	}
+
 	statsInterval, err := time.ParseDuration(a.GeneralConfig.MetricReceiver.StatsInterval)
 	if err != nil {
 		logrus.Fatal(err)
 	}
-	go metrics_graphite.Graphite(a.NewMetricsRegistry(), statsInterval, "ResourcedAgent", addr)
+
+	// Publish self metrics to localhost
+	go metrics_graphite.Graphite(a.NewMetricsRegistryForSelf(), statsInterval, "ResourcedAgent", addr)
+
+	// Publish StatsD metrics to localhost
+	go metrics_graphite.Graphite(a.StatsDMetrics, statsInterval, "statsd", addr)
 
 	// HTTP Settings
 	logFields := logrus.Fields{

@@ -205,9 +205,10 @@ func (c TCPConfig) GetKeyFile() string {
 
 type MetricReceiverConfig struct {
 	TCPConfig
-	StatsInterval     string
-	Blacklist         []string
-	BlacklistCompiled []*regexp.Regexp
+	StatsInterval          string
+	HistogramReservoirSize int
+	Blacklist              []string
+	BlacklistCompiled      []*regexp.Regexp
 }
 
 type LogReceiverConfig struct {

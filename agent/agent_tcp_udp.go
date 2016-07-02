@@ -10,6 +10,7 @@ import (
 	"github.com/Sirupsen/logrus"
 	"github.com/narqo/go-dogstatsd-parser"
 	gocache "github.com/patrickmn/go-cache"
+	"github.com/rcrowley/go-metrics"
 
 	resourced_config "github.com/resourced/resourced/config"
 	"github.com/resourced/resourced/libstring"
@@ -108,48 +109,80 @@ func (a *Agent) saveRawMetricToResultDB(key string, value interface{}) {
 }
 
 func (a *Agent) HandleGraphite(dataInBytes []byte) {
-	dataInChunks := strings.Split(string(dataInBytes), " ")
+	for _, data := range strings.Split(string(dataInBytes), "\n") {
+		dataInChunks := strings.Split(data, " ")
 
-	logFields := logrus.Fields{
-		"Metric": string(dataInBytes),
-	}
+		logFields := logrus.Fields{
+			"Metric": string(dataInBytes),
+		}
 
-	if len(dataInChunks) >= 2 {
-		key := dataInChunks[0]
-		logFields["Key"] = key
+		if len(dataInChunks) >= 2 {
+			key := dataInChunks[0]
+			logFields["Key"] = key
 
-		value, err := strconv.ParseFloat(dataInChunks[1], 64)
-		if err == nil {
-			// Loop through blacklist and set key-value if everything is good
-			doSetValue := true
+			value, err := strconv.ParseFloat(dataInChunks[1], 64)
+			if err == nil {
+				// Loop through blacklist and set key-value if everything is good
+				doSetValue := true
 
-			for _, blacklistRegex := range a.GeneralConfig.MetricReceiver.BlacklistCompiled {
-				if blacklistRegex.MatchString(key) {
-					doSetValue = false
-					break
+				for _, blacklistRegex := range a.GeneralConfig.MetricReceiver.BlacklistCompiled {
+					if blacklistRegex.MatchString(key) {
+						doSetValue = false
+						break
+					}
 				}
-			}
 
-			if doSetValue {
-				logFields["Value"] = value
-				logrus.WithFields(logFields).Info("Storing Graphite metric in memory")
+				if doSetValue {
+					logFields["Value"] = value
+					logrus.WithFields(logFields).Info("Storing Graphite metric in memory")
 
-				a.saveRawMetricToResultDB(key, value)
+					a.saveRawMetricToResultDB(key, value)
+				}
+			} else {
+				logrus.WithFields(logFields).Info("Failed to parse Graphite metric")
 			}
-		} else {
-			logrus.WithFields(logFields).Info("Failed to parse Graphite metric")
 		}
 	}
 }
 
 func (a *Agent) HandleStatsD(dataInBytes []byte) {
-	metric, err := dogstatsd.Parse(string(dataInBytes))
+	statsdMetric, err := dogstatsd.Parse(string(dataInBytes))
 	if err != nil {
 		return
 	}
 
-	if metric.Type == dogstatsd.Gauge {
-		a.saveRawMetricToResultDB(metric.Name, metric.Value)
+	// Don't do anything if there are no value to store.
+	if statsdMetric.Value == nil {
+		return
+	}
+
+	if statsdMetric.Type == dogstatsd.Counter {
+		c := metrics.NewCounter()
+		a.StatsDMetrics.Register(statsdMetric.Name, c)
+		c.Inc(statsdMetric.Value.(int64))
+
+	} else if statsdMetric.Type == dogstatsd.Gauge {
+		g := metrics.NewGauge()
+		a.StatsDMetrics.Register(statsdMetric.Name, g)
+		g.Update(statsdMetric.Value.(int64))
+
+	} else if statsdMetric.Type == dogstatsd.Histogram {
+		s := metrics.NewUniformSample(a.GeneralConfig.MetricReceiver.HistogramReservoirSize)
+		h := metrics.NewHistogram(s)
+		a.StatsDMetrics.Register(statsdMetric.Name, h)
+		h.Update(statsdMetric.Value.(int64))
+
+	} else if statsdMetric.Type == dogstatsd.Meter {
+		m := metrics.NewMeter()
+		a.StatsDMetrics.Register(statsdMetric.Name, m)
+		m.Mark(statsdMetric.Value.(int64))
+
+	} else if statsdMetric.Type == dogstatsd.Timer {
+		// TODO(didip): Not sure what to do with Time() method here.
+		// t := metrics.NewTimer()
+		// a.StatsDMetrics.Register(statsdMetric.Name, t)
+		// t.Time(func() {})
+		// t.Update(statsdMetric.Value.(int64))
 	}
 }
 

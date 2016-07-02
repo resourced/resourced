@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-func (a *Agent) NewMetricsRegistry() metrics.Registry {
+func (a *Agent) NewMetricsRegistryForSelf() metrics.Registry {
 	r := metrics.NewRegistry()
 	metrics.RegisterDebugGCStats(r)
 	metrics.RegisterRuntimeMemStats(r)

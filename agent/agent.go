@@ -49,7 +49,7 @@ func New() (*Agent, error) {
 		"Loglines": make([]string, 0),
 	})
 
-	agent.StatsDMetrics = agent.NewMetricsRegistry()
+	agent.StatsDMetrics = metrics.NewRegistry()
 
 	return agent, err
 }
@@ -270,20 +270,6 @@ func (a *Agent) runGoStructExecutor(config resourced_config.Config) ([]byte, err
 	}
 
 	return a.runGoStruct(executor)
-}
-
-// commonGraphiteData gathers common information for graphite reader.
-func (a *Agent) commonGraphiteData() map[string]interface{} {
-	record := make(map[string]interface{})
-	record["UnixNano"] = time.Now().UnixNano()
-	record["Path"] = "/graphite"
-
-	host, err := a.hostData()
-	if err == nil {
-		record["Host"] = host
-	}
-
-	return record
 }
 
 // hostData builds host related information.
