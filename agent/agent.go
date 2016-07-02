@@ -9,6 +9,7 @@ import (
 
 	"github.com/Sirupsen/logrus"
 	gocache "github.com/patrickmn/go-cache"
+	"github.com/rcrowley/go-metrics"
 	"github.com/satori/go.uuid"
 
 	resourced_config "github.com/resourced/resourced/config"
@@ -43,11 +44,12 @@ func New() (*Agent, error) {
 	}
 
 	agent.ResultDB = gocache.New(time.Duration(agent.GeneralConfig.TTL)*time.Second, 10*time.Second)
-	agent.GraphiteDB = libmap.NewTSafeNestedMapInterface(nil)
 	agent.ExecutorCounterDB = libmap.NewTSafeMapCounter(nil)
 	agent.TCPLogDB = libmap.NewTSafeMapStrings(map[string][]string{
 		"Loglines": make([]string, 0),
 	})
+
+	agent.StatsDMetrics = agent.NewMetricsRegistry()
 
 	return agent, err
 }
@@ -61,8 +63,8 @@ type Agent struct {
 	Configs           *resourced_config.Configs
 	GeneralConfig     resourced_config.GeneralConfig
 	DbPath            string
+	StatsDMetrics     metrics.Registry
 	ResultDB          *gocache.Cache
-	GraphiteDB        *libmap.TSafeNestedMapInterface
 	ExecutorCounterDB *libmap.TSafeMapCounter
 	TCPLogDB          *libmap.TSafeMapStrings
 }
@@ -112,22 +114,9 @@ func (a *Agent) initGoStructWriter(config resourced_config.Config) (writers.IWri
 	readersData := make(map[string][]byte)
 
 	for _, readerPath := range config.ReaderPaths {
-		if strings.HasSuffix(readerPath, "/graphite") {
-			// Special Case: if readerPath contains /graphite
-			record := a.commonGraphiteData()
-			record["Data"] = a.GraphiteDB.All()
-
-			readerJsonBytes, err := json.Marshal(record)
-			if err == nil {
-				readersData[readerPath] = readerJsonBytes
-			}
-
-		} else {
-			// Normal Case: regular /r/reader
-			readerJsonBytes, err := a.GetRunByPath(config.PathWithKindPrefix("r", readerPath))
-			if err == nil {
-				readersData[readerPath] = readerJsonBytes
-			}
+		readerJsonBytes, err := a.GetRunByPath(config.PathWithKindPrefix("r", readerPath))
+		if err == nil {
+			readersData[readerPath] = readerJsonBytes
 		}
 	}
 
@@ -177,7 +166,10 @@ func (a *Agent) initGoStructExecutor(config resourced_config.Config) (executors.
 	goodItemsInBytes := make(map[string][]byte)
 
 	for key, item := range goodItems {
-		goodItemsInBytes[key] = item.Object.([]byte)
+		itemInJson, err := json.Marshal(item.Object)
+		if err == nil {
+			goodItemsInBytes[key] = itemInJson
+		}
 	}
 
 	executor.SetReadersDataInBytes(goodItemsInBytes)
@@ -340,12 +332,7 @@ func (a *Agent) saveRun(config resourced_config.Config, output []byte, err error
 		record["Data"] = errMap
 	}
 
-	recordInJson, err := json.Marshal(record)
-	if err != nil {
-		return err
-	}
-
-	a.ResultDB.Set(config.PathWithPrefix(), recordInJson, gocache.DefaultExpiration)
+	a.ResultDB.Set(config.PathWithPrefix(), record, gocache.DefaultExpiration)
 
 	return err
 }
@@ -354,7 +341,7 @@ func (a *Agent) saveRun(config resourced_config.Config, output []byte, err error
 func (a *Agent) GetRunByPath(path string) ([]byte, error) {
 	valueInterface, found := a.ResultDB.Get(path)
 	if found {
-		return valueInterface.([]byte), nil
+		return json.Marshal(valueInterface)
 	}
 	return nil, nil
 }
