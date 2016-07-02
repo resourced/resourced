@@ -110,6 +110,10 @@ func (a *Agent) saveRawMetricToResultDB(key string, value interface{}) {
 
 func (a *Agent) HandleGraphite(dataInBytes []byte) {
 	for _, singleMetric := range strings.Split(string(dataInBytes), "\n") {
+		if singleMetric == "" {
+			continue
+		}
+
 		dataInChunks := strings.Split(singleMetric, " ")
 
 		logFields := logrus.Fields{
@@ -139,50 +143,79 @@ func (a *Agent) HandleGraphite(dataInBytes []byte) {
 					a.saveRawMetricToResultDB(key, value)
 				}
 			} else {
-				logrus.WithFields(logFields).Info("Failed to parse Graphite metric")
+				logFields["Error"] = err
+				logrus.WithFields(logFields).Error("Failed to parse Graphite metric")
 			}
 		}
 	}
 }
 
 func (a *Agent) HandleStatsD(dataInBytes []byte) {
-	statsdMetric, err := dogstatsd.Parse(string(dataInBytes))
-	if err != nil {
-		return
-	}
+	for _, singleMetric := range strings.Split(string(dataInBytes), "\n") {
+		if singleMetric == "" {
+			continue
+		}
 
-	// Don't do anything if there are no value to store.
-	if statsdMetric.Value == nil {
-		return
-	}
+		logFields := logrus.Fields{
+			"Metric": singleMetric,
+		}
 
-	if statsdMetric.Type == dogstatsd.Counter {
-		c := metrics.NewCounter()
-		a.StatsDMetrics.Register(statsdMetric.Name, c)
-		c.Inc(statsdMetric.Value.(int64))
+		statsdMetric, err := dogstatsd.Parse(singleMetric)
+		if err != nil {
+			logFields["Error"] = err
+			logrus.WithFields(logFields).Error("Failed to parse StatsD metric")
+			continue
+		}
 
-	} else if statsdMetric.Type == dogstatsd.Gauge {
-		g := metrics.NewGauge()
-		a.StatsDMetrics.Register(statsdMetric.Name, g)
-		g.Update(statsdMetric.Value.(int64))
+		// Don't do anything if there are no value to store.
+		if statsdMetric.Value == nil {
+			continue
+		}
 
-	} else if statsdMetric.Type == dogstatsd.Histogram {
-		s := metrics.NewUniformSample(a.GeneralConfig.MetricReceiver.HistogramReservoirSize)
-		h := metrics.NewHistogram(s)
-		a.StatsDMetrics.Register(statsdMetric.Name, h)
-		h.Update(statsdMetric.Value.(int64))
+		if statsdMetric.Type == dogstatsd.Counter {
+			c := metrics.NewCounter()
+			a.StatsDMetrics.Register(statsdMetric.Name, c)
+			c.Inc(statsdMetric.Value.(int64))
 
-	} else if statsdMetric.Type == dogstatsd.Meter {
-		m := metrics.NewMeter()
-		a.StatsDMetrics.Register(statsdMetric.Name, m)
-		m.Mark(statsdMetric.Value.(int64))
+			logFields["Key"] = statsdMetric.Name
+			logFields["Value"] = statsdMetric.Value.(int64)
+			logrus.WithFields(logFields).Info("Increment StatsD counter")
 
-	} else if statsdMetric.Type == dogstatsd.Timer {
-		// TODO(didip): Not sure what to do with Time() method here.
-		// t := metrics.NewTimer()
-		// a.StatsDMetrics.Register(statsdMetric.Name, t)
-		// t.Time(func() {})
-		// t.Update(statsdMetric.Value.(int64))
+		} else if statsdMetric.Type == dogstatsd.Gauge {
+			g := metrics.NewGauge()
+			a.StatsDMetrics.Register(statsdMetric.Name, g)
+			g.Update(int64(statsdMetric.Value.(float64)))
+
+			logFields["Key"] = statsdMetric.Name
+			logFields["Value"] = statsdMetric.Value.(float64)
+			logrus.WithFields(logFields).Info("Update StatsD gauge")
+
+		} else if statsdMetric.Type == dogstatsd.Histogram {
+			s := metrics.NewUniformSample(a.GeneralConfig.MetricReceiver.HistogramReservoirSize)
+			h := metrics.NewHistogram(s)
+			a.StatsDMetrics.Register(statsdMetric.Name, h)
+			h.Update(statsdMetric.Value.(int64))
+
+			logFields["Key"] = statsdMetric.Name
+			logFields["Value"] = statsdMetric.Value.(int64)
+			logrus.WithFields(logFields).Info("Update StatsD historgram")
+
+		} else if statsdMetric.Type == dogstatsd.Meter {
+			m := metrics.NewMeter()
+			a.StatsDMetrics.Register(statsdMetric.Name, m)
+			m.Mark(statsdMetric.Value.(int64))
+
+			logFields["Key"] = statsdMetric.Name
+			logFields["Value"] = statsdMetric.Value.(int64)
+			logrus.WithFields(logFields).Info("Mark StatsD meter")
+
+		} else if statsdMetric.Type == dogstatsd.Timer {
+			// TODO(didip): Not sure what to do with Time() method here.
+			// t := metrics.NewTimer()
+			// a.StatsDMetrics.Register(statsdMetric.Name, t)
+			// t.Time(func() {})
+			// t.Update(statsdMetric.Value.(int64))
+		}
 	}
 }
 
