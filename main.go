@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"runtime"
+	"strings"
 	"time"
 
 	"github.com/Sirupsen/logrus"
@@ -70,8 +71,11 @@ func main() {
 					continue
 				}
 
-				go a.HandleGraphite(dataInBytes)
-				go a.HandleStatsD(dataInBytes)
+				if strings.Contains(string(dataInBytes), " ") {
+					go a.HandleGraphite(dataInBytes)
+				} else {
+					go a.HandleStatsD(dataInBytes)
+				}
 
 				conn.Write([]byte(""))
 				conn.Close()
@@ -97,8 +101,11 @@ func main() {
 					continue
 				}
 
-				go a.HandleGraphite(bufferReader[0:n])
-				go a.HandleStatsD(bufferReader[0:n])
+				if strings.Contains(string(bufferReader[0:n]), " ") {
+					go a.HandleGraphite(bufferReader[0:n])
+				} else {
+					go a.HandleStatsD(bufferReader[0:n])
+				}
 			}
 		}(metricUDPListener)
 	}
