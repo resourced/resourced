@@ -27,8 +27,11 @@ Addr = ":55556"
 CertFile = ""
 KeyFile = ""
 
-# Every X interval, report agent's own stats to graphite endpoint
+# 1. Every X interval, report agent's own stats to graphite endpoint.
+# 2. Every X interval, store StatsD data to in-memory storage.
 StatsInterval = "60s"
+
+HistogramReservoirSize = 1028
 
 # When matched, agent will not keep track of graphite metric
 Blacklist = [
