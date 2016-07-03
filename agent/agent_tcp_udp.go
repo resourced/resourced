@@ -168,53 +168,51 @@ func (a *Agent) HandleStatsD(dataInBytes []byte) {
 		}
 
 		// Don't do anything if there are no value to store.
-		if statsdMetric.Value == nil {
+		if statsdMetric.Name == "" || statsdMetric.Value == nil {
 			continue
 		}
 
-		if statsdMetric.Type == dogstatsd.Counter {
-			c := metrics.NewCounter()
-			a.StatsDMetrics.Register(statsdMetric.Name, c)
-			c.Inc(statsdMetric.Value.(int64))
+		// Update log information
+		logFields["Key"] = statsdMetric.Name
+		logFields["Value"] = statsdMetric.Value.(int64)
 
-			logFields["Key"] = statsdMetric.Name
-			logFields["Value"] = statsdMetric.Value.(int64)
-			logrus.WithFields(logFields).Info("Increment StatsD counter")
+		if statsdMetric.Type == dogstatsd.Counter {
+			c := a.StatsDMetrics.GetOrRegister(statsdMetric.Name, metrics.NewCounter())
+			if c != nil {
+				c.(metrics.Counter).Inc(statsdMetric.Value.(int64))
+				logrus.WithFields(logFields).Info("Increment StatsD counter")
+			}
 
 		} else if statsdMetric.Type == dogstatsd.Gauge {
-			g := metrics.NewGauge()
-			a.StatsDMetrics.Register(statsdMetric.Name, g)
-			g.Update(int64(statsdMetric.Value.(float64)))
+			g := a.StatsDMetrics.GetOrRegister(statsdMetric.Name, metrics.NewGaugeFloat64())
+			if g != nil {
+				g.(metrics.GaugeFloat64).Update(statsdMetric.Value.(float64))
 
-			logFields["Key"] = statsdMetric.Name
-			logFields["Value"] = statsdMetric.Value.(float64)
-			logrus.WithFields(logFields).Info("Update StatsD gauge")
+				logFields["Value"] = statsdMetric.Value.(float64)
+				logrus.WithFields(logFields).Info("Update StatsD gauge")
+			}
 
 		} else if statsdMetric.Type == dogstatsd.Histogram {
-			s := metrics.NewUniformSample(a.GeneralConfig.MetricReceiver.HistogramReservoirSize)
-			h := metrics.NewHistogram(s)
-			a.StatsDMetrics.Register(statsdMetric.Name, h)
-			h.Update(statsdMetric.Value.(int64))
-
-			logFields["Key"] = statsdMetric.Name
-			logFields["Value"] = statsdMetric.Value.(int64)
-			logrus.WithFields(logFields).Info("Update StatsD historgram")
+			h := a.StatsDMetrics.GetOrRegister(statsdMetric.Name, metrics.NewHistogram(metrics.NewUniformSample(a.GeneralConfig.MetricReceiver.HistogramReservoirSize)))
+			if h != nil {
+				h.(metrics.Histogram).Update(statsdMetric.Value.(int64))
+				logrus.WithFields(logFields).Info("Update StatsD historgram")
+			}
 
 		} else if statsdMetric.Type == dogstatsd.Meter {
-			m := metrics.NewMeter()
-			a.StatsDMetrics.Register(statsdMetric.Name, m)
-			m.Mark(statsdMetric.Value.(int64))
-
-			logFields["Key"] = statsdMetric.Name
-			logFields["Value"] = statsdMetric.Value.(int64)
-			logrus.WithFields(logFields).Info("Mark StatsD meter")
+			m := a.StatsDMetrics.GetOrRegister(statsdMetric.Name, metrics.NewMeter())
+			if m != nil {
+				m.(metrics.Meter).Mark(statsdMetric.Value.(int64))
+				logrus.WithFields(logFields).Info("Mark StatsD meter")
+			}
 
 		} else if statsdMetric.Type == dogstatsd.Timer {
-			// TODO(didip): Not sure what to do with Time() method here.
-			// t := metrics.NewTimer()
-			// a.StatsDMetrics.Register(statsdMetric.Name, t)
-			// t.Time(func() {})
-			// t.Update(statsdMetric.Value.(int64))
+			t := a.StatsDMetrics.GetOrRegister(statsdMetric.Name, metrics.NewTimer())
+			if t != nil {
+				// t.Time(func() {})
+				t.(metrics.Timer).Update(statsdMetric.Value.(time.Duration))
+				logrus.WithFields(logFields).Info("Update StatsD timer")
+			}
 		}
 	}
 }
