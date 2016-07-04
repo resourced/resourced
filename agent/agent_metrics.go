@@ -1,7 +1,6 @@
 package agent
 
 import (
-	"encoding/json"
 	"fmt"
 	"strconv"
 	"strings"
@@ -33,17 +32,6 @@ func (a *Agent) saveRawKeyValueMetricToResultDB(key string, value interface{}) {
 	data := make(map[string]interface{})
 
 	existingRecord, existingRecordExists := a.ResultDB.Get(dataPath)
-
-	if strings.Contains(dataPath, "testing") {
-		println(dataPath)
-		println(existingRecordExists)
-	}
-
-	if existingRecordExists && strings.Contains(dataPath, "testing") {
-		println("before modification")
-		existingRecordJSON, _ := json.Marshal(existingRecord)
-		println(string(existingRecordJSON))
-	}
 
 	hostnameIndex := libstring.FindHostnameChunkInMetricKey(key)
 	if hostnameIndex == -1 {
@@ -77,11 +65,6 @@ func (a *Agent) saveRawKeyValueMetricToResultDB(key string, value interface{}) {
 	// Update existing record in-memory
 	if existingRecordExists && strings.Contains(dataPath, "testing") {
 		a.ResultDB.Set(dataPath, existingRecord, gocache.DefaultExpiration)
-
-		println("after modification")
-		existingRecordJSON, _ := json.Marshal(existingRecord)
-		println(string(existingRecordJSON))
-
 	} else {
 		// Store metric record for the first time in memory.
 		record := make(map[string]interface{})
