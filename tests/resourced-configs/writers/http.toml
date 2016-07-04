@@ -1,7 +1,7 @@
 ReaderPaths = ["/load-avg", "/uptime", "/free"]
 Path = "/loadavg-uptime-free/http"
 GoStruct = "Http"
-Interval = "3s"
+Interval = "60s"
 
 [GoStructFields]
 Url = "http://localhost:55655/"

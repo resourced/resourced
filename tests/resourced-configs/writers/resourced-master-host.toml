@@ -1,7 +1,7 @@
 ReaderPaths = ["/uptime", "/free", "/df", "/iostat", "/net/io", "/net/interfaces", "/cpu/info", "/graphite"]
 Path = "/resourced-master/host"
 GoStruct = "ResourcedMasterHost"
-Interval = "30s"
+Interval = "60s"
 
 [GoStructFields]
 Method = "POST"
