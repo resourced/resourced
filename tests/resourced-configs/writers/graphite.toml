@@ -1,0 +1,13 @@
+ReaderPaths = ["/load-avg", "/uptime", "/free"]
+Path = "/loadavg-uptime-free/graphite"
+GoStruct = "Graphite"
+Interval = "60s"
+
+[GoStructFields]
+Addr = "127.0.0.1:2003"
+
+# Valid options are: tcp or udp.
+Protocol = "tcp"
+
+# Use this setting to add a custom prefix to your metric keys.
+Prefix = ""
