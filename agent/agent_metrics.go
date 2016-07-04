@@ -9,7 +9,7 @@ import (
 	gocache "github.com/patrickmn/go-cache"
 	"github.com/rcrowley/go-metrics"
 
-	"github.com/resourced/resourced/libstring"
+	"github.com/resourced/resourced/libmap"
 )
 
 func (a *Agent) NewMetricsRegistryForSelf() metrics.Registry {
@@ -29,43 +29,26 @@ func (a *Agent) buildResultDBPayloadFromKeyValueMetric(key string, value interfa
 	chunks := strings.Split(key, ".")
 	prefix := chunks[0]
 	dataPath := "/r/" + prefix
-	data := make(map[string]interface{})
 
 	existingRecord, existingRecordExists := a.ResultDB.Get(dataPath)
 
+	var nestedMap *libmap.TSafeNestedMapInterface
+
 	if existingRecordExists {
-		data = existingRecord.(map[string]interface{})["Data"].(map[string]interface{})
-	}
-
-	hostnameIndex := libstring.FindHostnameChunkInMetricKey(key)
-	if hostnameIndex == -1 {
-		subkey = strings.Replace(key, prefix+".", "", 1)
-		data[subkey] = value
-
+		existingData := existingRecord.(map[string]interface{})["Data"].(map[string]interface{})
+		nestedMap = libmap.NewTSafeNestedMapInterface(existingData)
 	} else {
-		hostname := chunks[hostnameIndex]
-
-		// If hostname based map does not exist, create it.
-		_, hostnameDataExists := data[hostname]
-		if !hostnameDataExists {
-			data[hostname] = make(map[string]interface{})
-		}
-
-		subkey = strings.Replace(key, strings.Join(chunks[0:hostnameIndex+1], ".")+".", "", 1)
-		data[hostname].(map[string]interface{})[subkey] = value
+		nestedMap = libmap.NewTSafeNestedMapInterface(nil)
 	}
 
-	// Return the updated existing record.
-	if existingRecordExists {
-		existingRecord.(map[string]interface{})["Data"] = data
-		return existingRecord.(map[string]interface{})
-	}
+	subkey = strings.Replace(key, prefix+".", "", 1)
+	nestedMap.Set(subkey, value)
 
-	// Build new record
+	// Build record and envelopes the data
 	record := make(map[string]interface{})
 	record["UnixNano"] = time.Now().UnixNano()
 	record["Path"] = dataPath
-	record["Data"] = data
+	record["Data"] = nestedMap.All()
 
 	host, err := a.hostData()
 	if err == nil {
