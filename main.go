@@ -154,15 +154,11 @@ func main() {
 	// Publish self metrics to localhost
 	go metrics_graphite.Graphite(a.NewMetricsRegistryForSelf(), statsInterval, "ResourcedAgent", addr)
 
-	// Publish StatsD metrics to localhost
-	go metrics_graphite.Graphite(a.StatsDMetrics, statsInterval, "statsd", addr)
+	// Flush aggregated StatsD metrics to in-memory storage
+	go a.FlushStatsDMetricsToResultDB(statsInterval)
 
 	// HTTP Settings
-	logFields := logrus.Fields{
-		"Addr":                a.GeneralConfig.Addr,
-		"LogLevel":            a.GeneralConfig.LogLevel,
-		"ResourcedMaster.URL": a.GeneralConfig.ResourcedMaster.URL,
-	}
+	logFields := a.DefaultLogrusFieldsForHTTP()
 
 	if a.GeneralConfig.HTTPS.CertFile != "" && a.GeneralConfig.HTTPS.KeyFile != "" {
 		logFields["HTTPS.CertFile"] = a.GeneralConfig.HTTPS.CertFile

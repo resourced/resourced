@@ -7,9 +7,17 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/Sirupsen/logrus"
 	"github.com/gorilla/mux"
 	"github.com/resourced/resourced/libhttp"
 )
+
+func (a *Agent) DefaultLogrusFieldsForHTTP() logrus.Fields {
+	return logrus.Fields{
+		"Addr":                a.GeneralConfig.Addr,
+		"ResourcedMaster.URL": a.GeneralConfig.ResourcedMaster.URL,
+	}
+}
 
 // AuthorizeMiddleware wraps all other handlers; returns 403 for clients that aren't authorized to connect.
 func (a *Agent) AuthorizeMiddleware(next http.Handler) http.Handler {
