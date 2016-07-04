@@ -111,16 +111,16 @@ func main() {
 	}
 
 	// LogReceiver TCP Settings
-	logReceiverListener, err := a.NewTCPServer(a.GeneralConfig.LogReceiver, "Log Receiver TCP")
+	logReceiverTCPListener, err := a.NewTCPServer(a.GeneralConfig.LogReceiver, "Log Receiver TCP")
 	if err != nil {
 		logrus.Fatal(err)
 	}
-	if logReceiverListener != nil {
-		defer logReceiverListener.Close()
+	if logReceiverTCPListener != nil {
+		defer logReceiverTCPListener.Close()
 
-		go func(logReceiverListener net.Listener) {
+		go func(logReceiverTCPListener net.Listener) {
 			for {
-				conn, err := logReceiverListener.Accept()
+				conn, err := logReceiverTCPListener.Accept()
 				if err != nil {
 					libtime.SleepString("1s")
 					continue
@@ -137,7 +137,30 @@ func main() {
 				conn.Write([]byte(""))
 				conn.Close()
 			}
-		}(logReceiverListener)
+		}(logReceiverTCPListener)
+	}
+
+	// LogReceiver UDP Settings
+	logReceiverUDPListener, err := a.NewUDPServer(a.GeneralConfig.LogReceiver, "Log Receiver UDP")
+	if err != nil {
+		logrus.Fatal(err)
+	}
+	if logReceiverUDPListener != nil {
+		defer logReceiverUDPListener.Close()
+
+		go func(logReceiverUDPListener *net.UDPConn) {
+			bufferReader := make([]byte, 1024)
+
+			for {
+				n, _, err := logReceiverUDPListener.ReadFromUDP(bufferReader)
+				if err != nil {
+					libtime.SleepString("1s")
+					continue
+				}
+
+				go a.HandleLog(bufferReader[0:n])
+			}
+		}(logReceiverUDPListener)
 	}
 
 	// Create TCP connection to publish metrics to localhost
