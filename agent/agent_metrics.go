@@ -23,7 +23,7 @@ func (a *Agent) NewMetricsRegistryForSelf() metrics.Registry {
 	return r
 }
 
-func (a *Agent) saveRawKeyValueMetricToResultDB(key string, value interface{}) {
+func (a *Agent) buildResultDBPayloadFromKeyValueMetric(key string, value interface{}) map[string]interface{} {
 	var subkey string
 
 	chunks := strings.Split(key, ".")
@@ -33,52 +33,56 @@ func (a *Agent) saveRawKeyValueMetricToResultDB(key string, value interface{}) {
 
 	existingRecord, existingRecordExists := a.ResultDB.Get(dataPath)
 
+	if existingRecordExists {
+		data = existingRecord.(map[string]interface{})["Data"].(map[string]interface{})
+	}
+
 	hostnameIndex := libstring.FindHostnameChunkInMetricKey(key)
 	if hostnameIndex == -1 {
 		subkey = strings.Replace(key, prefix+".", "", 1)
-
-		if existingRecordExists {
-			existingRecord.(map[string]interface{})["Data"].(map[string]interface{})[subkey] = value
-		} else {
-			data[subkey] = value
-		}
+		data[subkey] = value
 
 	} else {
 		hostname := chunks[hostnameIndex]
 
+		// If hostname based map does not exist, create it.
+		_, hostnameDataExists := data[hostname]
+		if !hostnameDataExists {
+			data[hostname] = make(map[string]interface{})
+		}
+
 		subkey = strings.Replace(key, strings.Join(chunks[0:hostnameIndex+1], ".")+".", "", 1)
-
-		if existingRecordExists {
-			_, hostnameDataExists := existingRecord.(map[string]interface{})["Data"].(map[string]interface{})[hostname]
-			if !hostnameDataExists {
-				existingRecord.(map[string]interface{})["Data"].(map[string]interface{})[hostname] = make(map[string]interface{})
-			}
-
-			existingRecord.(map[string]interface{})["Data"].(map[string]interface{})[hostname].(map[string]interface{})[subkey] = value
-		} else {
-			hostnameData := make(map[string]interface{})
-			hostnameData[subkey] = value
-			data[hostname] = hostnameData
-		}
+		data[hostname].(map[string]interface{})[subkey] = value
 	}
 
-	// Update existing record in-memory
-	if existingRecordExists && strings.Contains(dataPath, "testing") {
-		a.ResultDB.Set(dataPath, existingRecord, gocache.DefaultExpiration)
-	} else {
-		// Store metric record for the first time in memory.
-		record := make(map[string]interface{})
-		record["UnixNano"] = time.Now().UnixNano()
-		record["Path"] = dataPath
-		record["Data"] = data
-
-		host, err := a.hostData()
-		if err == nil {
-			record["Host"] = host
-		}
-
-		a.ResultDB.Set(dataPath, record, gocache.DefaultExpiration)
+	// Return the updated existing record.
+	if existingRecordExists {
+		existingRecord.(map[string]interface{})["Data"] = data
+		return existingRecord.(map[string]interface{})
 	}
+
+	// Build new record
+	record := make(map[string]interface{})
+	record["UnixNano"] = time.Now().UnixNano()
+	record["Path"] = dataPath
+	record["Data"] = data
+
+	host, err := a.hostData()
+	if err == nil {
+		record["Host"] = host
+	}
+
+	return record
+}
+
+func (a *Agent) saveRawKeyValueMetricToResultDB(key string, value interface{}) {
+	recordToBeSaved := a.buildResultDBPayloadFromKeyValueMetric(key, value)
+
+	chunks := strings.Split(key, ".")
+	prefix := chunks[0]
+	dataPath := "/r/" + prefix
+
+	a.ResultDB.Set(dataPath, recordToBeSaved, gocache.DefaultExpiration)
 }
 
 // Gather all aggregated StatsD metrics and store them in-memory storage.

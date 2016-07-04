@@ -69,12 +69,6 @@ func TestHttpRouter(t *testing.T) {
 	} else {
 		if strings.Contains(string(jsonData), "Error") {
 			t.Errorf("jsonData shouldn't return error: %s, %s", jsonData, req.RemoteAddr)
-		} else if !strings.Contains(string(jsonData), `UnixNano`) {
-			t.Errorf("jsonData does not contain 'UnixNano' key: %s", jsonData)
-		} else if !strings.Contains(string(jsonData), `Command`) && !strings.Contains(string(jsonData), `GoStruct`) {
-			t.Errorf("jsonData does not contain 'Command' and 'GoStruct' keys: %s", jsonData)
-		} else if !strings.Contains(string(jsonData), `Data`) {
-			t.Errorf("jsonData does not contain 'Data' key: %s", jsonData)
 		}
 	}
 }
