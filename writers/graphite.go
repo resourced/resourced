@@ -30,6 +30,20 @@ type Graphite struct {
 	Prefix   string
 }
 
+func (g *Graphite) preProcessKey(key string) string {
+	// Strip leading forward slash
+	if strings.HasPrefix(key, "/") {
+		key = key[1:len(key)]
+	}
+
+	// Prepend prefix if defined
+	if g.Prefix != "" {
+		key = g.Prefix + "." + key
+	}
+
+	return key
+}
+
 // Run executes the writer.
 func (g *Graphite) Run() error {
 	now := time.Now().UTC().Unix()
@@ -53,9 +67,7 @@ func (g *Graphite) Run() error {
 		w := bufio.NewWriter(conn)
 
 		for key, value := range flatten {
-			if g.Prefix != "" {
-				key = g.Prefix + "." + key
-			}
+			key = g.preProcessKey(key)
 
 			logrus.WithFields(logrus.Fields{
 				"Key":       key,
@@ -77,9 +89,7 @@ func (g *Graphite) Run() error {
 		buffer := make([]byte, 1024)
 
 		for key, value := range flatten {
-			if g.Prefix != "" {
-				key = g.Prefix + "." + key
-			}
+			key = g.preProcessKey(key)
 
 			logrus.WithFields(logrus.Fields{
 				"Key":       key,
