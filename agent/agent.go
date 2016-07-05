@@ -16,7 +16,6 @@ import (
 	"github.com/resourced/resourced/executors"
 	"github.com/resourced/resourced/host"
 	"github.com/resourced/resourced/libmap"
-	"github.com/resourced/resourced/libtime"
 	"github.com/resourced/resourced/loggers"
 	"github.com/resourced/resourced/readers"
 	"github.com/resourced/resourced/writers"
@@ -335,9 +334,17 @@ func (a *Agent) GetRunByPath(path string) ([]byte, error) {
 // RunForever executes Run() in an infinite loop with a sleep of config.Interval.
 func (a *Agent) RunForever(config resourced_config.Config) {
 	go func(config resourced_config.Config) {
+		waitTime, err := time.ParseDuration(config.Interval)
+		if err != nil {
+			waitTime, _ = time.ParseDuration("60s")
+		}
+
+		for range time.Tick(waitTime) {
+			a.Run(config)
+		}
+
 		for {
 			a.Run(config)
-			libtime.SleepString(config.Interval)
 		}
 	}(config)
 }
@@ -364,22 +371,24 @@ func (a *Agent) RunAllForever() {
 		}()
 
 		go func(config resourced_config.Config, logger loggers.ILogger) {
-			for {
+			waitTime, err := time.ParseDuration(config.Interval)
+			if err != nil {
+				waitTime, _ = time.ParseDuration("60s")
+			}
+
+			for range time.Tick(waitTime) {
 				loglines, err := a.SendLog(logger.GetData(), logger.GetFile())
 				if err != nil {
-					libtime.SleepString(config.Interval)
 					continue
 				}
 
 				outputJson, err := json.Marshal(loglines)
 				if err != nil {
-					libtime.SleepString(config.Interval)
 					continue
 				}
 
 				a.saveRun(config, outputJson, err)
 				a.PruneLogs(logger, logger.GetData())
-				libtime.SleepString(config.Interval)
 			}
 		}(config, logger)
 	}
