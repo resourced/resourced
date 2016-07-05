@@ -28,20 +28,22 @@ There are a few ways to run tests:
     vagrant up ubuntu       # or vagrant up centos
     vagrant ssh ubuntu      # or vagrant ssh centos
 
-    # Inside Vagrant
-    export GOPATH=/vagrant:/go
+    sudo su -
 
     # resourced code is located here
     cd /vagrant
 
     # test agent
-    cd /vagrant/agent; go test
+    go test ./agent
 
     # test readers
-    cd /vagrant/readers; go test
+    go test ./readers
 
     # test writers
-    cd /vagrant/writers; go test
+    go test ./writers
+
+    # You may wonder, why can't I just do: go test ./... on root project?
+    It's because of /vendor folder debacle: https://github.com/golang/go/issues/11659
     ```
 
 2. Some tests are runnable without dependencies, thus you can run them on laptop:
@@ -74,3 +76,11 @@ ResourceD has 4 components: Reader, Writer, Executor, and Logger. They all run i
 * Executor executes logic based on expression performed on readers data.
 
 * Logger tails a log file and forwards the log lines to master.
+
+
+ResourceD also runs multiple network listeners:
+
+* Metrics receiver (TCP or UDP): They are for receiving live Graphite or StatsD metrics.
+
+* Log receiver (TCP or UDP): They are for receiving log lines, think of them as logs forwarder to master.
+
