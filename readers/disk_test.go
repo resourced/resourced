@@ -72,7 +72,7 @@ func TestNewDiskIOToJson(t *testing.T) {
 			t.Errorf("jsonDataString shouldn't return error: %v", jsonDataString)
 		}
 
-		keysToTest := []string{"read_count", "write_count", "read_bytes", "write_bytes", "read_time", "write_time", "name", "io_time", "serial_number"}
+		keysToTest := []string{"readCount", "writeCount", "readBytes", "writeBytes", "readTime", "writeTime", "name", "ioTime", "serialNumber"}
 
 		for _, key := range keysToTest {
 			if !strings.Contains(jsonDataString, key) {

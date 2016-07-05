@@ -12,12 +12,12 @@ func init() {
 
 func NewIOStat() IReader {
 	ios := &IOStat{}
-	ios.Data = make(map[string]interface{})
+	ios.Data = make(map[string]map[string]float64)
 	return ios
 }
 
 type IOStat struct {
-	Data map[string]interface{}
+	Data map[string]map[string]float64
 }
 
 // Run gathers load average information from gosigar.

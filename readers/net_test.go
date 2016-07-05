@@ -31,7 +31,7 @@ func TestNewNetIOToJson(t *testing.T) {
 		t.Errorf("jsonDataString shouldn't return error: %v", jsonDataString)
 	}
 
-	keysToTest := []string{"bytes_sent", "bytes_recv", "packets_sent", "packets_recv", "errin", "errout", "dropin", "dropout"}
+	keysToTest := []string{"bytesSent", "bytesRecv", "packetsSent", "packetsRecv", "errin", "errout", "dropin", "dropout"}
 
 	for _, key := range keysToTest {
 		if !strings.Contains(jsonDataString, key) {

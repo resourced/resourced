@@ -32,7 +32,7 @@ func TestNewCpuInfoToJson(t *testing.T) {
 		t.Errorf("jsonDataString shouldn't return error: %v", jsonDataString)
 	}
 
-	keysToTest := []string{"cpu", "vendor_id", "family", "model", "stepping", "cores", "model_name", "cache_size", "flags"}
+	keysToTest := []string{"cpu", "vendorId", "family", "model", "stepping", "cores", "modelName", "cacheSize", "flags"}
 
 	for _, key := range keysToTest {
 		if !strings.Contains(jsonDataString, key) {
@@ -82,7 +82,7 @@ func TestNewCpuStatToJson(t *testing.T) {
 			t.Errorf("jsonDataString shouldn't return error: %v", jsonDataString)
 		}
 
-		keysToTest := []string{"cpu", "user", "system", "idle", "nice", "iowait", "irq", "softirq", "steal", "guest", "guest_nice", "stolen"}
+		keysToTest := []string{"cpu", "user", "system", "idle", "nice", "iowait", "irq", "softirq", "steal", "guest", "guestNice", "stolen"}
 
 		for _, key := range keysToTest {
 			if !strings.Contains(jsonDataString, key) {

@@ -22,29 +22,39 @@ go run $GOPATH/src/github.com/resourced/resourced/resourced.go
 
 There are a few ways to run tests:
 
-1. On your laptop:
-    ```bash
-    cd $GOPATH/src/github.com/resourced/resourced
-    go test ./...
-    ```
-
-2. Inside docker container:
-    ```bash
-    cd $GOPATH/src/github.com/resourced/resourced
-    docker build -t resourced . && docker run -t resourced go test ./...
-    ```
-
-3. Inside Vagrant VM, docker is also pre-installed inside the VM:
+1. It is best to run tests inside Vagrant VM, because the VM installs all dependencies:
     ```bash
     cd $GOPATH/src/github.com/resourced/resourced
     vagrant up ubuntu       # or vagrant up centos
     vagrant ssh ubuntu      # or vagrant ssh centos
 
     # Inside Vagrant
-    export GOPATH=/go
-    cd $GOPATH/src/github.com/resourced/resourced
+    export GOPATH=/vagrant:/go
+
+    # resourced code is located here
+    cd /vagrant
+
+    # test agent
+    cd /vagrant/agent; go test
+
+    # test readers
+    cd /vagrant/readers; go test
+
+    # test writers
+    cd /vagrant/writers; go test
+    ```
+
+2. Some tests are runnable without dependencies, thus you can run them on laptop:
+    ```bash
+    cd $GOPATH/src/github.com/resourced/resourced/agent; go test
+
+    # any tests inside lib packages are without dependencies
+    cd $GOPATH/src/github.com/resourced/resourced/libstring; go test
+    ```
+
+3. To test and see if resourced is buildable inside docker:
+    ```bash
     sudo docker build -t resourced . && sudo docker run -t resourced
-    go test ./...
     ```
 
 
