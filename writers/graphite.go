@@ -100,13 +100,16 @@ func (g *Graphite) Run() error {
 		}
 
 	} else if strings.ToLower(g.Protocol) == "udp" {
-		conn, err := net.Dial("udp", g.Addr)
+		addr, err := net.ResolveUDPAddr("udp", g.Addr)
+		if err != nil {
+			return err
+		}
+
+		conn, err := net.DialUDP("udp", nil, addr)
 		if err != nil {
 			return err
 		}
 		defer conn.Close()
-
-		buffer := make([]byte, 1024)
 
 		for key, value := range flatten {
 			key = g.preProcessKey(key)
@@ -119,13 +122,7 @@ func (g *Graphite) Run() error {
 					"Timestamp": now,
 				}).Info("Sending metric to Graphite UDP endpoint")
 
-				fmt.Fprintf(conn, "%s %v %d\n", key, value, now)
-
-				_, err = bufio.NewReader(conn).Read(buffer)
-				if err != nil {
-					return err
-				}
-				buffer = nil
+				conn.Write([]byte(fmt.Sprintf("%s %v %d\n", key, value, now)))
 			}
 		}
 	}
