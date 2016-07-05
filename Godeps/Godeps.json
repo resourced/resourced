@@ -2,6 +2,9 @@
 	"ImportPath": "github.com/resourced/resourced",
 	"GoVersion": "go1.7",
 	"GodepVersion": "v74",
+	"Packages": [
+		"./..."
+	],
 	"Deps": [
 		{
 			"ImportPath": "github.com/BurntSushi/toml",
@@ -138,6 +141,16 @@
 			"Rev": "9235644dd9e52eeae6fa48efd539fdc351a0af53"
 		},
 		{
+			"ImportPath": "github.com/gorilla/context",
+			"Comment": "v1.1-4-gaed02d1",
+			"Rev": "aed02d124ae4a0e94fea4541c8effd05bf0c8296"
+		},
+		{
+			"ImportPath": "github.com/gorilla/mux",
+			"Comment": "v1.1-9-gbd09be0",
+			"Rev": "bd09be08ed4377796d312df0a45314e11b8f5dc1"
+		},
+		{
 			"ImportPath": "github.com/guillermo/go.procmeminfo",
 			"Rev": "be4355a9fb0e5340ebee5b05aafe85948eaccd1b"
 		},
@@ -188,6 +201,11 @@
 			"ImportPath": "github.com/julienschmidt/httprouter",
 			"Comment": "v1.1-29-g77366a4",
 			"Rev": "77366a47451a56bb3ba682481eed85b64fea14e8"
+		},
+		{
+			"ImportPath": "github.com/narqo/go-dogstatsd-parser",
+			"Comment": "v0.2.0",
+			"Rev": "cc11c25c4b3c0dc684c0025140bec1ee5984b558"
 		},
 		{
 			"ImportPath": "github.com/opencontainers/runc/libcontainer/user",
