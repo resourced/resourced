@@ -392,10 +392,10 @@ func (a *Agent) HttpRouter() *mux.Router {
 
 	router.Handle("/{dataType}/paths", a.AuthorizeMiddleware(a.GetDataTypePathsHandler())).Methods("GET")
 
-	router.Handle("/r/{path}", a.AuthorizeMiddleware(a.GetByPathHandler("r"))).Methods("GET")
-	router.Handle("/w/{path}", a.AuthorizeMiddleware(a.GetByPathHandler("w"))).Methods("GET")
-	router.Handle("/x/{path}", a.AuthorizeMiddleware(a.GetByPathHandler("x"))).Methods("GET")
-	router.Handle("/logs/{path}", a.AuthorizeMiddleware(a.GetByPathHandler("logs"))).Methods("GET")
+	router.Handle("/r/{path:.*}", a.AuthorizeMiddleware(a.GetByPathHandler("r"))).Methods("GET")
+	router.Handle("/w/{path:.*}", a.AuthorizeMiddleware(a.GetByPathHandler("w"))).Methods("GET")
+	router.Handle("/x/{path:.*}", a.AuthorizeMiddleware(a.GetByPathHandler("x"))).Methods("GET")
+	router.Handle("/logs/{path:.*}", a.AuthorizeMiddleware(a.GetByPathHandler("logs"))).Methods("GET")
 
 	return router
 }
