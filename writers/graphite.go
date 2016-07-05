@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net"
+	"reflect"
 	"strings"
 	"time"
 
@@ -44,6 +45,22 @@ func (g *Graphite) preProcessKey(key string) string {
 	return key
 }
 
+func (g *Graphite) preProcessData() (map[string]interface{}, error) {
+	flatten := make(map[string]interface{})
+
+	flattenWithData, err := libmap.Flatten(g.Data, ".")
+	if err != nil {
+		return flatten, err
+	}
+
+	for key, value := range flattenWithData {
+		keyWithoutData := strings.Replace(key, ".Data.", ".", 1)
+		flatten[keyWithoutData] = value
+	}
+
+	return flatten, nil
+}
+
 // Run executes the writer.
 func (g *Graphite) Run() error {
 	now := time.Now().UTC().Unix()
@@ -52,7 +69,7 @@ func (g *Graphite) Run() error {
 		return errors.New("Data field is nil.")
 	}
 
-	flatten, err := libmap.Flatten(g.Data, ".")
+	flatten, err := g.preProcessData()
 	if err != nil {
 		return err
 	}
@@ -69,14 +86,17 @@ func (g *Graphite) Run() error {
 		for key, value := range flatten {
 			key = g.preProcessKey(key)
 
-			logrus.WithFields(logrus.Fields{
-				"Key":       key,
-				"Value":     value,
-				"Timestamp": now,
-			}).Error("Sending metric to Graphite TCP endpoint")
+			switch reflect.TypeOf(value).Kind() {
+			case reflect.Int, reflect.Int64, reflect.Float32, reflect.Float64:
+				logrus.WithFields(logrus.Fields{
+					"Key":       key,
+					"Value":     value,
+					"Timestamp": now,
+				}).Info("Sending metric to Graphite TCP endpoint")
 
-			fmt.Fprintf(w, "%s %f %d\n", key, value, now)
-			w.Flush()
+				fmt.Fprintf(w, "%s %v %d\n", key, value, now)
+				w.Flush()
+			}
 		}
 
 	} else if strings.ToLower(g.Protocol) == "udp" {
@@ -91,19 +111,22 @@ func (g *Graphite) Run() error {
 		for key, value := range flatten {
 			key = g.preProcessKey(key)
 
-			logrus.WithFields(logrus.Fields{
-				"Key":       key,
-				"Value":     value,
-				"Timestamp": now,
-			}).Error("Sending metric to Graphite UDP endpoint")
+			switch reflect.TypeOf(value).Kind() {
+			case reflect.Int, reflect.Int64, reflect.Float32, reflect.Float64:
+				logrus.WithFields(logrus.Fields{
+					"Key":       key,
+					"Value":     value,
+					"Timestamp": now,
+				}).Info("Sending metric to Graphite UDP endpoint")
 
-			fmt.Fprintf(conn, "%s %f %d\n", key, value, now)
+				fmt.Fprintf(conn, "%s %v %d\n", key, value, now)
 
-			_, err = bufio.NewReader(conn).Read(buffer)
-			if err != nil {
-				return err
+				_, err = bufio.NewReader(conn).Read(buffer)
+				if err != nil {
+					return err
+				}
+				buffer = nil
 			}
-			buffer = nil
 		}
 	}
 
