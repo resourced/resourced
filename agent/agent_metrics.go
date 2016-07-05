@@ -1,6 +1,7 @@
 package agent
 
 import (
+	"encoding/json"
 	"fmt"
 	"strconv"
 	"strings"
@@ -32,13 +33,22 @@ func (a *Agent) buildResultDBPayloadFromKeyValueMetric(key string, value interfa
 
 	existingRecord, existingRecordExists := a.ResultDB.Get(dataPath)
 
-	var nestedMap *libmap.TSafeNestedMapInterface
+	nestedMap := libmap.NewTSafeNestedMapInterface(nil)
 
 	if existingRecordExists {
-		existingData := existingRecord.(map[string]interface{})["Data"].(map[string]interface{})
-		nestedMap = libmap.NewTSafeNestedMapInterface(existingData)
-	} else {
-		nestedMap = libmap.NewTSafeNestedMapInterface(nil)
+		existingData, existingDataExists := existingRecord.(map[string]interface{})["Data"]
+		if existingDataExists {
+			// NOTE: this is not great, but totally solve the problem:
+			// panic: interface conversion: interface {} is *interface {}, not map[string]interface {}
+			asJSON, err := json.Marshal(existingData)
+			if err == nil {
+				var existingDataAsMapInterface map[string]interface{}
+
+				if err := json.Unmarshal(asJSON, &existingDataAsMapInterface); err == nil {
+					nestedMap = libmap.NewTSafeNestedMapInterface(existingDataAsMapInterface)
+				}
+			}
+		}
 	}
 
 	subkey = strings.Replace(key, prefix+".", "", 1)
