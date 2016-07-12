@@ -10,3 +10,5 @@ Method = "POST"
 # and if you don't set access token here,
 # The access token on general.toml will be used.
 # Username = "{access-token}"
+
+MaxRetries = 3

@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/Sirupsen/logrus"
+	"github.com/sethgrid/pester"
 )
 
 func init() {
@@ -15,17 +16,21 @@ func init() {
 
 // NewHttp is Http constructor.
 func NewHttp() IWriter {
-	return &Http{}
+	httpWriter := &Http{}
+	httpWriter.MaxRetries = 3 // Default
+
+	return httpWriter
 }
 
 // Http is a writer that simply serialize all readers data to Http.
 type Http struct {
 	Base
-	Url      string
-	Method   string
-	Headers  string
-	Username string
-	Password string
+	Url        string
+	Method     string
+	Headers    string
+	Username   string
+	Password   string
+	MaxRetries int
 }
 
 // headersAsMap parses the headers data as string and returns them as map.
@@ -92,7 +97,11 @@ func (h *Http) Run() error {
 		return err
 	}
 
-	client := &http.Client{}
+	client := pester.New()
+	client.MaxRetries = h.MaxRetries
+	client.Backoff = pester.ExponentialBackoff
+	client.KeepLog = false
+
 	resp, err := client.Do(req)
 
 	if err != nil {

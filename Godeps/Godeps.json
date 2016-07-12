@@ -2,9 +2,6 @@
 	"ImportPath": "github.com/resourced/resourced",
 	"GoVersion": "go1.7",
 	"GodepVersion": "v74",
-	"Packages": [
-		"./..."
-	],
 	"Deps": [
 		{
 			"ImportPath": "github.com/BurntSushi/toml",
@@ -198,11 +195,6 @@
 			"Rev": "a7f971fe8ea891a1a74ddb40c623f5722e28e8a8"
 		},
 		{
-			"ImportPath": "github.com/julienschmidt/httprouter",
-			"Comment": "v1.1-29-g77366a4",
-			"Rev": "77366a47451a56bb3ba682481eed85b64fea14e8"
-		},
-		{
 			"ImportPath": "github.com/narqo/go-dogstatsd-parser",
 			"Comment": "v0.2.0",
 			"Rev": "cc11c25c4b3c0dc684c0025140bec1ee5984b558"
@@ -252,6 +244,10 @@
 			"ImportPath": "github.com/satori/go.uuid",
 			"Comment": "v1.0.0",
 			"Rev": "f9ab0dce87d815821e221626b772e3475a0d2749"
+		},
+		{
+			"ImportPath": "github.com/sethgrid/pester",
+			"Rev": "8053687f99650573b28fb75cddf3f295082704d7"
 		},
 		{
 			"ImportPath": "github.com/shirou/gopsutil/cpu",

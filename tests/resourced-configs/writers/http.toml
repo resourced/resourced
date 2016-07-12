@@ -11,3 +11,9 @@ Method = "POST"
 # * TOML map does not support dash as key.
 # * Slice reflection is a bit pain.
 Headers = "X-Token=abc123,X-Teapot-Count=2"
+
+# For Basic Auth
+Username = ""
+Password = ""
+
+MaxRetries = 3
