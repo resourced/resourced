@@ -30,7 +30,7 @@ type Http struct {
 	Headers    string
 	Username   string
 	Password   string
-	MaxRetries int
+	MaxRetries int64
 }
 
 // headersAsMap parses the headers data as string and returns them as map.
@@ -98,8 +98,8 @@ func (h *Http) Run() error {
 	}
 
 	client := pester.New()
-	client.MaxRetries = h.MaxRetries
-	client.Backoff = pester.ExponentialBackoff
+	client.MaxRetries = int(h.MaxRetries)
+	client.Backoff = pester.ExponentialJitterBackoff
 	client.KeepLog = false
 
 	resp, err := client.Do(req)

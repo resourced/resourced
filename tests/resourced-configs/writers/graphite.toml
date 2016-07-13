@@ -11,3 +11,5 @@ Protocol = "tcp"
 
 # Use this setting to add a custom prefix to your metric keys.
 Prefix = ""
+
+MaxRetries = 3

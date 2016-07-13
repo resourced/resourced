@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/Sirupsen/logrus"
+	"github.com/sethgrid/pester"
 
 	"github.com/resourced/resourced/libmap"
 )
@@ -26,9 +27,10 @@ func NewGraphite() IWriter {
 // Graphite is a writer that simply serialize all readers data to Graphite.
 type Graphite struct {
 	Base
-	Addr     string
-	Protocol string
-	Prefix   string
+	Addr       string
+	Protocol   string
+	Prefix     string
+	MaxRetries int64
 }
 
 func (g *Graphite) preProcessKey(key string) string {
@@ -76,26 +78,44 @@ func (g *Graphite) Run() error {
 
 	if strings.ToLower(g.Protocol) == "tcp" {
 		conn, err := net.Dial("tcp", g.Addr)
-		if err != nil {
-			return err
+		attempts := 0
+
+		for {
+			if err == nil {
+				break
+			}
+
+			if err != nil && attempts > int(g.MaxRetries) {
+				return err
+			}
+
+			if err != nil {
+				attempts = attempts + 1
+				time.Sleep(pester.ExponentialJitterBackoff(attempts))
+				conn, err = net.Dial("tcp", g.Addr)
+				continue
+			}
 		}
-		defer conn.Close()
 
-		w := bufio.NewWriter(conn)
+		if conn != nil {
+			defer conn.Close()
 
-		for key, value := range flatten {
-			key = g.preProcessKey(key)
+			w := bufio.NewWriter(conn)
 
-			switch reflect.TypeOf(value).Kind() {
-			case reflect.Int, reflect.Int64, reflect.Float32, reflect.Float64:
-				logrus.WithFields(logrus.Fields{
-					"Key":       key,
-					"Value":     value,
-					"Timestamp": now,
-				}).Info("Sending metric to Graphite TCP endpoint")
+			for key, value := range flatten {
+				key = g.preProcessKey(key)
 
-				fmt.Fprintf(w, "%s %v %d\n", key, value, now)
-				w.Flush()
+				switch reflect.TypeOf(value).Kind() {
+				case reflect.Int, reflect.Int64, reflect.Float32, reflect.Float64:
+					logrus.WithFields(logrus.Fields{
+						"Key":       key,
+						"Value":     value,
+						"Timestamp": now,
+					}).Info("Sending metric to Graphite TCP endpoint")
+
+					fmt.Fprintf(w, "%s %v %d\n", key, value, now)
+					w.Flush()
+				}
 			}
 		}
 
