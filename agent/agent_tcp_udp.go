@@ -178,5 +178,5 @@ func (a *Agent) HandleStatsD(dataInBytes []byte) {
 }
 
 func (a *Agent) HandleLog(dataInBytes []byte) {
-	a.TCPLogDB.Append("Loglines", string(dataInBytes))
+	a.LiveLogDB.Append("Loglines", string(dataInBytes))
 }

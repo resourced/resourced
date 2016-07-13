@@ -63,39 +63,65 @@ func NewGoStructByConfig(config resourced_config.Config) (ILogger, error) {
 
 // ILogger is generic interface for all readers.
 type ILogger interface {
-	RunBlocking()
+	SetLoglines(string, []string)
+	GetLoglines(string) []string
+	ResetLoglines(string)
 	GetData() *libmap.TSafeMapStrings
-	GetFile() string
-	GetAutoPruneLength() int64
+	GetFiles() []string
+	GetMaxLengthWipeTrigger() int64
+}
+
+type ILoggerFile interface {
+	ILogger
+	RunBlocking(string)
 }
 
 func NewBase() ILogger {
 	b := &Base{}
-	b.Data = libmap.NewTSafeMapStrings(map[string][]string{
-		"Loglines": make([]string, 0),
-	})
-	b.AutoPruneLength = 1000000
+	b.Data = libmap.NewTSafeMapStrings(nil)
+	b.MaxLengthWipeTrigger = 1000000
 
 	return b
 }
 
 type Base struct {
-	File            string
-	Data            *libmap.TSafeMapStrings
-	AutoPruneLength int64
+	Files                []interface{}
+	Data                 *libmap.TSafeMapStrings
+	MaxLengthWipeTrigger int64
+	Target               string
+	DenyList             []interface{}
 }
 
 // Run tails the file continuously.
-func (b *Base) RunBlocking() {
-	t, err := tail.TailFile(b.File, tail.Config{
+func (b *Base) RunBlocking(file string) {
+	t, err := tail.TailFile(file, tail.Config{
 		Follow:   true,
 		Location: &tail.SeekInfo{Offset: 0, Whence: os.SEEK_END},
 	})
 	if err == nil {
+		if !b.Data.Exists(file) {
+			b.Data.Set(file, make([]string, 0))
+		}
+
 		for line := range t.Lines {
-			b.Data.Append("Loglines", line.Text)
+			b.Data.Append(file, line.Text)
 		}
 	}
+}
+
+// SetLoglines sets loglines.
+func (b *Base) SetLoglines(file string, loglines []string) {
+	b.Data.Set(file, loglines)
+}
+
+// GetLoglines returns loglines.
+func (b *Base) GetLoglines(file string) []string {
+	return b.Data.Get(file)
+}
+
+// ResetLoglines wipes it clean.
+func (b *Base) ResetLoglines(file string) {
+	b.Data.Reset(file)
 }
 
 // GetData returns data.
@@ -103,12 +129,18 @@ func (b *Base) GetData() *libmap.TSafeMapStrings {
 	return b.Data
 }
 
-// GetFile returns data.
-func (b *Base) GetFile() string {
-	return b.File
+// GetFiles returns data.
+func (b *Base) GetFiles() []string {
+	result := make([]string, len(b.Files))
+
+	for i, fileInterface := range b.Files {
+		result[i] = fileInterface.(string)
+	}
+
+	return result
 }
 
-// GetAutoPruneLength returns AutoPruneLength
-func (b *Base) GetAutoPruneLength() int64 {
-	return b.AutoPruneLength
+// GetMaxLengthWipeTrigger returns MaxLengthWipeTrigger
+func (b *Base) GetMaxLengthWipeTrigger() int64 {
+	return b.MaxLengthWipeTrigger
 }

@@ -1,10 +1,41 @@
+#
+# Loggers pull log lines from either:
+#   * Files
+#   * Direct TCP/UDP input
+# and forwards them to various external sources.
+#
+# Limitation: Does not support multi-line logs.
+#
 GoStruct = "Base"
 Path = "/osx/system"
 Interval = "30s"
 
 [GoStructFields]
-File = "/private/var/log/system.log"
+# If a file is "live://" then we are forwarding log lines from direct TCP/UDP receiver.
+# Otherwise, we are forwarding log lines from files.
+# Note that you can define multiple files. Examples:
+#    Files = ["live://"]
+#    Files = ["/var/log/messages"]
+Files = ["live://", "/private/var/log/system.log"]
 
 # To protect the agent from consuming too much memory, this setting is needed.
-# When number of log lines stored in memory exceeded this threshold, log lines in memory will be cleared.
-AutoPruneLength = 1000000
+# When number of log lines stored in memory exceeded this threshold, log lines in-memory will be cleared.
+# Note: general.toml MaxLengthWipeTrigger will be used for clearing log lines from direct TCP/UDP receiver.
+MaxLengthWipeTrigger = 1000000
+
+# One logger config, one target. There are multiple ways to define a target:
+#    Special ResourceD Master API endpoint:
+#        Target = "RESOURCED_MASTER_URL/api/logs"
+#    Syslog endpoint:
+#        Target = "syslog+udp://remote-ip:514"
+#        Target = "syslog+tcp://remote-ip:601"
+#        Target = "syslog+tcp+tls://remote-ip:6514"
+#    Generic TCP
+#        Target = "tcp://remote-ip:port"
+#    Generic UDP
+#        Target = "tcp://remote-ip:port"
+Target = "RESOURCED_MASTER_URL/api/logs"
+
+# Each regex defined here will be used to deny log line for forwarding.
+# By default, every line will be forwarded.
+Denylist = []

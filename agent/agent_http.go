@@ -359,7 +359,7 @@ func (a *Agent) GetLogsTCPHandler() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 
-		data := a.LogPayload(a.TCPLogDB, "")
+		data := a.LogPayloadForMaster(a.LiveLogDB.Get("Loglines"), "")
 		dataInBytes, err := json.Marshal(data)
 		if err != nil {
 			w.WriteHeader(500)

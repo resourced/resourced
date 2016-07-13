@@ -4,24 +4,24 @@ import (
 	"bytes"
 	"encoding/json"
 	"net/http"
+	"time"
 
 	"github.com/Sirupsen/logrus"
+	"github.com/sethgrid/pester"
 
-	resourced_config "github.com/resourced/resourced/config"
 	"github.com/resourced/resourced/libmap"
-	"github.com/resourced/resourced/libtime"
 )
 
 type IAutoPrune interface {
-	GetAutoPruneLength() int64
+	GetMaxLengthWipeTrigger() int64
 }
 
-// LogPayload packages the log data before sending to master.
-func (a *Agent) LogPayload(logdb *libmap.TSafeMapStrings, filename string) map[string]interface{} {
+// LogPayloadForMaster packages the log data before sending to master.
+func (a *Agent) LogPayloadForMaster(loglines []string, filename string) map[string]interface{} {
 	toSend := make(map[string]interface{})
 
 	data := make(map[string]interface{})
-	data["Loglines"] = logdb.Get("Loglines")
+	data["Loglines"] = loglines
 	data["Filename"] = filename
 
 	toSend["Data"] = data
@@ -35,14 +35,9 @@ func (a *Agent) LogPayload(logdb *libmap.TSafeMapStrings, filename string) map[s
 	return toSend
 }
 
-// SendLog sends log lines to master.
-func (a *Agent) SendLog(logdb *libmap.TSafeMapStrings, filename string) ([]string, error) {
-	data := a.LogPayload(logdb, filename)
-
-	loglines := data["Data"].(map[string]interface{})["Loglines"].([]string)
-	if len(loglines) <= 0 {
-		return nil, nil
-	}
+// SendLogToMaster sends log lines to master.
+func (a *Agent) SendLogToMaster(loglines []string, filename string) ([]string, error) {
+	data := a.LogPayloadForMaster(loglines, filename)
 
 	dataJson, err := json.Marshal(data)
 	if err != nil {
@@ -58,7 +53,11 @@ func (a *Agent) SendLog(logdb *libmap.TSafeMapStrings, filename string) ([]strin
 
 	req.SetBasicAuth(a.GeneralConfig.ResourcedMaster.AccessToken, "")
 
-	client := &http.Client{}
+	client := pester.New()
+	client.MaxRetries = 3
+	client.Backoff = pester.ExponentialJitterBackoff
+	client.KeepLog = false
+
 	resp, err := client.Do(req)
 
 	if resp != nil && resp.Body != nil {
@@ -75,26 +74,27 @@ func (a *Agent) SendLog(logdb *libmap.TSafeMapStrings, filename string) ([]strin
 		return nil, err
 	}
 
-	logdb.Reset("Loglines")
-
 	return loglines, err
 }
 
 func (a *Agent) PruneLogs(autoPrunner IAutoPrune, logdb *libmap.TSafeMapStrings) error {
 	loglines := logdb.Get("Loglines")
-	if int64(len(loglines)) > autoPrunner.GetAutoPruneLength() {
+	if int64(len(loglines)) > autoPrunner.GetMaxLengthWipeTrigger() {
 		logdb.Reset("Loglines")
 	}
 	return nil
 }
 
-// SendTCPLogForever sends log lines to master in an infinite loop.
-func (a *Agent) SendTCPLogForever(config resourced_config.LogReceiverConfig) {
-	go func(a *Agent, config resourced_config.LogReceiverConfig) {
-		for {
-			a.SendLog(a.TCPLogDB, "")
-			a.PruneLogs(config, a.TCPLogDB)
-			libtime.SleepString(config.WriteToMasterInterval)
+// SendLiveLogToMasterForever forwards log lines received from TCP/UDP to master in an infinite loop.
+func (a *Agent) SendLiveLogToMasterForever(writeToMasterInterval string, loglines []string) {
+	go func(writeToMasterInterval string, loglines []string) {
+		waitTime, err := time.ParseDuration(writeToMasterInterval)
+		if err != nil {
+			waitTime, _ = time.ParseDuration("60s")
 		}
-	}(a, config)
+
+		for range time.Tick(waitTime) {
+			a.SendLogToMaster(loglines, "")
+		}
+	}(writeToMasterInterval, loglines)
 }

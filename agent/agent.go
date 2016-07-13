@@ -44,7 +44,7 @@ func New() (*Agent, error) {
 
 	agent.ResultDB = gocache.New(time.Duration(agent.GeneralConfig.TTL)*time.Second, 10*time.Second)
 	agent.ExecutorCounterDB = libmap.NewTSafeMapCounter(nil)
-	agent.TCPLogDB = libmap.NewTSafeMapStrings(map[string][]string{
+	agent.LiveLogDB = libmap.NewTSafeMapStrings(map[string][]string{
 		"Loglines": make([]string, 0),
 	})
 
@@ -65,7 +65,7 @@ type Agent struct {
 	StatsDMetrics     metrics.Registry
 	ResultDB          *gocache.Cache
 	ExecutorCounterDB *libmap.TSafeMapCounter
-	TCPLogDB          *libmap.TSafeMapStrings
+	LiveLogDB         *libmap.TSafeMapStrings
 }
 
 // Run executes a reader/writer/executor/log config.
@@ -354,43 +354,69 @@ func (a *Agent) RunAllForever() {
 	for _, config := range a.Configs.Readers {
 		a.RunForever(config)
 	}
+
 	for _, config := range a.Configs.Writers {
 		a.RunForever(config)
 	}
+
 	for _, config := range a.Configs.Executors {
 		a.RunForever(config)
 	}
+
 	for _, config := range a.Configs.Loggers {
 		logger, err := loggers.NewGoStructByConfig(config)
 		if err != nil {
 			continue
 		}
 
-		go func() {
-			logger.RunBlocking()
-		}()
+		liveLoglines := a.LiveLogDB.Get("Loglines")
 
-		go func(config resourced_config.Config, logger loggers.ILogger) {
-			waitTime, err := time.ParseDuration(config.Interval)
-			if err != nil {
-				waitTime, _ = time.ParseDuration("60s")
+		for _, file := range logger.GetFiles() {
+			if strings.HasPrefix(file, "live://") {
+				// Send log lines received from TCP and UDP to various sources
+				logger.SetLoglines(file, liveLoglines)
+
+			} else {
+				// Collect log lines by watching the file via inotify
+				go func() {
+					logger.(loggers.ILoggerFile).RunBlocking(file)
+				}()
+
+				// Send log lines from files to various sources
+				go func(config resourced_config.Config, logger loggers.ILoggerFile) {
+					waitTime, err := time.ParseDuration(config.Interval)
+					if err != nil {
+						waitTime, _ = time.ParseDuration("60s")
+					}
+
+					for range time.Tick(waitTime) {
+						// Send to master
+						loglines, err := a.SendLogToMaster(logger.GetLoglines(file), file)
+						if err != nil {
+							continue
+						}
+
+						logger.ResetLoglines(file)
+
+						outputJson, err := json.Marshal(loglines)
+						if err != nil {
+							continue
+						}
+
+						a.saveRun(config, outputJson, err)
+
+						// Think of pruning logic later
+						// a.PruneLogs(logger, logger.GetData())
+					}
+				}(config, logger.(loggers.ILoggerFile))
 			}
-
-			for range time.Tick(waitTime) {
-				loglines, err := a.SendLog(logger.GetData(), logger.GetFile())
-				if err != nil {
-					continue
-				}
-
-				outputJson, err := json.Marshal(loglines)
-				if err != nil {
-					continue
-				}
-
-				a.saveRun(config, outputJson, err)
-				a.PruneLogs(logger, logger.GetData())
-			}
-		}(config, logger)
+		}
 	}
-	a.SendTCPLogForever(a.GeneralConfig.LogReceiver)
+
+	// Send log lines received from TCP and UDP to various sources
+	// loglines := a.LiveLogDB.Get("Loglines")
+
+	// a.SendLiveLogToMasterForever(a.GeneralConfig.LogReceiver.WriteToMasterInterval, loglines)
+
+	// a.PruneLogs(config, a.LiveLogDB)
 }
