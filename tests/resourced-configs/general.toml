@@ -39,7 +39,8 @@ Blacklist = [
 ]
 
 [LogReceiver]
-# Send your logs over TCP here.
+# Send your logs over TCP or UDP here.
+# TLS files are only used for TCP connection.
 Addr = ":55557"
 CertFile = ""
 KeyFile = ""
