@@ -178,5 +178,11 @@ func (a *Agent) HandleStatsD(dataInBytes []byte) {
 }
 
 func (a *Agent) HandleLog(dataInBytes []byte) {
-	a.LiveLogDB.Append("Loglines", string(dataInBytes))
+	subscriberKeys := make([]string, 0)
+
+	for subscriberKey, _ := range a.LiveLogSubscribers {
+		subscriberKeys = append(subscriberKeys, subscriberKey)
+	}
+
+	a.LiveLogPubSub.Pub(string(dataInBytes), subscriberKeys...)
 }

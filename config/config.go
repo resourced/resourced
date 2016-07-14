@@ -213,12 +213,7 @@ type MetricReceiverConfig struct {
 
 type LogReceiverConfig struct {
 	TCPConfig
-	WriteToMasterInterval string
-	MaxLengthWipeTrigger  int64
-}
-
-func (l LogReceiverConfig) GetMaxLengthWipeTrigger() int64 {
-	return l.MaxLengthWipeTrigger
+	ChannelCapacity int64
 }
 
 // GeneralConfig stores all other configuration data.

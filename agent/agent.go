@@ -12,6 +12,7 @@ import (
 	"github.com/rcrowley/go-metrics"
 	"github.com/satori/go.uuid"
 
+	"github.com/cskr/pubsub"
 	resourced_config "github.com/resourced/resourced/config"
 	"github.com/resourced/resourced/executors"
 	"github.com/resourced/resourced/host"
@@ -44,9 +45,9 @@ func New() (*Agent, error) {
 
 	agent.ResultDB = gocache.New(time.Duration(agent.GeneralConfig.TTL)*time.Second, 10*time.Second)
 	agent.ExecutorCounterDB = libmap.NewTSafeMapCounter(nil)
-	agent.LiveLogDB = libmap.NewTSafeMapStrings(map[string][]string{
-		"Loglines": make([]string, 0),
-	})
+
+	agent.LiveLogPubSub = pubsub.New(int(agent.GeneralConfig.LogReceiver.ChannelCapacity))
+	agent.LiveLogSubscribers = make(map[string]chan interface{})
 
 	agent.StatsDMetrics = metrics.NewRegistry()
 
@@ -56,16 +57,17 @@ func New() (*Agent, error) {
 // Agent struct carries most of the functionality of ResourceD.
 // It collects information through readers and serve them up as HTTP+JSON.
 type Agent struct {
-	ID                string
-	Tags              map[string]string
-	AccessTokens      []string
-	Configs           *resourced_config.Configs
-	GeneralConfig     resourced_config.GeneralConfig
-	DbPath            string
-	StatsDMetrics     metrics.Registry
-	ResultDB          *gocache.Cache
-	ExecutorCounterDB *libmap.TSafeMapCounter
-	LiveLogDB         *libmap.TSafeMapStrings
+	ID                 string
+	Tags               map[string]string
+	AccessTokens       []string
+	Configs            *resourced_config.Configs
+	GeneralConfig      resourced_config.GeneralConfig
+	DbPath             string
+	StatsDMetrics      metrics.Registry
+	ResultDB           *gocache.Cache
+	ExecutorCounterDB  *libmap.TSafeMapCounter
+	LiveLogPubSub      *pubsub.PubSub
+	LiveLogSubscribers map[string]chan interface{}
 }
 
 // Run executes a reader/writer/executor/log config.
@@ -366,33 +368,75 @@ func (a *Agent) RunAllForever() {
 	for _, config := range a.Configs.Loggers {
 		logger, err := loggers.NewGoStructByConfig(config)
 		if err != nil {
+			logrus.WithFields(logrus.Fields{
+				"Error":           err.Error(),
+				"config.GoStruct": config.GoStruct,
+				"config.Path":     config.Path,
+				"config.Interval": config.Interval,
+				"config.Kind":     config.Kind,
+			}).Error("Failed to instantiate logger struct")
 			continue
 		}
 
-		liveLoglines := a.LiveLogDB.Get("Loglines")
+		if strings.HasPrefix(logger.GetSource(), "live://") {
+			// Subscribe every target to consume log line from LiveLogPubSub
+			for _, target := range logger.GetTargets() {
+				subscriberKey := logger.GetSource() + ":" + target.Endpoint
+				subscriberChannel := a.LiveLogPubSub.Sub(subscriberKey)
 
-		for _, file := range logger.GetFiles() {
-			if strings.HasPrefix(file, "live://") {
-				// Send log lines received from TCP and UDP to various sources
-				logger.SetLoglines(file, liveLoglines)
+				a.LiveLogSubscribers[subscriberKey] = subscriberChannel
 
-			} else {
-				// Collect log lines by watching the file via inotify
-				go func() {
-					logger.(loggers.ILoggerFile).RunBlocking(file)
-				}()
+				// Collect log lines by subscribing the channel
+				go func(subscriberKey string, subscriberChannel chan interface{}) {
+					defer close(subscriberChannel)
+					logger.(loggers.ILoggerChannel).RunBlockingChannel(subscriberKey, subscriberChannel)
+				}(subscriberKey, subscriberChannel)
+			}
 
-				// Send log lines from files to various sources
+		} else {
+			// Collect log lines by watching the file via inotify
+			go func() {
+				logger.(loggers.ILoggerFile).RunBlockingFile(logger.GetSource())
+			}()
+		}
+
+		// Interval in between flushing to multiple targets
+		flushTime, err := time.ParseDuration(config.Interval)
+		if err != nil {
+			logrus.WithFields(logrus.Fields{
+				"Error":           err.Error(),
+				"config.GoStruct": config.GoStruct,
+				"config.Path":     config.Path,
+				"config.Interval": config.Interval,
+				"config.Kind":     config.Kind,
+			}).Error("Failed to parse interval, setting 60s as default")
+
+			flushTime, _ = time.ParseDuration("60s") // Default
+		}
+
+		// Send log lines to various sources
+		for _, target := range logger.GetTargets() {
+			// Target is ResourceD Master
+			if strings.HasPrefix(target.Endpoint, "RESOURCED_MASTER_URL") {
 				go func(config resourced_config.Config, logger loggers.ILoggerFile) {
-					waitTime, err := time.ParseDuration(config.Interval)
-					if err != nil {
-						waitTime, _ = time.ParseDuration("60s")
-					}
+					file := logger.GetSource()
 
-					for range time.Tick(waitTime) {
+					for range time.Tick(flushTime) {
 						// Send to master
 						loglines, err := a.SendLogToMaster(logger.GetLoglines(file), file)
 						if err != nil {
+							logrus.WithFields(logrus.Fields{
+								"Error":           err.Error(),
+								"config.GoStruct": config.GoStruct,
+								"config.Path":     config.Path,
+								"config.Interval": config.Interval,
+								"config.Kind":     config.Kind,
+							}).Error("Failed to send log lines to ResourceD Master")
+
+							// Check if we have to prune in-memory log lines.
+							if int64(logger.GetLoglinesLength(file)) > logger.GetBufferSize() {
+								logger.ResetLoglines(file)
+							}
 							continue
 						}
 
@@ -400,23 +444,25 @@ func (a *Agent) RunAllForever() {
 
 						outputJson, err := json.Marshal(loglines)
 						if err != nil {
+							logrus.WithFields(logrus.Fields{
+								"Error":           err.Error(),
+								"config.GoStruct": config.GoStruct,
+								"config.Path":     config.Path,
+								"config.Interval": config.Interval,
+								"config.Kind":     config.Kind,
+							}).Error("Failed marshal log lines to JSON for Rest HTTP endpoint")
+
+							// Check if we have to prune in-memory log lines.
+							if int64(logger.GetLoglinesLength(file)) > logger.GetBufferSize() {
+								logger.ResetLoglines(file)
+							}
 							continue
 						}
 
 						a.saveRun(config, outputJson, err)
-
-						// Think of pruning logic later
-						// a.PruneLogs(logger, logger.GetData())
 					}
 				}(config, logger.(loggers.ILoggerFile))
 			}
 		}
 	}
-
-	// Send log lines received from TCP and UDP to various sources
-	// loglines := a.LiveLogDB.Get("Loglines")
-
-	// a.SendLiveLogToMasterForever(a.GeneralConfig.LogReceiver.WriteToMasterInterval, loglines)
-
-	// a.PruneLogs(config, a.LiveLogDB)
 }

@@ -63,37 +63,56 @@ func NewGoStructByConfig(config resourced_config.Config) (ILogger, error) {
 
 // ILogger is generic interface for all readers.
 type ILogger interface {
+	GetSource() string
 	SetLoglines(string, []string)
 	GetLoglines(string) []string
+	GetLoglinesLength(string) int
 	ResetLoglines(string)
-	GetData() *libmap.TSafeMapStrings
-	GetFiles() []string
-	GetMaxLengthWipeTrigger() int64
+	GetTargets() []TargetConfig
+	GetBufferSize() int64
+}
+
+type ILoggerChannel interface {
+	ILogger
+	RunBlockingChannel(string, <-chan interface{})
 }
 
 type ILoggerFile interface {
 	ILogger
-	RunBlocking(string)
+	RunBlockingFile(string)
 }
 
 func NewBase() ILogger {
 	b := &Base{}
 	b.Data = libmap.NewTSafeMapStrings(nil)
-	b.MaxLengthWipeTrigger = 1000000
+	b.BufferSize = 1000000
 
 	return b
 }
 
-type Base struct {
-	Files                []interface{}
-	Data                 *libmap.TSafeMapStrings
-	MaxLengthWipeTrigger int64
-	Target               string
-	DenyList             []interface{}
+type TargetConfig struct {
+	Payload  string
+	Endpoint string
 }
 
-// Run tails the file continuously.
-func (b *Base) RunBlocking(file string) {
+type Base struct {
+	Source     string
+	BufferSize int64
+	Targets    []TargetConfig
+	DenyList   []string
+
+	Data *libmap.TSafeMapStrings
+}
+
+// RunBlockingChannel pulls log line from channel continuously.
+func (b *Base) RunBlockingChannel(name string, ch <-chan interface{}) {
+	for line := range ch {
+		b.Data.Append(name, line.(string))
+	}
+}
+
+// RunBlockingFile tails the file continuously.
+func (b *Base) RunBlockingFile(file string) {
 	t, err := tail.TailFile(file, tail.Config{
 		Follow:   true,
 		Location: &tail.SeekInfo{Offset: 0, Whence: os.SEEK_END},
@@ -119,28 +138,27 @@ func (b *Base) GetLoglines(file string) []string {
 	return b.Data.Get(file)
 }
 
+// GetLoglinesLength returns the count of loglines.
+func (b *Base) GetLoglinesLength(file string) int {
+	return len(b.Data.Get(file))
+}
+
 // ResetLoglines wipes it clean.
 func (b *Base) ResetLoglines(file string) {
 	b.Data.Reset(file)
 }
 
-// GetData returns data.
-func (b *Base) GetData() *libmap.TSafeMapStrings {
-	return b.Data
+// GetTargets returns slice of TargetConfig.
+func (b *Base) GetTargets() []TargetConfig {
+	return b.Targets
 }
 
-// GetFiles returns data.
-func (b *Base) GetFiles() []string {
-	result := make([]string, len(b.Files))
-
-	for i, fileInterface := range b.Files {
-		result[i] = fileInterface.(string)
-	}
-
-	return result
+// GetSource returns the source field.
+func (b *Base) GetSource() string {
+	return b.Source
 }
 
-// GetMaxLengthWipeTrigger returns MaxLengthWipeTrigger
-func (b *Base) GetMaxLengthWipeTrigger() int64 {
-	return b.MaxLengthWipeTrigger
+// GetBufferSize returns BufferSize
+func (b *Base) GetBufferSize() int64 {
+	return b.BufferSize
 }

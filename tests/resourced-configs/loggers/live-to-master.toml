@@ -5,7 +5,7 @@
 # and forwards them to various external sources.
 #
 GoStruct = "Base"
-Path = "/osx/system"
+Path = "/live/master"
 Interval = "30s"
 
 [GoStructFields]
@@ -13,13 +13,13 @@ Interval = "30s"
 # Otherwise, we are pulling log lines from a file. Examples:
 #    Source = "live://"
 #    Source = "/var/log/messages"
-Source = "/private/var/log/system.log"
+Source = "live://"
 
 # When reading from file, the agent is buffering the log lines temporarily in memory.
 # To protect the agent from consuming too much memory, this setting is needed.
 # If number of log lines stored in memory exceeded this threshold, log lines will be cleared.
 # Note: This setting is not needed when reading source from "live://"
-BufferSize = 1000000
+# BufferSize = 1000000
 
 # One logger config can have multiple targets.
 # To define multiple targets, we are using TOML's array of tables syntax. Example:
