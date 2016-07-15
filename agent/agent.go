@@ -423,6 +423,7 @@ func (a *Agent) RunAllForever() {
 
 					for range time.Tick(flushTime) {
 						loglines := logger.GetLoglines(file)
+						logger.ResetLoglines(file)
 
 						go func(config resourced_config.Config, loglines []string) {
 							outputJson, err := json.Marshal(loglines)
@@ -445,24 +446,23 @@ func (a *Agent) RunAllForever() {
 						}(config, loglines)
 
 						// Send to master
-						_, err = a.SendLogToMaster(logger.GetLoglines(file), file)
-						if err != nil {
-							logrus.WithFields(logrus.Fields{
-								"Error":           err.Error(),
-								"config.GoStruct": config.GoStruct,
-								"config.Path":     config.Path,
-								"config.Interval": config.Interval,
-								"config.Kind":     config.Kind,
-							}).Error("Failed to send log lines to ResourceD Master")
+						go func(config resourced_config.Config, loglines []string) {
+							_, err = a.SendLogToMaster(logger.GetLoglines(file), file)
+							if err != nil {
+								logrus.WithFields(logrus.Fields{
+									"Error":           err.Error(),
+									"config.GoStruct": config.GoStruct,
+									"config.Path":     config.Path,
+									"config.Interval": config.Interval,
+									"config.Kind":     config.Kind,
+								}).Error("Failed to send log lines to ResourceD Master")
 
-							// Check if we have to prune in-memory log lines.
-							if int64(logger.GetLoglinesLength(file)) > logger.GetBufferSize() {
-								logger.ResetLoglines(file)
+								// Check if we have to prune in-memory log lines.
+								if int64(logger.GetLoglinesLength(file)) > logger.GetBufferSize() {
+									logger.ResetLoglines(file)
+								}
 							}
-							continue
-						}
-
-						logger.ResetLoglines(file)
+						}(config, loglines)
 					}
 				}(config, logger.(loggers.ILoggerFile))
 			}
