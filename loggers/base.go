@@ -18,13 +18,13 @@ func init() {
 	Register("Base", NewBase)
 }
 
-// Register makes any reader constructor available by name.
+// Register makes any logger constructor available by name.
 func Register(name string, constructor func() ILogger) {
 	if constructor == nil {
-		panic("reader: Register reader constructor is nil")
+		panic("logger: Register logger constructor is nil")
 	}
 	if _, dup := loggerConstructors[name]; dup {
-		panic("reader: Register called twice for reader constructor " + name)
+		panic("logger: Register called twice for logger constructor " + name)
 	}
 	loggerConstructors[name] = constructor
 }
@@ -41,15 +41,19 @@ func NewGoStruct(name string) (ILogger, error) {
 
 // NewGoStructByConfig instantiates ILogger given Config struct
 func NewGoStructByConfig(config resourced_config.Config) (ILogger, error) {
-	reader, err := NewGoStruct(config.GoStruct)
+	lgr, err := NewGoStruct(config.GoStruct)
 	if err != nil {
 		return nil, err
 	}
 
+	lgr.SetSource(config.Source)
+	lgr.SetBufferSize(config.BufferSize)
+	lgr.SetTargets(config.Targets)
+
 	// Populate ILogger fields dynamically
 	if len(config.GoStructFields) > 0 {
 		for structFieldInString, value := range config.GoStructFields {
-			goStructField := reflect.ValueOf(reader).Elem().FieldByName(structFieldInString)
+			goStructField := reflect.ValueOf(lgr).Elem().FieldByName(structFieldInString)
 
 			if goStructField.IsValid() && goStructField.CanSet() {
 				valueOfValue := reflect.ValueOf(value)
@@ -58,18 +62,21 @@ func NewGoStructByConfig(config resourced_config.Config) (ILogger, error) {
 		}
 	}
 
-	return reader, err
+	return lgr, err
 }
 
-// ILogger is generic interface for all readers.
+// ILogger is generic interface for all loggers.
 type ILogger interface {
+	SetSource(string)
 	GetSource() string
+	SetBufferSize(int64)
+	GetBufferSize() int64
+	SetTargets([]resourced_config.LogTargetConfig)
 	SetLoglines(string, []string)
 	GetLoglines(string) []string
 	GetLoglinesLength(string) int
 	ResetLoglines(string)
-	GetTargets() []TargetConfig
-	GetBufferSize() int64
+	GetTargets() []resourced_config.LogTargetConfig
 }
 
 type ILoggerChannel interface {
@@ -90,16 +97,10 @@ func NewBase() ILogger {
 	return b
 }
 
-type TargetConfig struct {
-	Payload  string
-	Endpoint string
-}
-
 type Base struct {
 	Source     string
 	BufferSize int64
-	Targets    []TargetConfig
-	DenyList   []string
+	Targets    []resourced_config.LogTargetConfig
 
 	Data *libmap.TSafeMapStrings
 }
@@ -128,6 +129,31 @@ func (b *Base) RunBlockingFile(file string) {
 	}
 }
 
+// SetSource
+func (b *Base) SetSource(source string) {
+	b.Source = source
+}
+
+// GetSource returns the source field.
+func (b *Base) GetSource() string {
+	return b.Source
+}
+
+// SetBufferSize sets BufferSize
+func (b *Base) SetBufferSize(bufferSize int64) {
+	b.BufferSize = bufferSize
+}
+
+// GetBufferSize returns BufferSize
+func (b *Base) GetBufferSize() int64 {
+	return b.BufferSize
+}
+
+// SetTargets sets []LogTargetConfig
+func (b *Base) SetTargets(targets []resourced_config.LogTargetConfig) {
+	b.Targets = targets
+}
+
 // SetLoglines sets loglines.
 func (b *Base) SetLoglines(file string, loglines []string) {
 	b.Data.Set(file, loglines)
@@ -148,17 +174,7 @@ func (b *Base) ResetLoglines(file string) {
 	b.Data.Reset(file)
 }
 
-// GetTargets returns slice of TargetConfig.
-func (b *Base) GetTargets() []TargetConfig {
+// GetTargets returns slice of LogTargetConfig.
+func (b *Base) GetTargets() []resourced_config.LogTargetConfig {
 	return b.Targets
-}
-
-// GetSource returns the source field.
-func (b *Base) GetSource() string {
-	return b.Source
-}
-
-// GetBufferSize returns BufferSize
-func (b *Base) GetBufferSize() int64 {
-	return b.BufferSize
 }

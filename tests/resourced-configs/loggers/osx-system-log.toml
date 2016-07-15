@@ -6,9 +6,8 @@
 #
 GoStruct = "Base"
 Path = "/osx/system"
-Interval = "30s"
+Interval = "10s"
 
-[GoStructFields]
 # If a source is "live://" then we are forwarding log lines from direct TCP receiver.
 # Otherwise, we are pulling log lines from a file. Examples:
 #    Source = "live://"

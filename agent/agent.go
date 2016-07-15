@@ -422,8 +422,30 @@ func (a *Agent) RunAllForever() {
 					file := logger.GetSource()
 
 					for range time.Tick(flushTime) {
+						loglines := logger.GetLoglines(file)
+
+						go func(config resourced_config.Config, loglines []string) {
+							outputJson, err := json.Marshal(loglines)
+							if err != nil {
+								logrus.WithFields(logrus.Fields{
+									"Error":           err.Error(),
+									"config.GoStruct": config.GoStruct,
+									"config.Path":     config.Path,
+									"config.Interval": config.Interval,
+									"config.Kind":     config.Kind,
+								}).Error("Failed marshal log lines to JSON for Rest HTTP endpoint")
+
+								// Check if we have to prune in-memory log lines.
+								if int64(logger.GetLoglinesLength(file)) > logger.GetBufferSize() {
+									logger.ResetLoglines(file)
+								}
+							}
+
+							a.saveRun(config, outputJson, err)
+						}(config, loglines)
+
 						// Send to master
-						loglines, err := a.SendLogToMaster(logger.GetLoglines(file), file)
+						_, err = a.SendLogToMaster(logger.GetLoglines(file), file)
 						if err != nil {
 							logrus.WithFields(logrus.Fields{
 								"Error":           err.Error(),
@@ -441,25 +463,6 @@ func (a *Agent) RunAllForever() {
 						}
 
 						logger.ResetLoglines(file)
-
-						outputJson, err := json.Marshal(loglines)
-						if err != nil {
-							logrus.WithFields(logrus.Fields{
-								"Error":           err.Error(),
-								"config.GoStruct": config.GoStruct,
-								"config.Path":     config.Path,
-								"config.Interval": config.Interval,
-								"config.Kind":     config.Kind,
-							}).Error("Failed marshal log lines to JSON for Rest HTTP endpoint")
-
-							// Check if we have to prune in-memory log lines.
-							if int64(logger.GetLoglinesLength(file)) > logger.GetBufferSize() {
-								logger.ResetLoglines(file)
-							}
-							continue
-						}
-
-						a.saveRun(config, outputJson, err)
 					}
 				}(config, logger.(loggers.ILoggerFile))
 			}

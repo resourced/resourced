@@ -81,6 +81,12 @@ func NewConfig(fullpath, kind string) (Config, error) {
 	return config, err
 }
 
+type LogTargetConfig struct {
+	Payload  string
+	Endpoint string
+	DenyList []string
+}
+
 // Config is a unit of execution for a reader/writer.
 // Reader config defines how to fetch a particular information and its JSON data path.
 // Writer config defines how to export the JSON data to a particular destination. E.g. Facts/graphing database.
@@ -104,6 +110,12 @@ type Config struct {
 	Conditions                 string
 	ResourcedMasterURL         string
 	ResourcedMasterAccessToken string
+
+	// Logger specific fields
+	Source     string
+	BufferSize int64
+	DenyList   []string
+	Targets    []LogTargetConfig
 }
 
 // CommonJsonData returns common information for every reader/writer/executor JSON interpretation.
