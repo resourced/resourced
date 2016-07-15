@@ -82,6 +82,10 @@ func (a *Agent) SendLogToMaster(loglines []string, filename, masterURLPath strin
 
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(dataJson))
 	if err != nil {
+		logrus.WithFields(logrus.Fields{
+			"Error": err.Error(),
+		}).Error("Failed to create request struct for sending data to ResourceD Master")
+
 		return nil, err
 	}
 
@@ -93,11 +97,6 @@ func (a *Agent) SendLogToMaster(loglines []string, filename, masterURLPath strin
 	client.KeepLog = false
 
 	resp, err := client.Do(req)
-
-	if resp != nil && resp.Body != nil {
-		defer resp.Body.Close()
-	}
-
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
 			"Error":      err.Error(),
@@ -106,6 +105,10 @@ func (a *Agent) SendLogToMaster(loglines []string, filename, masterURLPath strin
 		}).Error("Failed to send logs data to ResourceD Master")
 
 		return nil, err
+	}
+
+	if resp != nil && resp.Body != nil {
+		defer resp.Body.Close()
 	}
 
 	return loglines, err

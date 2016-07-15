@@ -434,9 +434,7 @@ func (a *Agent) RunLoggerForever(config resourced_config.Config) {
 
 						masterURLPath := strings.Replace(target.Endpoint, "RESOURCED_MASTER_URL", "", 1)
 
-						println("i am sending to master: " + masterURLPath)
-
-						_, err = a.SendLogToMaster(logger.GetLoglines(file), file, masterURLPath)
+						_, err = a.SendLogToMaster(loglines, file, masterURLPath)
 						if err != nil {
 							logrus.WithFields(logrus.Fields{
 								"Error":           err.Error(),
