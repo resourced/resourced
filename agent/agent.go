@@ -17,6 +17,7 @@ import (
 	"github.com/resourced/resourced/executors"
 	"github.com/resourced/resourced/host"
 	"github.com/resourced/resourced/libmap"
+	"github.com/resourced/resourced/libtime"
 	"github.com/resourced/resourced/loggers"
 	"github.com/resourced/resourced/readers"
 	"github.com/resourced/resourced/writers"
@@ -388,17 +389,10 @@ func (a *Agent) RunLoggerForever(config resourced_config.Config) {
 		}()
 	}
 
-	// Interval in between flushing to multiple targets
-	flushTime, err := time.ParseDuration(config.Interval)
-	if err != nil {
-		logrus.WithFields(logrus.Fields{
-			"Error": err.Error(),
-		}).Error("Failed to parse interval, setting 60s as default")
+	// Interval in between flushing to multiple targets.
+	flushTime := libtime.ParseDurationWithDefault(config.Interval, "60s")
 
-		flushTime, _ = time.ParseDuration("60s") // Default
-	}
-
-	// Send log lines to various sources
+	// Send log lines to various targets.
 	for _, target := range logger.GetTargets() {
 		go func(logger loggers.ILoggerFile) {
 			file := logger.GetSource()
@@ -408,15 +402,11 @@ func (a *Agent) RunLoggerForever(config resourced_config.Config) {
 				logger.ResetLoglines(file)
 
 				go func() {
-					outputJson, err := json.Marshal(loglines)
+					outputJSON, err := json.Marshal(loglines)
 					if err != nil {
 						logrus.WithFields(logrus.Fields{
-							"Error":           err.Error(),
-							"config.GoStruct": config.GoStruct,
-							"config.Path":     config.Path,
-							"config.Interval": config.Interval,
-							"config.Kind":     config.Kind,
-						}).Error("Failed marshal log lines to JSON for Rest HTTP endpoint")
+							"Error": err.Error(),
+						}).Error("Failed to marshal log lines to JSON for /logs/* HTTP endpoint")
 
 						// Check if we have to prune in-memory log lines.
 						if int64(logger.GetLoglinesLength(file)) > logger.GetBufferSize() {
@@ -424,24 +414,33 @@ func (a *Agent) RunLoggerForever(config resourced_config.Config) {
 						}
 					}
 
-					a.saveRun(config, outputJson, err)
+					a.saveRun(config, outputJSON, err)
 				}()
 
 				// Target is ResourceD Master
 				if strings.HasPrefix(target.Endpoint, "RESOURCED_MASTER_URL") {
 					go func() {
-						loglines = a.ProcessLoglines(loglines, config.DenyList)
+						loglines = logger.ProcessOutgoingLoglines(loglines, config.DenyList)
 
 						masterURLPath := strings.Replace(target.Endpoint, "RESOURCED_MASTER_URL", "", 1)
 
-						_, err = a.SendLogToMaster(loglines, file, masterURLPath)
+						hostData, err := a.hostData()
 						if err != nil {
 							logrus.WithFields(logrus.Fields{
-								"Error":           err.Error(),
-								"config.GoStruct": config.GoStruct,
-								"config.Path":     config.Path,
-								"config.Interval": config.Interval,
-								"config.Kind":     config.Kind,
+								"Error": err.Error(),
+							}).Error("Failed to get host data for sending log lines to ResourceD Master")
+
+							// Check if we have to prune in-memory log lines.
+							if int64(logger.GetLoglinesLength(file)) > logger.GetBufferSize() {
+								logger.ResetLoglines(file)
+							}
+							return
+						}
+
+						_, err = logger.SendLogToMaster(a.GeneralConfig.ResourcedMaster.AccessToken, a.GeneralConfig.ResourcedMaster.URL, masterURLPath, hostData, loglines, file)
+						if err != nil {
+							logrus.WithFields(logrus.Fields{
+								"Error": err.Error(),
 							}).Error("Failed to send log lines to ResourceD Master")
 
 							// Check if we have to prune in-memory log lines.

@@ -28,7 +28,7 @@ Source = "live://"
 #
 # List of payload to choose from:
 # - plaintext: Plain text string with \n delimiter.
-# - resourced: ResourceD log line format: type:base64|created:unix-timestamp|content:base64=
+# - resourced: ResourceD live TCP log line protocol: type:base64|created:unix-timestamp|content:base64=
 # - syslog-rfc3164: Syslog RFC 3164
 # - syslog-rfc5424: Syslog RFC 5424
 #

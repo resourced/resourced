@@ -39,7 +39,7 @@ Blacklist = [
 ]
 
 [LogReceiver]
-# Send your logs over TCP here. UDP is not supported.
+# Send your logs over TCP here. UDP is not supported because a log line tends to be large.
 Addr = ":55557"
 CertFile = ""
 KeyFile = ""

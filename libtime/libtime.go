@@ -15,3 +15,12 @@ func SleepString(definition string) error {
 	time.Sleep(delayTime)
 	return nil
 }
+
+func ParseDurationWithDefault(definition, defaultDef string) time.Duration {
+	dur, err := time.ParseDuration(definition)
+	if err != nil {
+		dur, _ = time.ParseDuration(defaultDef) // Default
+	}
+
+	return dur
+}

@@ -2,13 +2,20 @@
 package loggers
 
 import (
+	"bytes"
+	"encoding/json"
 	"errors"
+	"net/http"
 	"os"
 	"reflect"
+	"regexp"
 
+	"github.com/Sirupsen/logrus"
 	"github.com/hpcloud/tail"
+	"github.com/sethgrid/pester"
 
 	resourced_config "github.com/resourced/resourced/config"
+	"github.com/resourced/resourced/host"
 	"github.com/resourced/resourced/libmap"
 )
 
@@ -69,14 +76,20 @@ func NewGoStructByConfig(config resourced_config.Config) (ILogger, error) {
 type ILogger interface {
 	SetSource(string)
 	GetSource() string
+
 	SetBufferSize(int64)
 	GetBufferSize() int64
+
 	SetTargets([]resourced_config.LogTargetConfig)
+	GetTargets() []resourced_config.LogTargetConfig
+
 	SetLoglines(string, []string)
 	GetLoglines(string) []string
 	GetLoglinesLength(string) int
 	ResetLoglines(string)
-	GetTargets() []resourced_config.LogTargetConfig
+	ProcessOutgoingLoglines([]string, []string) []string
+
+	SendLogToMaster(string, string, string, *host.Host, []string, string) ([]string, error)
 }
 
 type ILoggerChannel interface {
@@ -177,4 +190,98 @@ func (b *Base) ResetLoglines(file string) {
 // GetTargets returns slice of LogTargetConfig.
 func (b *Base) GetTargets() []resourced_config.LogTargetConfig {
 	return b.Targets
+}
+
+// filterLoglines denies logline that matches denyList regex.
+func (b *Base) filterLoglines(loglines []string, denyList []string) []string {
+	newDenyList := make([]string, 0)
+	for _, deny := range denyList {
+		if deny != "" {
+			newDenyList = append(newDenyList, deny)
+		}
+	}
+
+	if len(newDenyList) == 0 {
+		return loglines
+	}
+
+	newLoglines := make([]string, 0)
+
+	for _, logline := range loglines {
+		for _, deny := range denyList {
+			match, err := regexp.MatchString(deny, logline)
+			if err != nil || !match {
+				newLoglines = append(newLoglines, logline)
+			}
+		}
+	}
+
+	return newLoglines
+}
+
+// ProcessOutgoingLoglines before forwarding to targets.
+func (b *Base) ProcessOutgoingLoglines(loglines []string, denyList []string) []string {
+	return b.filterLoglines(loglines, denyList)
+}
+
+// logPayloadForMaster packages the log data before sending to master.
+func (b *Base) logPayloadForMaster(hostData *host.Host, loglines []string, filename string) map[string]interface{} {
+	toSend := make(map[string]interface{})
+
+	data := make(map[string]interface{})
+	data["Loglines"] = loglines
+	data["Filename"] = filename
+	toSend["Data"] = data
+	toSend["Host"] = hostData
+
+	return toSend
+}
+
+// SendLogToMaster sends log lines to master.
+func (b *Base) SendLogToMaster(accessToken, masterURLHost, masterURLPath string, hostData *host.Host, loglines []string, filename string) ([]string, error) {
+	if masterURLPath == "" {
+		masterURLPath = "/api/logs"
+	}
+
+	data := b.logPayloadForMaster(hostData, loglines, filename)
+
+	dataJson, err := json.Marshal(data)
+	if err != nil {
+		return nil, err
+	}
+
+	url := masterURLHost + masterURLPath
+
+	req, err := http.NewRequest("POST", url, bytes.NewBuffer(dataJson))
+	if err != nil {
+		logrus.WithFields(logrus.Fields{
+			"Error": err.Error(),
+		}).Error("Failed to create request struct for sending data to ResourceD Master")
+
+		return nil, err
+	}
+
+	req.SetBasicAuth(accessToken, "")
+
+	client := pester.New()
+	client.MaxRetries = 3
+	client.Backoff = pester.ExponentialJitterBackoff
+	client.KeepLog = false
+
+	resp, err := client.Do(req)
+	if err != nil {
+		logrus.WithFields(logrus.Fields{
+			"Error":      err.Error(),
+			"req.URL":    req.URL.String(),
+			"req.Method": req.Method,
+		}).Error("Failed to send logs data to ResourceD Master")
+
+		return nil, err
+	}
+
+	if resp != nil && resp.Body != nil {
+		defer resp.Body.Close()
+	}
+
+	return loglines, err
 }
