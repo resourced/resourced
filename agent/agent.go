@@ -400,39 +400,43 @@ func (a *Agent) RunLoggerForever(config resourced_config.Config) {
 
 	// Send log lines to various sources
 	for _, target := range logger.GetTargets() {
-		// Target is ResourceD Master
-		if strings.HasPrefix(target.Endpoint, "RESOURCED_MASTER_URL") {
-			go func(config resourced_config.Config, logger loggers.ILoggerFile) {
-				file := logger.GetSource()
+		go func(logger loggers.ILoggerFile) {
+			file := logger.GetSource()
 
-				for range time.Tick(flushTime) {
-					loglines := logger.GetLoglines(file)
-					logger.ResetLoglines(file)
+			for range time.Tick(flushTime) {
+				loglines := logger.GetLoglines(file)
+				logger.ResetLoglines(file)
 
-					go func(config resourced_config.Config, loglines []string) {
-						outputJson, err := json.Marshal(loglines)
-						if err != nil {
-							logrus.WithFields(logrus.Fields{
-								"Error":           err.Error(),
-								"config.GoStruct": config.GoStruct,
-								"config.Path":     config.Path,
-								"config.Interval": config.Interval,
-								"config.Kind":     config.Kind,
-							}).Error("Failed marshal log lines to JSON for Rest HTTP endpoint")
+				go func() {
+					outputJson, err := json.Marshal(loglines)
+					if err != nil {
+						logrus.WithFields(logrus.Fields{
+							"Error":           err.Error(),
+							"config.GoStruct": config.GoStruct,
+							"config.Path":     config.Path,
+							"config.Interval": config.Interval,
+							"config.Kind":     config.Kind,
+						}).Error("Failed marshal log lines to JSON for Rest HTTP endpoint")
 
-							// Check if we have to prune in-memory log lines.
-							if int64(logger.GetLoglinesLength(file)) > logger.GetBufferSize() {
-								logger.ResetLoglines(file)
-							}
+						// Check if we have to prune in-memory log lines.
+						if int64(logger.GetLoglinesLength(file)) > logger.GetBufferSize() {
+							logger.ResetLoglines(file)
 						}
+					}
 
-						a.saveRun(config, outputJson, err)
+					a.saveRun(config, outputJson, err)
+				}()
 
-					}(config, loglines)
+				// Target is ResourceD Master
+				if strings.HasPrefix(target.Endpoint, "RESOURCED_MASTER_URL") {
+					go func() {
+						loglines = a.ProcessLoglines(loglines, config.DenyList)
 
-					// Send to master
-					go func(config resourced_config.Config, loglines []string) {
-						_, err = a.SendLogToMaster(logger.GetLoglines(file), file)
+						masterURLPath := strings.Replace(target.Endpoint, "RESOURCED_MASTER_URL", "", 1)
+
+						println("i am sending to master: " + masterURLPath)
+
+						_, err = a.SendLogToMaster(logger.GetLoglines(file), file, masterURLPath)
 						if err != nil {
 							logrus.WithFields(logrus.Fields{
 								"Error":           err.Error(),
@@ -447,10 +451,10 @@ func (a *Agent) RunLoggerForever(config resourced_config.Config) {
 								logger.ResetLoglines(file)
 							}
 						}
-					}(config, loglines)
+					}()
 				}
-			}(config, logger.(loggers.ILoggerFile))
-		}
+			}
+		}(logger.(loggers.ILoggerFile))
 	}
 }
 
