@@ -351,6 +351,109 @@ func (a *Agent) RunForever(config resourced_config.Config) {
 	}(config)
 }
 
+func (a *Agent) RunLoggerForever(config resourced_config.Config) {
+	logger, err := loggers.NewGoStructByConfig(config)
+	if err != nil {
+		logrus.WithFields(logrus.Fields{
+			"Error":           err.Error(),
+			"config.GoStruct": config.GoStruct,
+			"config.Path":     config.Path,
+			"config.Interval": config.Interval,
+			"config.Kind":     config.Kind,
+		}).Error("Failed to instantiate logger struct")
+	}
+
+	// Gather loglines from various sources:
+	// * live:// is the TCP listener.
+	// * regular file
+	if strings.HasPrefix(logger.GetSource(), "live://") {
+		// Subscribe every target to consume log line from LiveLogPubSub
+		for _, target := range logger.GetTargets() {
+			subscriberKey := logger.GetSource() + ":" + target.Endpoint
+			subscriberChannel := a.LiveLogPubSub.Sub(subscriberKey)
+
+			a.LiveLogSubscribers[subscriberKey] = subscriberChannel
+
+			// Collect log lines by subscribing to pubsub channel
+			go func(subscriberKey string, subscriberChannel chan interface{}) {
+				defer close(subscriberChannel)
+				logger.(loggers.ILoggerChannel).RunBlockingChannel(subscriberKey, subscriberChannel)
+			}(subscriberKey, subscriberChannel)
+		}
+
+	} else {
+		// Collect log lines by watching the file via inotify
+		go func() {
+			logger.(loggers.ILoggerFile).RunBlockingFile(logger.GetSource())
+		}()
+	}
+
+	// Interval in between flushing to multiple targets
+	flushTime, err := time.ParseDuration(config.Interval)
+	if err != nil {
+		logrus.WithFields(logrus.Fields{
+			"Error": err.Error(),
+		}).Error("Failed to parse interval, setting 60s as default")
+
+		flushTime, _ = time.ParseDuration("60s") // Default
+	}
+
+	// Send log lines to various sources
+	for _, target := range logger.GetTargets() {
+		// Target is ResourceD Master
+		if strings.HasPrefix(target.Endpoint, "RESOURCED_MASTER_URL") {
+			go func(config resourced_config.Config, logger loggers.ILoggerFile) {
+				file := logger.GetSource()
+
+				for range time.Tick(flushTime) {
+					loglines := logger.GetLoglines(file)
+					logger.ResetLoglines(file)
+
+					go func(config resourced_config.Config, loglines []string) {
+						outputJson, err := json.Marshal(loglines)
+						if err != nil {
+							logrus.WithFields(logrus.Fields{
+								"Error":           err.Error(),
+								"config.GoStruct": config.GoStruct,
+								"config.Path":     config.Path,
+								"config.Interval": config.Interval,
+								"config.Kind":     config.Kind,
+							}).Error("Failed marshal log lines to JSON for Rest HTTP endpoint")
+
+							// Check if we have to prune in-memory log lines.
+							if int64(logger.GetLoglinesLength(file)) > logger.GetBufferSize() {
+								logger.ResetLoglines(file)
+							}
+						}
+
+						a.saveRun(config, outputJson, err)
+
+					}(config, loglines)
+
+					// Send to master
+					go func(config resourced_config.Config, loglines []string) {
+						_, err = a.SendLogToMaster(logger.GetLoglines(file), file)
+						if err != nil {
+							logrus.WithFields(logrus.Fields{
+								"Error":           err.Error(),
+								"config.GoStruct": config.GoStruct,
+								"config.Path":     config.Path,
+								"config.Interval": config.Interval,
+								"config.Kind":     config.Kind,
+							}).Error("Failed to send log lines to ResourceD Master")
+
+							// Check if we have to prune in-memory log lines.
+							if int64(logger.GetLoglinesLength(file)) > logger.GetBufferSize() {
+								logger.ResetLoglines(file)
+							}
+						}
+					}(config, loglines)
+				}
+			}(config, logger.(loggers.ILoggerFile))
+		}
+	}
+}
+
 // RunAllForever runs everything in an infinite loop.
 func (a *Agent) RunAllForever() {
 	for _, config := range a.Configs.Readers {
@@ -366,106 +469,6 @@ func (a *Agent) RunAllForever() {
 	}
 
 	for _, config := range a.Configs.Loggers {
-		logger, err := loggers.NewGoStructByConfig(config)
-		if err != nil {
-			logrus.WithFields(logrus.Fields{
-				"Error":           err.Error(),
-				"config.GoStruct": config.GoStruct,
-				"config.Path":     config.Path,
-				"config.Interval": config.Interval,
-				"config.Kind":     config.Kind,
-			}).Error("Failed to instantiate logger struct")
-			continue
-		}
-
-		if strings.HasPrefix(logger.GetSource(), "live://") {
-			// Subscribe every target to consume log line from LiveLogPubSub
-			for _, target := range logger.GetTargets() {
-				subscriberKey := logger.GetSource() + ":" + target.Endpoint
-				subscriberChannel := a.LiveLogPubSub.Sub(subscriberKey)
-
-				a.LiveLogSubscribers[subscriberKey] = subscriberChannel
-
-				// Collect log lines by subscribing the channel
-				go func(subscriberKey string, subscriberChannel chan interface{}) {
-					defer close(subscriberChannel)
-					logger.(loggers.ILoggerChannel).RunBlockingChannel(subscriberKey, subscriberChannel)
-				}(subscriberKey, subscriberChannel)
-			}
-
-		} else {
-			// Collect log lines by watching the file via inotify
-			go func() {
-				logger.(loggers.ILoggerFile).RunBlockingFile(logger.GetSource())
-			}()
-		}
-
-		// Interval in between flushing to multiple targets
-		flushTime, err := time.ParseDuration(config.Interval)
-		if err != nil {
-			logrus.WithFields(logrus.Fields{
-				"Error":           err.Error(),
-				"config.GoStruct": config.GoStruct,
-				"config.Path":     config.Path,
-				"config.Interval": config.Interval,
-				"config.Kind":     config.Kind,
-			}).Error("Failed to parse interval, setting 60s as default")
-
-			flushTime, _ = time.ParseDuration("60s") // Default
-		}
-
-		// Send log lines to various sources
-		for _, target := range logger.GetTargets() {
-			// Target is ResourceD Master
-			if strings.HasPrefix(target.Endpoint, "RESOURCED_MASTER_URL") {
-				go func(config resourced_config.Config, logger loggers.ILoggerFile) {
-					file := logger.GetSource()
-
-					for range time.Tick(flushTime) {
-						loglines := logger.GetLoglines(file)
-						logger.ResetLoglines(file)
-
-						go func(config resourced_config.Config, loglines []string) {
-							outputJson, err := json.Marshal(loglines)
-							if err != nil {
-								logrus.WithFields(logrus.Fields{
-									"Error":           err.Error(),
-									"config.GoStruct": config.GoStruct,
-									"config.Path":     config.Path,
-									"config.Interval": config.Interval,
-									"config.Kind":     config.Kind,
-								}).Error("Failed marshal log lines to JSON for Rest HTTP endpoint")
-
-								// Check if we have to prune in-memory log lines.
-								if int64(logger.GetLoglinesLength(file)) > logger.GetBufferSize() {
-									logger.ResetLoglines(file)
-								}
-							}
-
-							a.saveRun(config, outputJson, err)
-						}(config, loglines)
-
-						// Send to master
-						go func(config resourced_config.Config, loglines []string) {
-							_, err = a.SendLogToMaster(logger.GetLoglines(file), file)
-							if err != nil {
-								logrus.WithFields(logrus.Fields{
-									"Error":           err.Error(),
-									"config.GoStruct": config.GoStruct,
-									"config.Path":     config.Path,
-									"config.Interval": config.Interval,
-									"config.Kind":     config.Kind,
-								}).Error("Failed to send log lines to ResourceD Master")
-
-								// Check if we have to prune in-memory log lines.
-								if int64(logger.GetLoglinesLength(file)) > logger.GetBufferSize() {
-									logger.ResetLoglines(file)
-								}
-							}
-						}(config, loglines)
-					}
-				}(config, logger.(loggers.ILoggerFile))
-			}
-		}
+		a.RunLoggerForever(config)
 	}
 }
