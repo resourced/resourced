@@ -44,7 +44,7 @@ func ParseSingle(logline string) LiveLogline {
 					l.Created = created
 				}
 			case "content":
-				l.Type = value
+				l.Content = strings.Join(kv_slice[1:], ":")
 			}
 		}
 	}
@@ -69,7 +69,7 @@ func (l LiveLogline) PlainContent() string {
 		return "Failed to decode base64 content. Error: " + err.Error()
 	}
 
-	return plain
+	return string(plain)
 }
 
 // Base64Content returns the base64 version of content.
@@ -78,12 +78,7 @@ func (l LiveLogline) Base64Content() string {
 		return l.Content
 	}
 
-	encoded, err := base64.StdEncoding.EncodeToString([]byte(l.Content))
-	if err != nil {
-		return "Failed to encode base64 content. Error: " + err.Error()
-	}
-
-	return encoded
+	return base64.StdEncoding.EncodeToString([]byte(l.Content))
 }
 
 // EncodePlain builds the wire protocol for plaintext type.
