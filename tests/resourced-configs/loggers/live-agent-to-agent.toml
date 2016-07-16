@@ -25,6 +25,7 @@ Source = "live://"
 # [[Targets]]
 # Payload = ""
 # Endpoint = ""
+# Denylist = [""]
 #
 # List of payload to choose from:
 # - plaintext: Plain text string with \n delimiter.
@@ -32,14 +33,15 @@ Source = "live://"
 # - syslog-rfc3164: Syslog RFC 3164
 # - syslog-rfc5424: Syslog RFC 5424
 #
-# List of endpoint to choose from:
-# - ResourceD Master API endpoint. Example: "RESOURCED_MASTER_URL/api/logs"
+# List of endpoints to choose from:
+# - ResourceD Master API endpoint. Example: "http://RESOURCED_MASTER_URL/api/logs"
+# - ResourceD Agent TCP endpoint. Example: "resourced+tcp://remote-ip:port"
 # - Syslog endpoints: "syslog+udp://remote-ip:514", "syslog+tcp://remote-ip:601", "syslog+tcp+tls://remote-ip:6514"
 # - Generic TCP: "tcp://remote-ip:port"
 
 [[Targets]]
 # Payload setting is not needed when sending to another resourced agent.
-Endpoint = "RESOURCED_LOG_RECEIVER_ADDR"
+Endpoint = "resourced+tcp://localhost:55559"
 
 # Each regex defined here will be used to deny log line for forwarding.
 # By default, every line will be forwarded.

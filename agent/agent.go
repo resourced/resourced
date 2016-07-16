@@ -399,8 +399,16 @@ func (a *Agent) RunLoggerForever(config resourced_config.Config) {
 			source := logger.GetSource()
 
 			for range time.Tick(flushTime) {
-				loglines := logger.GetLoglines(source)
-				logger.ResetLoglines(source)
+				var loglines []string
+
+				// Why am i doing this? Forgot...
+				if source == "live://" {
+					loglines = logger.GetLoglines(source + ":" + target.Endpoint)
+					logger.ResetLoglines(source + ":" + target.Endpoint)
+				} else {
+					loglines = logger.GetLoglines(source)
+					logger.ResetLoglines(source)
+				}
 
 				go func() {
 					outputJSON, err := json.Marshal(loglines)
@@ -418,12 +426,12 @@ func (a *Agent) RunLoggerForever(config resourced_config.Config) {
 					a.saveRun(config, outputJSON, err)
 				}()
 
-				if strings.HasPrefix(target.Endpoint, "RESOURCED_MASTER_URL") {
+				if strings.HasPrefix(target.Endpoint, "http://RESOURCED_MASTER_URL") {
 					// Target is ResourceD Master
 					go func() {
 						loglines = logger.ProcessOutgoingLoglines(loglines, config.DenyList)
 
-						masterURLPath := strings.Replace(target.Endpoint, "RESOURCED_MASTER_URL", "", 1)
+						masterURLPath := strings.Replace(target.Endpoint, "http://RESOURCED_MASTER_URL", "", 1)
 
 						hostData, err := a.hostData()
 						if err != nil {
@@ -437,13 +445,15 @@ func (a *Agent) RunLoggerForever(config resourced_config.Config) {
 						}
 					}()
 
-				} else if strings.HasPrefix(target.Endpoint, "RESOURCED_LOG_RECEIVER_ADDR") {
+				} else if strings.HasPrefix(target.Endpoint, "resourced+tcp://") {
+					println("am i here in the block that supposed to forward log to another log?")
 					// Target is another ResourceD Agent
 					go func() {
 						loglines = logger.ProcessOutgoingLoglines(loglines, config.DenyList)
 
-						// TODO: configure this
-						err = logger.SendLogToAgent("localhost:55559", 3, loglines, logger.GetSource())
+						anotherAgentEndpoint := strings.Replace(target.Endpoint, "resourced+tcp://", "", 1)
+
+						err = logger.SendLogToAgent(anotherAgentEndpoint, 3, loglines, logger.GetSource())
 						if err != nil {
 							logger.LogErrorAndResetLoglinesIfNeeded(source, err, "Failed to forward log lines to another agent")
 						}

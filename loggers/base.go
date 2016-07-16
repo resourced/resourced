@@ -321,6 +321,10 @@ func (b *Base) SendLogToMaster(accessToken, masterURLHost, masterURLPath string,
 
 // SendLogToAgent sends log lines to another agent.
 func (b *Base) SendLogToAgent(anotherAgentAddr string, maxRetries int, loglines []string, source string) error {
+	if len(loglines) == 0 {
+		return nil
+	}
+
 	conn, err := net.Dial("tcp", anotherAgentAddr)
 	attempts := 0
 
@@ -347,6 +351,7 @@ func (b *Base) SendLogToAgent(anotherAgentAddr string, maxRetries int, loglines 
 		w := bufio.NewWriter(conn)
 
 		for i, lg := range loglines {
+			// Check if each logline is NOT encoded in ResourceD log wire protocol
 			if !strings.HasPrefix(lg, "type:base64") && !strings.HasPrefix(lg, "type:plain") {
 				loglines[i] = logline.LiveLogline{Created: time.Now().UTC().Unix(), Content: lg}.EncodeBase64()
 				lg = loglines[i]
