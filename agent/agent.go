@@ -427,18 +427,11 @@ func (a *Agent) RunLoggerForever(config resourced_config.Config) {
 
 						hostData, err := a.hostData()
 						if err != nil {
-							logrus.WithFields(logrus.Fields{
-								"Error": err.Error(),
-							}).Error("Failed to get host data for sending log lines to ResourceD Master")
-
-							// Check if we have to prune in-memory log lines.
-							if int64(logger.GetLoglinesLength(source)) > logger.GetBufferSize() {
-								logger.ResetLoglines(source)
-							}
+							logger.LogErrorAndResetLoglinesIfNeeded(source, err, "Failed to get host data for sending log lines to ResourceD Master")
 							return
 						}
 
-						_, err = logger.SendLogToMaster(a.GeneralConfig.ResourcedMaster.AccessToken, a.GeneralConfig.ResourcedMaster.URL, masterURLPath, hostData, loglines, source)
+						err = logger.SendLogToMaster(a.GeneralConfig.ResourcedMaster.AccessToken, a.GeneralConfig.ResourcedMaster.URL, masterURLPath, hostData, loglines, source)
 						if err != nil {
 							logger.LogErrorAndResetLoglinesIfNeeded(source, err, "Failed to send log lines to ResourceD Master")
 						}
@@ -448,6 +441,12 @@ func (a *Agent) RunLoggerForever(config resourced_config.Config) {
 					// Target is another ResourceD Agent
 					go func() {
 						loglines = logger.ProcessOutgoingLoglines(loglines, config.DenyList)
+
+						// TODO: configure this
+						err = logger.SendLogToAgent("localhost:55559", 3, loglines, logger.GetSource())
+						if err != nil {
+							logger.LogErrorAndResetLoglinesIfNeeded(source, err, "Failed to forward log lines to another agent")
+						}
 					}()
 
 				} else if strings.HasPrefix(target.Endpoint, "file://") {

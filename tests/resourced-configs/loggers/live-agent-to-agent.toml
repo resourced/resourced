@@ -1,0 +1,46 @@
+#
+# Loggers pull log lines from either:
+#   * A file
+#   * or live TCP payload
+# and forwards them to various external sources.
+#
+GoStruct = "Base"
+Path = "/live/agent-to-agent"
+Interval = "1s"
+
+# If a source is "live://" then we are forwarding log lines from direct TCP receiver.
+# Otherwise, we are pulling log lines from a file. Examples:
+#    Source = "live://"
+#    Source = "/var/log/messages"
+Source = "live://"
+
+# When reading from file, the agent is buffering the log lines temporarily in memory.
+# To protect the agent from consuming too much memory, this setting is needed.
+# If number of log lines stored in memory exceeded this threshold, log lines will be cleared.
+# Note: This setting is not needed when reading source from "live://"
+# BufferSize = 1000000
+
+# One logger config can have multiple targets.
+# To define multiple targets, we are using TOML's array of tables syntax. Example:
+# [[Targets]]
+# Payload = ""
+# Endpoint = ""
+#
+# List of payload to choose from:
+# - plaintext: Plain text string with \n delimiter.
+# - resourced: ResourceD live TCP log line protocol: type:base64|created:unix-timestamp|content:base64=
+# - syslog-rfc3164: Syslog RFC 3164
+# - syslog-rfc5424: Syslog RFC 5424
+#
+# List of endpoint to choose from:
+# - ResourceD Master API endpoint. Example: "RESOURCED_MASTER_URL/api/logs"
+# - Syslog endpoints: "syslog+udp://remote-ip:514", "syslog+tcp://remote-ip:601", "syslog+tcp+tls://remote-ip:6514"
+# - Generic TCP: "tcp://remote-ip:port"
+
+[[Targets]]
+# Payload setting is not needed when sending to another resourced agent.
+Endpoint = "RESOURCED_LOG_RECEIVER_ADDR"
+
+# Each regex defined here will be used to deny log line for forwarding.
+# By default, every line will be forwarded.
+Denylist = [""]

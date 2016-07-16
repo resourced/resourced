@@ -7,11 +7,13 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net"
 	"net/http"
 	"os"
 	"reflect"
 	"regexp"
 	"strings"
+	"time"
 
 	"github.com/Sirupsen/logrus"
 	"github.com/hpcloud/tail"
@@ -95,9 +97,9 @@ type ILogger interface {
 
 	LogErrorAndResetLoglinesIfNeeded(string, error, string)
 
-	SendLogToMaster(string, string, string, *host.Host, []string, string) ([]string, error)
+	SendLogToMaster(string, string, string, *host.Host, []string, string) error
 
-	SendLogToAgent(string, []string, string) ([]string, error)
+	SendLogToAgent(string, int, []string, string) error
 
 	WriteToFile(string, []string) error
 }
@@ -261,7 +263,7 @@ func (b *Base) logPayloadForMaster(hostData *host.Host, loglines []string, sourc
 }
 
 // SendLogToMaster sends log lines to master.
-func (b *Base) SendLogToMaster(accessToken, masterURLHost, masterURLPath string, hostData *host.Host, loglines []string, source string) ([]string, error) {
+func (b *Base) SendLogToMaster(accessToken, masterURLHost, masterURLPath string, hostData *host.Host, loglines []string, source string) error {
 	// Check if loglines contain ResourceD base64 wire protocol.
 	// If so, convert to plain text.
 	for i, lg := range loglines {
@@ -278,7 +280,7 @@ func (b *Base) SendLogToMaster(accessToken, masterURLHost, masterURLPath string,
 
 	dataJson, err := json.Marshal(data)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	url := masterURLHost + masterURLPath
@@ -289,7 +291,7 @@ func (b *Base) SendLogToMaster(accessToken, masterURLHost, masterURLPath string,
 			"Error": err.Error(),
 		}).Error("Failed to create request struct for sending data to ResourceD Master")
 
-		return nil, err
+		return err
 	}
 
 	req.SetBasicAuth(accessToken, "")
@@ -307,26 +309,68 @@ func (b *Base) SendLogToMaster(accessToken, masterURLHost, masterURLPath string,
 			"req.Method": req.Method,
 		}).Error("Failed to send logs data to ResourceD Master")
 
-		return nil, err
+		return err
 	}
 
 	if resp != nil && resp.Body != nil {
 		defer resp.Body.Close()
 	}
 
-	return loglines, err
+	return err
 }
 
 // SendLogToAgent sends log lines to another agent.
-func (b *Base) SendLogToAgent(anotherAgentAddr string, loglines []string, source string) ([]string, error) {
-	return nil, nil
+func (b *Base) SendLogToAgent(anotherAgentAddr string, maxRetries int, loglines []string, source string) error {
+	conn, err := net.Dial("tcp", anotherAgentAddr)
+	attempts := 0
+
+	for {
+		if err == nil {
+			break
+		}
+
+		if err != nil && attempts > maxRetries {
+			return err
+		}
+
+		if err != nil {
+			attempts = attempts + 1
+			time.Sleep(pester.ExponentialJitterBackoff(attempts))
+			conn, err = net.Dial("tcp", anotherAgentAddr)
+			continue
+		}
+	}
+
+	if conn != nil {
+		defer conn.Close()
+
+		w := bufio.NewWriter(conn)
+
+		for i, lg := range loglines {
+			if !strings.HasPrefix(lg, "type:base64") && !strings.HasPrefix(lg, "type:plain") {
+				loglines[i] = logline.LiveLogline{Created: time.Now().UTC().Unix(), Content: lg}.EncodeBase64()
+				lg = loglines[i]
+			}
+
+			fmt.Fprint(w, lg)
+			w.Flush()
+		}
+	}
+
+	return err
 }
 
 // WriteToFile writes log lines to local file.
 func (b *Base) WriteToFile(targetFile string, loglines []string) error {
-	os.Create(targetFile)
+	// Check if loglines contain ResourceD base64 wire protocol.
+	// If so, convert to plain text.
+	for i, lg := range loglines {
+		if strings.HasPrefix(lg, "type:base64") {
+			loglines[i] = logline.ParseSingle(lg).PlainContent()
+		}
+	}
 
-	fileHandle, err := os.OpenFile(targetFile, os.O_APPEND|os.O_WRONLY, os.ModeAppend)
+	fileHandle, err := os.OpenFile(targetFile, os.O_RDWR|os.O_CREATE|os.O_APPEND, os.ModeAppend)
 	if err != nil {
 		return err
 	}
@@ -336,7 +380,8 @@ func (b *Base) WriteToFile(targetFile string, loglines []string) error {
 
 	for _, logline := range loglines {
 		fmt.Fprintln(writer, logline)
+		writer.Flush()
 	}
 
-	return writer.Flush()
+	return nil
 }
