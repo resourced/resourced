@@ -446,7 +446,6 @@ func (a *Agent) RunLoggerForever(config resourced_config.Config) {
 					}()
 
 				} else if strings.HasPrefix(target.Endpoint, "resourced+tcp://") {
-					println("am i here in the block that supposed to forward log to another log?")
 					// Target is another ResourceD Agent
 					go func() {
 						loglines = logger.ProcessOutgoingLoglines(loglines, config.DenyList)

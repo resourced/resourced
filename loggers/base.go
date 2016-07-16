@@ -370,7 +370,7 @@ func (b *Base) WriteToFile(targetFile string, loglines []string) error {
 	// Check if loglines contain ResourceD base64 wire protocol.
 	// If so, convert to plain text.
 	for i, lg := range loglines {
-		if strings.HasPrefix(lg, "type:base64") {
+		if strings.HasPrefix(lg, "type:base64") || strings.HasPrefix(lg, "type:plain") {
 			loglines[i] = logline.ParseSingle(lg).PlainContent()
 		}
 	}
@@ -382,7 +382,11 @@ func (b *Base) WriteToFile(targetFile string, loglines []string) error {
 	defer fileHandle.Close()
 
 	for _, logline := range loglines {
-		fileHandle.WriteString(logline + "\n")
+		if strings.HasSuffix(logline, "\n") {
+			fileHandle.WriteString(logline)
+		} else {
+			fileHandle.WriteString(logline + "\n")
+		}
 	}
 
 	return nil
