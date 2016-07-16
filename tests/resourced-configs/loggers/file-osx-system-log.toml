@@ -47,7 +47,7 @@ Denylist = [""]
 
 [[Targets]]
 # Payload setting is not needed when writing to file.
-Endpoint = "file://$HOME/testing-file-to-master.log"
+Endpoint = "file://$HOME/tmp/testing-file-to-master.log"
 
 # Each regex defined here will be used to deny log line for forwarding.
 # By default, every line will be forwarded.

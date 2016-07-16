@@ -370,17 +370,14 @@ func (b *Base) WriteToFile(targetFile string, loglines []string) error {
 		}
 	}
 
-	fileHandle, err := os.OpenFile(targetFile, os.O_RDWR|os.O_CREATE|os.O_APPEND, os.ModeAppend)
+	fileHandle, err := os.OpenFile(targetFile, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0644)
 	if err != nil {
 		return err
 	}
-
-	writer := bufio.NewWriter(fileHandle)
 	defer fileHandle.Close()
 
 	for _, logline := range loglines {
-		fmt.Fprintln(writer, logline)
-		writer.Flush()
+		fileHandle.WriteString(logline + "\n")
 	}
 
 	return nil
