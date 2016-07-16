@@ -2,9 +2,11 @@
 package loggers
 
 import (
+	"bufio"
 	"bytes"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 	"os"
 	"reflect"
@@ -91,7 +93,13 @@ type ILogger interface {
 	ResetLoglines(string)
 	ProcessOutgoingLoglines([]string, []string) []string
 
+	LogErrorAndResetLoglinesIfNeeded(string, error, string)
+
 	SendLogToMaster(string, string, string, *host.Host, []string, string) ([]string, error)
+
+	SendLogToAgent(string, []string, string) ([]string, error)
+
+	WriteToFile(string, []string) error
 }
 
 type ILoggerChannel interface {
@@ -194,6 +202,19 @@ func (b *Base) GetTargets() []resourced_config.LogTargetConfig {
 	return b.Targets
 }
 
+func (b *Base) LogErrorAndResetLoglinesIfNeeded(source string, err error, message string) {
+	if err != nil {
+		logrus.WithFields(logrus.Fields{
+			"Error": err.Error(),
+		}).Error(message)
+
+		// Check if we have to prune in-memory log lines.
+		if int64(b.GetLoglinesLength(source)) > b.GetBufferSize() {
+			b.ResetLoglines(source)
+		}
+	}
+}
+
 // filterLoglines denies logline that matches denyList regex.
 func (b *Base) filterLoglines(loglines []string, denyList []string) []string {
 	newDenyList := make([]string, 0)
@@ -227,12 +248,12 @@ func (b *Base) ProcessOutgoingLoglines(loglines []string, denyList []string) []s
 }
 
 // logPayloadForMaster packages the log data before sending to master.
-func (b *Base) logPayloadForMaster(hostData *host.Host, loglines []string, filename string) map[string]interface{} {
+func (b *Base) logPayloadForMaster(hostData *host.Host, loglines []string, source string) map[string]interface{} {
 	toSend := make(map[string]interface{})
 
 	data := make(map[string]interface{})
 	data["Loglines"] = loglines
-	data["Filename"] = filename
+	data["Filename"] = source
 	toSend["Data"] = data
 	toSend["Host"] = hostData
 
@@ -240,7 +261,7 @@ func (b *Base) logPayloadForMaster(hostData *host.Host, loglines []string, filen
 }
 
 // SendLogToMaster sends log lines to master.
-func (b *Base) SendLogToMaster(accessToken, masterURLHost, masterURLPath string, hostData *host.Host, loglines []string, filename string) ([]string, error) {
+func (b *Base) SendLogToMaster(accessToken, masterURLHost, masterURLPath string, hostData *host.Host, loglines []string, source string) ([]string, error) {
 	// Check if loglines contain ResourceD base64 wire protocol.
 	// If so, convert to plain text.
 	for i, lg := range loglines {
@@ -253,7 +274,7 @@ func (b *Base) SendLogToMaster(accessToken, masterURLHost, masterURLPath string,
 		masterURLPath = "/api/logs"
 	}
 
-	data := b.logPayloadForMaster(hostData, loglines, filename)
+	data := b.logPayloadForMaster(hostData, loglines, source)
 
 	dataJson, err := json.Marshal(data)
 	if err != nil {
@@ -294,4 +315,28 @@ func (b *Base) SendLogToMaster(accessToken, masterURLHost, masterURLPath string,
 	}
 
 	return loglines, err
+}
+
+// SendLogToAgent sends log lines to another agent.
+func (b *Base) SendLogToAgent(anotherAgentAddr string, loglines []string, source string) ([]string, error) {
+	return nil, nil
+}
+
+// WriteToFile writes log lines to local file.
+func (b *Base) WriteToFile(targetFile string, loglines []string) error {
+	os.Create(targetFile)
+
+	fileHandle, err := os.OpenFile(targetFile, os.O_APPEND|os.O_WRONLY, os.ModeAppend)
+	if err != nil {
+		return err
+	}
+
+	writer := bufio.NewWriter(fileHandle)
+	defer fileHandle.Close()
+
+	for _, logline := range loglines {
+		fmt.Fprintln(writer, logline)
+	}
+
+	return writer.Flush()
 }

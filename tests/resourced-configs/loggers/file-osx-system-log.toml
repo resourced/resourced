@@ -44,3 +44,11 @@ Endpoint = "RESOURCED_MASTER_URL/api/logs"
 # Each regex defined here will be used to deny log line for forwarding.
 # By default, every line will be forwarded.
 Denylist = [""]
+
+[[Targets]]
+# Payload setting is not needed when writing to file.
+Endpoint = "file://$HOME/testing-file-to-master.log"
+
+# Each regex defined here will be used to deny log line for forwarding.
+# By default, every line will be forwarded.
+Denylist = [""]
