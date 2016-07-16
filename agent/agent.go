@@ -394,7 +394,7 @@ func (a *Agent) RunLoggerForever(config resourced_config.Config) {
 
 	// Send log lines to various targets.
 	for _, target := range logger.GetTargets() {
-		go func(logger loggers.ILoggerFile) {
+		go func(logger loggers.ILogger) {
 			file := logger.GetSource()
 
 			for range time.Tick(flushTime) {
@@ -451,7 +451,7 @@ func (a *Agent) RunLoggerForever(config resourced_config.Config) {
 					}()
 				}
 			}
-		}(logger.(loggers.ILoggerFile))
+		}(logger.(loggers.ILogger))
 	}
 }
 

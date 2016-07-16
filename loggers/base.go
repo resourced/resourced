@@ -9,6 +9,7 @@ import (
 	"os"
 	"reflect"
 	"regexp"
+	"strings"
 
 	"github.com/Sirupsen/logrus"
 	"github.com/hpcloud/tail"
@@ -17,6 +18,7 @@ import (
 	resourced_config "github.com/resourced/resourced/config"
 	"github.com/resourced/resourced/host"
 	"github.com/resourced/resourced/libmap"
+	"github.com/resourced/resourced/logline"
 )
 
 var loggerConstructors = make(map[string]func() ILogger)
@@ -239,6 +241,14 @@ func (b *Base) logPayloadForMaster(hostData *host.Host, loglines []string, filen
 
 // SendLogToMaster sends log lines to master.
 func (b *Base) SendLogToMaster(accessToken, masterURLHost, masterURLPath string, hostData *host.Host, loglines []string, filename string) ([]string, error) {
+	// Check if loglines contain ResourceD base64 wire protocol.
+	// If so, convert to plain text.
+	for i, lg := range loglines {
+		if strings.HasPrefix(lg, "type:base64") {
+			loglines[i] = logline.ParseSingle(lg).EncodePlain()
+		}
+	}
+
 	if masterURLPath == "" {
 		masterURLPath = "/api/logs"
 	}
