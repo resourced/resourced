@@ -3,6 +3,7 @@ package executors
 import (
 	"encoding/json"
 	"fmt"
+	"time"
 
 	"github.com/Sirupsen/logrus"
 	"github.com/dselans/pagerduty"
@@ -48,8 +49,8 @@ func (pd *PagerDuty) Run() error {
 			pd.Data["Errors"] = response.Errors
 
 			go func() {
-				loglines := pd.formatBeforeSendingToMaster(pd.Data)
-				err := pd.SendToMaster(loglines)
+				logline := pd.formatBeforeSendingToMaster(pd.Data)
+				err := pd.SendToMaster(logline)
 				if err != nil {
 					logrus.Error(err)
 				}
@@ -69,7 +70,7 @@ func (pd *PagerDuty) ToJson() ([]byte, error) {
 	return json.Marshal(pd.Data)
 }
 
-func (pd *PagerDuty) formatBeforeSendingToMaster(data map[string]interface{}) []string {
+func (pd *PagerDuty) formatBeforeSendingToMaster(data map[string]interface{}) AgentLoglinePayload {
 	logline := fmt.Sprintf("Conditions: %v. IncidentKey: %v. ", pd.Conditions, pd.IncidentKey)
 
 	if status, ok := data["Status"]; ok {
@@ -85,5 +86,5 @@ func (pd *PagerDuty) formatBeforeSendingToMaster(data map[string]interface{}) []
 		logline = logline + fmt.Sprintf("Errors: %v. ", errors)
 	}
 
-	return []string{logline}
+	return AgentLoglinePayload{Created: time.Now().UTC().Unix(), Content: logline}
 }

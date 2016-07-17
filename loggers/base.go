@@ -250,28 +250,42 @@ func (b *Base) ProcessOutgoingLoglines(loglines []string, denyList []string) []s
 }
 
 // logPayloadForMaster packages the log data before sending to master.
-func (b *Base) logPayloadForMaster(hostData *host.Host, loglines []string, source string) map[string]interface{} {
-	toSend := make(map[string]interface{})
+func (b *Base) logPayloadForMaster(hostData *host.Host, loglines []string, source string) AgentLogPayload {
+	toSend := AgentLogPayload{}
+	toSend.Host.Name = hostData.Name
+	toSend.Host.Tags = hostData.Tags
+	toSend.Data.Filename = source
+	toSend.Data.Loglines = make([]AgentLoglinePayload, 0)
 
-	data := make(map[string]interface{})
-	data["Loglines"] = loglines
-	data["Filename"] = source
-	toSend["Data"] = data
-	toSend["Host"] = hostData
+	for _, lg := range loglines {
+		linePayload := AgentLoglinePayload{}
+
+		// Check if loglines contain ResourceD base64 wire protocol.
+		// If so, convert to plain text.
+		if strings.HasPrefix(lg, "type:base64") {
+			lg = logline.ParseSingle(lg).EncodePlain()
+		}
+
+		// Check if each logline is NOT encoded in ResourceD log wire protocol
+		if !strings.HasPrefix(lg, "type:base64") && !strings.HasPrefix(lg, "type:plain") {
+			linePayload.Created = time.Now().UTC().Unix()
+			linePayload.Content = lg
+		} else {
+			liveLogline := logline.ParseSingle(lg)
+			linePayload.Created = liveLogline.Created
+			linePayload.Content = liveLogline.Content
+		}
+
+		if linePayload.Content != "" {
+			toSend.Data.Loglines = append(toSend.Data.Loglines, linePayload)
+		}
+	}
 
 	return toSend
 }
 
 // SendLogToMaster sends log lines to master.
 func (b *Base) SendLogToMaster(accessToken, masterURLHost, masterURLPath string, hostData *host.Host, loglines []string, source string) error {
-	// Check if loglines contain ResourceD base64 wire protocol.
-	// If so, convert to plain text.
-	for i, lg := range loglines {
-		if strings.HasPrefix(lg, "type:base64") {
-			loglines[i] = logline.ParseSingle(lg).EncodePlain()
-		}
-	}
-
 	if masterURLPath == "" {
 		masterURLPath = "/api/logs"
 	}

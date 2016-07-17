@@ -3,6 +3,7 @@ package executors
 import (
 	"encoding/json"
 	"fmt"
+	"time"
 
 	"github.com/Sirupsen/logrus"
 
@@ -41,7 +42,10 @@ func (s *Shell) Run() error {
 		}
 
 		go func() {
-			err := s.SendToMaster([]string{fmt.Sprintf("Conditions: %v. Output: %v.", s.Conditions, string(output))})
+			created := time.Now().UTC().Unix()
+			content := fmt.Sprintf("Conditions: %v. Output: %v.", s.Conditions, string(output))
+
+			err := s.SendToMaster(AgentLoglinePayload{Created: created, Content: content})
 			if err != nil {
 				logrus.Error(err)
 			}

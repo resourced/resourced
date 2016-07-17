@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/Sirupsen/logrus"
 
@@ -70,8 +71,8 @@ func (dc *DiskCleaner) Run() error {
 
 		if len(successOutput) > 0 || len(failOutput) > 0 {
 			go func() {
-				loglines := dc.formatBeforeSendingToMaster(dc.Data)
-				err := dc.SendToMaster(loglines)
+				logline := dc.formatBeforeSendingToMaster(dc.Data)
+				err := dc.SendToMaster(logline)
 				if err != nil {
 					logrus.Error(err)
 				}
@@ -102,7 +103,7 @@ func (dc *DiskCleaner) ToJson() ([]byte, error) {
 	return json.Marshal(dc.Data)
 }
 
-func (dc *DiskCleaner) formatBeforeSendingToMaster(data map[string]interface{}) []string {
+func (dc *DiskCleaner) formatBeforeSendingToMaster(data map[string]interface{}) AgentLoglinePayload {
 	logline := fmt.Sprintf("Conditions: %v. ", dc.Conditions)
 
 	if exitStatus, ok := data["ExitStatus"]; ok {
@@ -115,5 +116,8 @@ func (dc *DiskCleaner) formatBeforeSendingToMaster(data map[string]interface{}) 
 		logline = logline + fmt.Sprintf("Failed to remove: %v. ", strings.Join(failOutput.([]string), ", "))
 	}
 
-	return []string{logline}
+	return AgentLoglinePayload{
+		Created: time.Now().UTC().Unix(),
+		Content: logline,
+	}
 }
