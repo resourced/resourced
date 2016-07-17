@@ -371,7 +371,7 @@ func (a *Agent) RunLoggerForever(config resourced_config.Config) {
 	if strings.HasPrefix(logger.GetSource(), "live://") {
 		// Subscribe every target to consume log line from LiveLogPubSub
 		for _, target := range logger.GetTargets() {
-			subscriberKey := logger.GetSource() + ":" + target.Endpoint
+			subscriberKey := logger.(loggers.ILoggerChannel).PubSubKey(target.Endpoint)
 			subscriberChannel := a.LiveLogPubSub.Sub(subscriberKey)
 
 			a.LiveLogSubscribers[subscriberKey] = subscriberChannel
@@ -401,14 +401,14 @@ func (a *Agent) RunLoggerForever(config resourced_config.Config) {
 			for range time.Tick(flushTime) {
 				var loglines []string
 
-				// Why am i doing this? Forgot...
 				if source == "live://" {
-					loglines = logger.GetLoglines(source + ":" + target.Endpoint)
-					logger.ResetLoglines(source + ":" + target.Endpoint)
+					loglines = logger.GetAndResetLoglines(logger.(loggers.ILoggerChannel).PubSubKey(target.Endpoint))
 				} else {
-					loglines = logger.GetLoglines(source)
-					logger.ResetLoglines(source)
+					loglines = logger.GetAndResetLoglines(source)
 				}
+
+				println("is loglines truly empty? before forwarding to anything")
+				println(len(loglines))
 
 				go func() {
 					outputJSON, err := json.Marshal(loglines)
@@ -429,7 +429,13 @@ func (a *Agent) RunLoggerForever(config resourced_config.Config) {
 				if strings.HasPrefix(target.Endpoint, "http://RESOURCED_MASTER_URL") {
 					// Target is ResourceD Master
 					go func() {
+						println("is loglines truly empty? before ProcessOutgoingLoglines")
+						println(len(loglines))
+
 						loglines = logger.ProcessOutgoingLoglines(loglines, config.DenyList)
+
+						println("is loglines truly empty?")
+						println(len(loglines))
 
 						masterURLPath := strings.Replace(target.Endpoint, "http://RESOURCED_MASTER_URL", "", 1)
 

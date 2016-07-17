@@ -92,6 +92,7 @@ type ILogger interface {
 	SetLoglines(string, []string)
 	GetLoglines(string) []string
 	GetLoglinesLength(string) int
+	GetAndResetLoglines(string) []string
 	ResetLoglines(string)
 	ProcessOutgoingLoglines([]string, []string) []string
 
@@ -106,6 +107,7 @@ type ILogger interface {
 
 type ILoggerChannel interface {
 	ILogger
+	PubSubKey(string) string
 	RunBlockingChannel(string, <-chan interface{})
 }
 
@@ -128,6 +130,11 @@ type Base struct {
 	Targets    []resourced_config.LogTargetConfig
 
 	Data *libmap.TSafeMapStrings
+}
+
+// PubSubKey is used for forwarding live log line from TCP listener to every target's channel.
+func (b *Base) PubSubKey(targetEndpoint string) string {
+	return b.GetSource() + "->" + targetEndpoint
 }
 
 // RunBlockingChannel pulls log line from channel continuously.
@@ -180,23 +187,30 @@ func (b *Base) SetTargets(targets []resourced_config.LogTargetConfig) {
 }
 
 // SetLoglines sets loglines.
-func (b *Base) SetLoglines(file string, loglines []string) {
-	b.Data.Set(file, loglines)
+func (b *Base) SetLoglines(source string, loglines []string) {
+	b.Data.Set(source, loglines)
 }
 
 // GetLoglines returns loglines.
-func (b *Base) GetLoglines(file string) []string {
-	return b.Data.Get(file)
+func (b *Base) GetLoglines(source string) []string {
+	return b.Data.Get(source)
 }
 
 // GetLoglinesLength returns the count of loglines.
-func (b *Base) GetLoglinesLength(file string) int {
-	return len(b.Data.Get(file))
+func (b *Base) GetLoglinesLength(source string) int {
+	return len(b.Data.Get(source))
+}
+
+// GetAndResetLoglines returns loglines.
+func (b *Base) GetAndResetLoglines(source string) []string {
+	loglines := b.Data.Get(source)
+	b.ResetLoglines(source)
+	return loglines
 }
 
 // ResetLoglines wipes it clean.
-func (b *Base) ResetLoglines(file string) {
-	b.Data.Reset(file)
+func (b *Base) ResetLoglines(source string) {
+	b.Data.Reset(source)
 }
 
 // GetTargets returns slice of LogTargetConfig.
@@ -286,6 +300,9 @@ func (b *Base) logPayloadForMaster(hostData *host.Host, loglines []string, sourc
 
 // SendLogToMaster sends log lines to master.
 func (b *Base) SendLogToMaster(accessToken, masterURLHost, masterURLPath string, hostData *host.Host, loglines []string, source string) error {
+	println("inside SendLogToMaster")
+	println(len(loglines))
+
 	if masterURLPath == "" {
 		masterURLPath = "/api/logs"
 	}
@@ -294,8 +311,14 @@ func (b *Base) SendLogToMaster(accessToken, masterURLHost, masterURLPath string,
 
 	dataJson, err := json.Marshal(data)
 	if err != nil {
+		logrus.WithFields(logrus.Fields{
+			"Error": err.Error(),
+		}).Error("Failed to marshal JSON payload for sending logs to ResourceD Master")
+
 		return err
 	}
+
+	println(string(dataJson))
 
 	url := masterURLHost + masterURLPath
 
@@ -303,7 +326,7 @@ func (b *Base) SendLogToMaster(accessToken, masterURLHost, masterURLPath string,
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
 			"Error": err.Error(),
-		}).Error("Failed to create request struct for sending data to ResourceD Master")
+		}).Error("Failed to create request struct for sending logs to ResourceD Master")
 
 		return err
 	}
