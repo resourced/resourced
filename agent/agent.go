@@ -365,9 +365,9 @@ func (a *Agent) RunLoggerForever(config resourced_config.Config) {
 		}).Error("Failed to instantiate logger struct")
 	}
 
-	// Gather loglines from various sources:
-	// * live:// is the TCP listener.
-	// * regular file
+	// Collect log lines from various sources:
+	//   * live:// is the TCP listener.
+	//   * regular file
 	if strings.HasPrefix(logger.GetSource(), "live://") {
 		// Subscribe every target to consume log line from LiveLogPubSub
 		for _, target := range logger.GetTargets() {
@@ -390,96 +390,88 @@ func (a *Agent) RunLoggerForever(config resourced_config.Config) {
 		}()
 	}
 
-	// Interval in between flushing to multiple targets.
+	// flushTime: Interval in between flushing to multiple targets.
 	flushTime := libtime.ParseDurationWithDefault(config.Interval, "60s")
+	for range time.Tick(flushTime) {
+		var loglines []string
 
-	// Send log lines to various targets.
-	for _, target := range logger.GetTargets() {
-		go func(logger loggers.ILogger) {
-			source := logger.GetSource()
+		// Fetch log lines from logger's buffer if source is file
+		if logger.GetSource() != "live://" {
+			loglines = logger.GetAndResetLoglines(logger.GetSource())
+		}
 
-			for range time.Tick(flushTime) {
-				var loglines []string
+		// Send log lines to various targets.
+		for _, target := range logger.GetTargets() {
+			go func(logger loggers.ILogger, target resourced_config.LogTargetConfig) {
 
-				if source == "live://" {
+				// Fetch log lines from logger's buffer if source is live://
+				// This block is here because the PubSub key is a composite of logger.Source and target.Endpoint.
+				if logger.GetSource() == "live://" {
 					loglines = logger.GetAndResetLoglines(logger.(loggers.ILoggerChannel).PubSubKey(target.Endpoint))
-				} else {
-					loglines = logger.GetAndResetLoglines(source)
 				}
 
-				println("is loglines truly empty? before forwarding to anything")
-				println(len(loglines))
-
-				go func() {
+				go func(loglines []string) {
 					outputJSON, err := json.Marshal(loglines)
 					if err != nil {
-						logrus.WithFields(logrus.Fields{
-							"Error": err.Error(),
-						}).Error("Failed to marshal log lines to JSON for /logs/* HTTP endpoint")
+						logrus.WithFields(logrus.Fields{"Error": err.Error()}).Error("Failed to marshal log lines to JSON for /logs/* HTTP endpoint")
 
 						// Check if we have to prune in-memory log lines.
-						if int64(logger.GetLoglinesLength(source)) > logger.GetBufferSize() {
-							logger.ResetLoglines(source)
+						if int64(logger.GetLoglinesLength(logger.GetSource())) > logger.GetBufferSize() {
+							logger.ResetLoglines(logger.GetSource())
 						}
 					}
 
 					a.saveRun(config, outputJSON, err)
-				}()
+				}(loglines)
 
 				if strings.HasPrefix(target.Endpoint, "http://RESOURCED_MASTER_URL") {
 					// Target is ResourceD Master
-					go func() {
-						println("is loglines truly empty? before ProcessOutgoingLoglines")
-						println(len(loglines))
-
+					go func(loglines []string) {
 						loglines = logger.ProcessOutgoingLoglines(loglines, config.DenyList)
-
-						println("is loglines truly empty?")
-						println(len(loglines))
 
 						masterURLPath := strings.Replace(target.Endpoint, "http://RESOURCED_MASTER_URL", "", 1)
 
 						hostData, err := a.hostData()
 						if err != nil {
-							logger.LogErrorAndResetLoglinesIfNeeded(source, err, "Failed to get host data for sending log lines to ResourceD Master")
+							logger.LogErrorAndResetLoglinesIfNeeded(logger.GetSource(), err, "Failed to get host data for sending log lines to ResourceD Master")
 							return
 						}
 
-						err = logger.SendLogToMaster(a.GeneralConfig.ResourcedMaster.AccessToken, a.GeneralConfig.ResourcedMaster.URL, masterURLPath, hostData, loglines, source)
+						err = logger.SendLogToMaster(a.GeneralConfig.ResourcedMaster.AccessToken, a.GeneralConfig.ResourcedMaster.URL, masterURLPath, hostData, loglines, logger.GetSource())
 						if err != nil {
-							logger.LogErrorAndResetLoglinesIfNeeded(source, err, "Failed to send log lines to ResourceD Master")
+							logger.LogErrorAndResetLoglinesIfNeeded(logger.GetSource(), err, "Failed to send log lines to ResourceD Master")
 						}
-					}()
+					}(loglines)
 
 				} else if strings.HasPrefix(target.Endpoint, "resourced+tcp://") {
 					// Target is another ResourceD Agent
-					go func() {
+					go func(loglines []string) {
 						loglines = logger.ProcessOutgoingLoglines(loglines, config.DenyList)
 
 						anotherAgentEndpoint := strings.Replace(target.Endpoint, "resourced+tcp://", "", 1)
 
 						err = logger.SendLogToAgent(anotherAgentEndpoint, 3, loglines, logger.GetSource())
 						if err != nil {
-							logger.LogErrorAndResetLoglinesIfNeeded(source, err, "Failed to forward log lines to another agent")
+							logger.LogErrorAndResetLoglinesIfNeeded(logger.GetSource(), err, "Failed to forward log lines to another agent")
 						}
-					}()
+					}(loglines)
 
 				} else if strings.HasPrefix(target.Endpoint, "file://") {
 					// Target is local file
-					go func() {
+					go func(loglines []string) {
 						targetFile := libstring.ExpandTildeAndEnv(strings.Replace(target.Endpoint, "file://", "", 1))
 
 						loglines = logger.ProcessOutgoingLoglines(loglines, config.DenyList)
 
 						err = logger.WriteToFile(targetFile, loglines)
 						if err != nil {
-							logger.LogErrorAndResetLoglinesIfNeeded(source, err, "Failed to write log lines to file")
+							logger.LogErrorAndResetLoglinesIfNeeded(logger.GetSource(), err, "Failed to write log lines to file")
 						}
-					}()
+					}(loglines)
 
 				}
-			}
-		}(logger.(loggers.ILogger))
+			}(logger.(loggers.ILogger), target)
+		}
 	}
 }
 
