@@ -4,9 +4,13 @@
 #   * or live TCP payload
 # and forwards them to various external sources.
 #
+# This config file is an example on how to forward log lines received from TCP listener to master.
+
 GoStruct = "Base"
 Path = "/live/master"
-Interval = "10s"
+
+# Buffer every X interval before flushing to multiple [[Targets]]
+Interval = "60s"
 
 # If a source is "live://" then we are forwarding log lines from direct TCP receiver.
 # Otherwise, we are pulling log lines from a file. Examples:
@@ -18,31 +22,39 @@ Source = "live://"
 # To protect the agent from consuming too much memory, this setting is needed.
 # If number of log lines stored in memory exceeded this threshold, log lines will be cleared.
 # Note: This setting is not needed when reading source from "live://"
-# BufferSize = 1000000
+BufferSize = 1000000
 
 # One logger config can have multiple targets.
 # To define multiple targets, we are using TOML's array of tables syntax. Example:
 # [[Targets]]
 # Payload = ""
 # Endpoint = ""
-# Denylist = [""]
+# AllowList = []
+# DenyList = []
 #
 # List of payload to choose from:
-# - plaintext: Plain text string with \n delimiter.
-# - resourced: ResourceD live TCP log line protocol: type:base64|created:unix-timestamp|content:base64=
 # - syslog-rfc3164: Syslog RFC 3164
 # - syslog-rfc5424: Syslog RFC 5424
+#
+# By default, payload is plain text string with \n delimiter.
+# Between ResourceD daemons, payload is custom defined. User does not need to care.
 #
 # List of endpoints to choose from:
 # - ResourceD Master API endpoint. Example: "http://RESOURCED_MASTER_URL/api/logs"
 # - ResourceD Agent TCP endpoint. Example: "resourced+tcp://remote-ip:port"
 # - Syslog endpoints: "syslog+udp://remote-ip:514", "syslog+tcp://remote-ip:601", "syslog+tcp+tls://remote-ip:6514"
 # - Generic TCP: "tcp://remote-ip:port"
+#
+# AllowList and DenyList are exclusive to each other. You can only have one or the other.
+#    When AllowList is enabled, no log lines will be forwarded except the one that matches AllowList regex.
+#    When DenyList is enabled, all log lines will be forwarded except the one that matches DenyList regex.
+#    When both are defined, only AllowList will be used.
+#    When neither AllowList nor DenyList are defined, all log lines will be forwarded.
+# Examples:
+#    AllowList = ["com.mysql.mysqld"]
+#    DenyList = []
+# By default, everything is forwarded.
 
 [[Targets]]
 # Payload setting is not needed when having master as endpoint.
 Endpoint = "http://RESOURCED_MASTER_URL/api/logs"
-
-# Each regex defined here will be used to deny log line for forwarding.
-# By default, every line will be forwarded.
-Denylist = [""]

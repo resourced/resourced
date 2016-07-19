@@ -94,7 +94,7 @@ type ILogger interface {
 	GetLoglinesLength(string) int
 	GetAndResetLoglines(string) []string
 	ResetLoglines(string)
-	ProcessOutgoingLoglines([]string, []string) []string
+	ProcessOutgoingLoglines([]string, []string, []string) []string
 
 	LogErrorAndResetLoglinesIfNeeded(string, error, string)
 
@@ -231,23 +231,17 @@ func (b *Base) LogErrorAndResetLoglinesIfNeeded(source string, err error, messag
 	}
 }
 
-// filterLoglines denies logline that matches denyList regex.
-func (b *Base) filterLoglines(loglines []string, denyList []string) []string {
-	newDenyList := make([]string, 0)
-	for _, deny := range denyList {
-		if deny != "" {
-			newDenyList = append(newDenyList, deny)
-		}
-	}
-
-	if len(newDenyList) == 0 {
-		return loglines
-	}
-
+// denyLoglines filters out every log line that matches denyList regex.
+func (b *Base) denyLoglines(loglines []string, denyList []string) []string {
 	newLoglines := make([]string, 0)
 
 	for _, logline := range loglines {
 		for _, deny := range denyList {
+			if deny == "" {
+				newLoglines = append(newLoglines, logline)
+				continue
+			}
+
 			match, err := regexp.MatchString(deny, logline)
 			if err != nil || !match {
 				newLoglines = append(newLoglines, logline)
@@ -258,9 +252,32 @@ func (b *Base) filterLoglines(loglines []string, denyList []string) []string {
 	return newLoglines
 }
 
+// allowLoglines filters out every log line that matches allowList regex.
+func (b *Base) allowLoglines(loglines []string, allowList []string) []string {
+	newLoglines := make([]string, 0)
+
+	for _, logline := range loglines {
+		for _, allow := range allowList {
+			match, err := regexp.MatchString(allow, logline)
+			if err == nil && match {
+				newLoglines = append(newLoglines, logline)
+			}
+		}
+	}
+
+	return newLoglines
+}
+
 // ProcessOutgoingLoglines before forwarding to targets.
-func (b *Base) ProcessOutgoingLoglines(loglines []string, denyList []string) []string {
-	return b.filterLoglines(loglines, denyList)
+func (b *Base) ProcessOutgoingLoglines(loglines []string, allowList []string, denyList []string) []string {
+	if len(allowList) > 0 {
+		return b.allowLoglines(loglines, allowList)
+	}
+	if len(denyList) > 0 {
+		return b.denyLoglines(loglines, denyList)
+	}
+
+	return loglines
 }
 
 // logPayloadForMaster packages the log data before sending to master.
@@ -300,8 +317,10 @@ func (b *Base) logPayloadForMaster(hostData *host.Host, loglines []string, sourc
 
 // SendLogToMaster sends log lines to master.
 func (b *Base) SendLogToMaster(accessToken, masterURLHost, masterURLPath string, hostData *host.Host, loglines []string, source string) error {
-	println("inside SendLogToMaster")
-	println(len(loglines))
+	// Don't do anything if there are no log lines to send.
+	if len(loglines) == 0 {
+		return nil
+	}
 
 	if masterURLPath == "" {
 		masterURLPath = "/api/logs"
@@ -317,8 +336,6 @@ func (b *Base) SendLogToMaster(accessToken, masterURLHost, masterURLPath string,
 
 		return err
 	}
-
-	println(string(dataJson))
 
 	url := masterURLHost + masterURLPath
 

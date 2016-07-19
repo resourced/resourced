@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/BurntSushi/toml"
+	"github.com/Sirupsen/logrus"
 
 	"github.com/resourced/resourced/host"
 	"github.com/resourced/resourced/libstring"
@@ -36,7 +37,14 @@ func NewConfigs(configDir string) (*Configs, error) {
 				fullpath := path.Join(configDir, configKindPlural, f.Name())
 
 				conf, err := NewConfig(fullpath, configKind)
-				if err == nil {
+				if err != nil {
+					logrus.WithFields(logrus.Fields{
+						"Error": err.Error(),
+						"Path":  fullpath,
+						"Kind":  configKind,
+					}).Error("Failed to create config struct")
+
+				} else {
 					if configKind == "reader" {
 						configs.Readers = append(configs.Readers, conf)
 					}
@@ -82,9 +90,10 @@ func NewConfig(fullpath, kind string) (Config, error) {
 }
 
 type LogTargetConfig struct {
-	Payload  string
-	Endpoint string
-	DenyList []string
+	Payload   string
+	Endpoint  string
+	AllowList []string
+	DenyList  []string
 }
 
 // Config is a unit of execution for a reader/writer.
@@ -114,7 +123,6 @@ type Config struct {
 	// Logger specific fields
 	Source     string
 	BufferSize int64
-	DenyList   []string
 	Targets    []LogTargetConfig
 }
 

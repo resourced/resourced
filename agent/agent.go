@@ -427,7 +427,7 @@ func (a *Agent) RunLoggerForever(config resourced_config.Config) {
 				if strings.HasPrefix(target.Endpoint, "http://RESOURCED_MASTER_URL") {
 					// Target is ResourceD Master
 					go func(loglines []string) {
-						loglines = logger.ProcessOutgoingLoglines(loglines, config.DenyList)
+						loglines = logger.ProcessOutgoingLoglines(loglines, target.AllowList, target.DenyList)
 
 						masterURLPath := strings.Replace(target.Endpoint, "http://RESOURCED_MASTER_URL", "", 1)
 
@@ -446,7 +446,7 @@ func (a *Agent) RunLoggerForever(config resourced_config.Config) {
 				} else if strings.HasPrefix(target.Endpoint, "resourced+tcp://") {
 					// Target is another ResourceD Agent
 					go func(loglines []string) {
-						loglines = logger.ProcessOutgoingLoglines(loglines, config.DenyList)
+						loglines = logger.ProcessOutgoingLoglines(loglines, target.AllowList, target.DenyList)
 
 						anotherAgentEndpoint := strings.Replace(target.Endpoint, "resourced+tcp://", "", 1)
 
@@ -461,7 +461,7 @@ func (a *Agent) RunLoggerForever(config resourced_config.Config) {
 					go func(loglines []string) {
 						targetFile := libstring.ExpandTildeAndEnv(strings.Replace(target.Endpoint, "file://", "", 1))
 
-						loglines = logger.ProcessOutgoingLoglines(loglines, config.DenyList)
+						loglines = logger.ProcessOutgoingLoglines(loglines, target.AllowList, target.DenyList)
 
 						err = logger.WriteToFile(targetFile, loglines)
 						if err != nil {
@@ -480,15 +480,12 @@ func (a *Agent) RunAllForever() {
 	for _, config := range a.Configs.Readers {
 		a.RunForever(config)
 	}
-
 	for _, config := range a.Configs.Writers {
 		a.RunForever(config)
 	}
-
 	for _, config := range a.Configs.Executors {
 		a.RunForever(config)
 	}
-
 	for _, config := range a.Configs.Loggers {
 		a.RunLoggerForever(config)
 	}
