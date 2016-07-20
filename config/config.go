@@ -90,7 +90,6 @@ func NewConfig(fullpath, kind string) (Config, error) {
 }
 
 type LogTargetConfig struct {
-	Payload   string
 	Endpoint  string
 	AllowList []string
 	DenyList  []string

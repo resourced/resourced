@@ -27,14 +27,9 @@ BufferSize = 1000000
 # One logger config can have multiple targets.
 # To define multiple targets, we are using TOML's array of tables syntax. Example:
 # [[Targets]]
-# Payload = ""
 # Endpoint = ""
 # AllowList = []
 # DenyList = []
-#
-# List of payload to choose from:
-# - syslog-rfc3164: Syslog RFC 3164
-# - syslog-rfc5424: Syslog RFC 5424
 #
 # By default, payload is plain text string with \n delimiter.
 # Between ResourceD daemons, payload is custom defined. User does not need to care.
@@ -56,5 +51,4 @@ BufferSize = 1000000
 # By default, everything is forwarded.
 
 [[Targets]]
-# Payload setting is not needed when having master as endpoint.
 Endpoint = "http://RESOURCED_MASTER_URL/api/logs"

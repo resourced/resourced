@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log/syslog"
 	"net"
 	"net/http"
 	"os"
@@ -101,6 +102,8 @@ type ILogger interface {
 	SendLogToMaster(string, string, string, *host.Host, []string, string) error
 
 	SendLogToAgent(string, int, []string, string) error
+
+	SendLogToSyslog(string, string, syslog.Priority, string, []string, string) error
 
 	WriteToFile(string, []string) error
 }
@@ -417,6 +420,20 @@ func (b *Base) SendLogToAgent(anotherAgentAddr string, maxRetries int, loglines 
 	}
 
 	return err
+}
+
+func (b *Base) SendLogToSyslog(protocol string, addr string, priority syslog.Priority, tag string, loglines []string, source string) error {
+	logHandler, err := syslog.Dial(protocol, addr, priority, tag)
+	if err != nil {
+		return err
+	}
+	defer logHandler.Close()
+
+	for _, lg := range loglines {
+		logHandler.Write([]byte(lg))
+	}
+
+	return nil
 }
 
 // WriteToFile writes log lines to local file.

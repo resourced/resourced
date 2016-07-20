@@ -4,6 +4,7 @@ package agent
 import (
 	"encoding/json"
 	"fmt"
+	"log/syslog"
 	"strings"
 	"time"
 
@@ -453,6 +454,32 @@ func (a *Agent) RunLoggerForever(config resourced_config.Config) {
 						err = logger.SendLogToAgent(anotherAgentEndpoint, 3, loglines, logger.GetSource())
 						if err != nil {
 							logger.LogErrorAndResetLoglinesIfNeeded(logger.GetSource(), err, "Failed to forward log lines to another agent")
+						}
+					}(loglines)
+
+				} else if strings.HasPrefix(target.Endpoint, "syslog+tcp://") {
+					// Target is a syslog TCP endpoint
+					go func(loglines []string) {
+						loglines = logger.ProcessOutgoingLoglines(loglines, target.AllowList, target.DenyList)
+
+						addr := strings.Replace(target.Endpoint, "syslog+tcp://", "", 1)
+
+						err = logger.SendLogToSyslog("tcp", addr, syslog.LOG_INFO, "ResourceD", loglines, logger.GetSource())
+						if err != nil {
+							logger.LogErrorAndResetLoglinesIfNeeded(logger.GetSource(), err, "Failed to forward log lines to syslog endpoint")
+						}
+					}(loglines)
+
+				} else if strings.HasPrefix(target.Endpoint, "syslog+udp://") {
+					// Target is a syslog UDP endpoint
+					go func(loglines []string) {
+						loglines = logger.ProcessOutgoingLoglines(loglines, target.AllowList, target.DenyList)
+
+						addr := strings.Replace(target.Endpoint, "syslog+udp://", "", 1)
+
+						err = logger.SendLogToSyslog("udp", addr, syslog.LOG_INFO, "ResourceD", loglines, logger.GetSource())
+						if err != nil {
+							logger.LogErrorAndResetLoglinesIfNeeded(logger.GetSource(), err, "Failed to forward log lines to syslog endpoint")
 						}
 					}(loglines)
 
