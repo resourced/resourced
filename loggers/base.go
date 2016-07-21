@@ -22,6 +22,7 @@ import (
 	resourced_config "github.com/resourced/resourced/config"
 	"github.com/resourced/resourced/host"
 	"github.com/resourced/resourced/libmap"
+	"github.com/resourced/resourced/libstring"
 	"github.com/resourced/resourced/libtcp"
 	"github.com/resourced/resourced/logline"
 )
@@ -275,6 +276,8 @@ func (b *Base) allowLoglines(loglines []string, allowList []string) []string {
 
 // ProcessOutgoingLoglines before forwarding to targets.
 func (b *Base) ProcessOutgoingLoglines(loglines []string, allowList []string, denyList []string) []string {
+	loglines = libstring.StitchIndentedInLoglines(loglines)
+
 	if len(allowList) > 0 {
 		return b.allowLoglines(loglines, allowList)
 	}

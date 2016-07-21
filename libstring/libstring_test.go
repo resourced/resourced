@@ -58,3 +58,66 @@ func TestGetIP(t *testing.T) {
 		t.Error("Should not be able to parse '%v'", badAddress)
 	}
 }
+
+func TestStitchIndentedInLoglines(t *testing.T) {
+	javaStacktrace := `java.io.FileNotFoundException: fred.txt
+    at java.io.FileInputStream.<init>(FileInputStream.java)
+    at java.io.FileInputStream.<init>(FileInputStream.java)
+    at Yolo.readMyFile(Yolo.java:19)
+    at Yolo.main(Yolo.java:7)
+java.io.FileNotFoundException: bob.txt
+    at java.io.FileInputStream.<init>(FileInputStream.java)
+    at java.io.FileInputStream.<init>(FileInputStream.java)
+    at Yolo.readMyFile(Yolo.java:19)
+    at Yolo.main(Yolo.java:7)
+java.io.FileNotFoundException: nguyen.txt
+    at java.io.FileInputStream.<init>(FileInputStream.java)
+    at java.io.FileInputStream.<init>(FileInputStream.java)
+    at Yolo.readMyFile(Yolo.java:19)
+    at Yolo.main(Yolo.java:7)`
+
+	javaStacktracePerLine := strings.Split(javaStacktrace, "\n")
+
+	stitched := StitchIndentedInLoglines(javaStacktracePerLine)
+	if len(stitched) != 3 {
+		t.Errorf("Failed to stitch stacktrace. Length: %v", len(stitched))
+	}
+}
+
+func TestStitchIndentedInLoglinesNoIndented(t *testing.T) {
+	loglines := []string{"aaaa bbbb", "cccc ddddd", "eeeee fffff"}
+
+	stitched := StitchIndentedInLoglines(loglines)
+	if len(stitched) != 3 {
+		t.Errorf("Failed to non stitched log lines. Length: %v", len(stitched))
+	}
+}
+
+func TestStitchIndentedInLoglinesMixed(t *testing.T) {
+	javaStacktrace := `aaaaaa one line
+java.io.FileNotFoundException: fred.txt
+    at java.io.FileInputStream.<init>(FileInputStream.java)
+    at java.io.FileInputStream.<init>(FileInputStream.java)
+    at Yolo.readMyFile(Yolo.java:19)
+    at Yolo.main(Yolo.java:7)
+java.io.FileNotFoundException: bob.txt
+    at java.io.FileInputStream.<init>(FileInputStream.java)
+    at java.io.FileInputStream.<init>(FileInputStream.java)
+    at Yolo.readMyFile(Yolo.java:19)
+    at Yolo.main(Yolo.java:7)
+
+bbbb lol
+java.io.FileNotFoundException: nguyen.txt
+    at java.io.FileInputStream.<init>(FileInputStream.java)
+    at java.io.FileInputStream.<init>(FileInputStream.java)
+    at Yolo.readMyFile(Yolo.java:19)
+    at Yolo.main(Yolo.java:7)
+ccccc yoyo`
+
+	javaStacktracePerLine := strings.Split(javaStacktrace, "\n")
+
+	stitched := StitchIndentedInLoglines(javaStacktracePerLine)
+	if len(stitched) != 7 {
+		t.Errorf("Failed to stitch stacktrace. Length: %v", len(stitched))
+	}
+}

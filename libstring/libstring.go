@@ -77,3 +77,32 @@ func GetIP(address string) net.IP {
 	// Convert to IP object
 	return net.ParseIP(splitAddress[0])
 }
+
+// StitchIndentedInLoglines combines stack trace together in one message.
+func StitchIndentedInLoglines(loglines []string) []string {
+	newLoglines := make([]string, 0)
+
+	message := ""
+
+	for _, lg := range loglines {
+		if message == "" {
+			message = lg
+			newLoglines = append(newLoglines, message)
+			continue
+		}
+
+		if strings.HasPrefix(lg, " ") || strings.HasPrefix(lg, "\t") {
+			message = message + "\n" + lg
+		} else {
+			newLoglines = append(newLoglines, message)
+			message = lg
+			continue
+		}
+	}
+
+	if len(newLoglines) == 0 {
+		return loglines
+	}
+
+	return newLoglines
+}
