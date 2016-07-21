@@ -4,13 +4,13 @@
 #   * or live TCP payload
 # and forwards them to various external sources.
 #
-# This config file is an example on how to forward log lines received from TCP listener to master.
+# This config file is an example on how to forward log lines received from TCP listener to syslog.
 
 GoStruct = "Base"
-Path = "/live/master"
+Path = "/live/syslog"
 
 # Buffer every X interval before flushing to multiple [[Targets]]
-Interval = "60s"
+Interval = "10s"
 
 # If a source is "live://" then we are forwarding log lines from direct TCP receiver.
 # Otherwise, we are pulling log lines from a file. Examples:
@@ -51,4 +51,4 @@ BufferSize = 1000000
 # By default, everything is forwarded.
 
 [[Targets]]
-Endpoint = "http://RESOURCED_MASTER_URL/api/logs"
+Endpoint = "syslog+tcp://127.0.0.1:55560"
