@@ -423,6 +423,10 @@ func (b *Base) SendLogToAgent(anotherAgentAddr string, maxRetries int, loglines 
 }
 
 func (b *Base) SendLogToSyslog(protocol string, addr string, priority syslog.Priority, tag string, loglines []string, source string) error {
+	if len(loglines) == 0 {
+		return nil
+	}
+
 	logHandler, err := syslog.Dial(protocol, addr, priority, tag)
 	if err != nil {
 		return err
@@ -430,7 +434,7 @@ func (b *Base) SendLogToSyslog(protocol string, addr string, priority syslog.Pri
 	defer logHandler.Close()
 
 	for _, lg := range loglines {
-		logHandler.Write([]byte(lg))
+		logHandler.Write([]byte(logline.ParseSingle(lg).PlainContent()))
 	}
 
 	return nil
