@@ -8,7 +8,6 @@ import (
 	"errors"
 	"fmt"
 	"log/syslog"
-	"net"
 	"net/http"
 	"os"
 	"reflect"
@@ -23,6 +22,7 @@ import (
 	resourced_config "github.com/resourced/resourced/config"
 	"github.com/resourced/resourced/host"
 	"github.com/resourced/resourced/libmap"
+	"github.com/resourced/resourced/libtcp"
 	"github.com/resourced/resourced/logline"
 )
 
@@ -99,11 +99,13 @@ type ILogger interface {
 
 	LogErrorAndResetLoglinesIfNeeded(string, error, string)
 
-	SendLogToMaster(string, string, string, *host.Host, []string, string) error
+	SendToMaster(string, string, string, *host.Host, []string, string) error
 
-	SendLogToAgent(string, int, []string, string) error
+	SendToAgent(string, int, []string, string) error
 
-	SendLogToSyslog(string, string, syslog.Priority, string, []string, string) error
+	SendToSyslog(string, string, syslog.Priority, string, []string, string) error
+
+	SendToGenericTCP(string, int, []string, string) error
 
 	WriteToFile(string, []string) error
 }
@@ -318,8 +320,8 @@ func (b *Base) logPayloadForMaster(hostData *host.Host, loglines []string, sourc
 	return toSend
 }
 
-// SendLogToMaster sends log lines to master.
-func (b *Base) SendLogToMaster(accessToken, masterURLHost, masterURLPath string, hostData *host.Host, loglines []string, source string) error {
+// SendToMaster sends log lines to master.
+func (b *Base) SendToMaster(accessToken, masterURLHost, masterURLPath string, hostData *host.Host, loglines []string, source string) error {
 	// Don't do anything if there are no log lines to send.
 	if len(loglines) == 0 {
 		return nil
@@ -376,30 +378,15 @@ func (b *Base) SendLogToMaster(accessToken, masterURLHost, masterURLPath string,
 	return err
 }
 
-// SendLogToAgent sends log lines to another agent.
-func (b *Base) SendLogToAgent(anotherAgentAddr string, maxRetries int, loglines []string, source string) error {
+// SendToAgent sends log lines to another agent.
+func (b *Base) SendToAgent(anotherAgentAddr string, maxRetries int, loglines []string, source string) error {
 	if len(loglines) == 0 {
 		return nil
 	}
 
-	conn, err := net.Dial("tcp", anotherAgentAddr)
-	attempts := 0
-
-	for {
-		if err == nil {
-			break
-		}
-
-		if err != nil && attempts > maxRetries {
-			return err
-		}
-
-		if err != nil {
-			attempts = attempts + 1
-			time.Sleep(pester.ExponentialJitterBackoff(attempts))
-			conn, err = net.Dial("tcp", anotherAgentAddr)
-			continue
-		}
+	conn, err := libtcp.NewConnectionWithRetries(anotherAgentAddr, maxRetries)
+	if err != nil {
+		return err
 	}
 
 	if conn != nil {
@@ -422,7 +409,8 @@ func (b *Base) SendLogToAgent(anotherAgentAddr string, maxRetries int, loglines 
 	return err
 }
 
-func (b *Base) SendLogToSyslog(protocol string, addr string, priority syslog.Priority, tag string, loglines []string, source string) error {
+// SendToSyslog sends log lines to syslog endpoint.
+func (b *Base) SendToSyslog(protocol string, addr string, priority syslog.Priority, tag string, loglines []string, source string) error {
 	if len(loglines) == 0 {
 		return nil
 	}
@@ -438,6 +426,31 @@ func (b *Base) SendLogToSyslog(protocol string, addr string, priority syslog.Pri
 	}
 
 	return nil
+}
+
+// SendToGenericTCP sends log lines to a generic tcp endpoint.
+func (b *Base) SendToGenericTCP(addr string, maxRetries int, loglines []string, source string) error {
+	if len(loglines) == 0 {
+		return nil
+	}
+
+	conn, err := libtcp.NewConnectionWithRetries(addr, maxRetries)
+	if err != nil {
+		return err
+	}
+
+	if conn != nil {
+		defer conn.Close()
+
+		w := bufio.NewWriter(conn)
+
+		for _, lg := range loglines {
+			fmt.Fprint(w, lg)
+			w.Flush()
+		}
+	}
+
+	return err
 }
 
 // WriteToFile writes log lines to local file.

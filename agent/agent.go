@@ -439,7 +439,7 @@ func (a *Agent) RunLoggerForever(config resourced_config.Config) {
 								return
 							}
 
-							err = logger.SendLogToMaster(a.GeneralConfig.ResourcedMaster.AccessToken, a.GeneralConfig.ResourcedMaster.URL, masterURLPath, hostData, loglines, logger.GetSource())
+							err = logger.SendToMaster(a.GeneralConfig.ResourcedMaster.AccessToken, a.GeneralConfig.ResourcedMaster.URL, masterURLPath, hostData, loglines, logger.GetSource())
 							if err != nil {
 								logger.LogErrorAndResetLoglinesIfNeeded(logger.GetSource(), err, "Failed to send log lines to ResourceD Master")
 							}
@@ -452,7 +452,7 @@ func (a *Agent) RunLoggerForever(config resourced_config.Config) {
 
 							anotherAgentEndpoint := strings.Replace(target.Endpoint, "resourced+tcp://", "", 1)
 
-							err = logger.SendLogToAgent(anotherAgentEndpoint, 3, loglines, logger.GetSource())
+							err = logger.SendToAgent(anotherAgentEndpoint, 3, loglines, logger.GetSource())
 							if err != nil {
 								logger.LogErrorAndResetLoglinesIfNeeded(logger.GetSource(), err, "Failed to forward log lines to another agent")
 							}
@@ -465,7 +465,7 @@ func (a *Agent) RunLoggerForever(config resourced_config.Config) {
 
 							addr := strings.Replace(target.Endpoint, "syslog+tcp://", "", 1)
 
-							err = logger.SendLogToSyslog("tcp", addr, syslog.LOG_INFO, "ResourceD", loglines, logger.GetSource())
+							err = logger.SendToSyslog("tcp", addr, syslog.LOG_INFO, "ResourceD", loglines, logger.GetSource())
 							if err != nil {
 								logger.LogErrorAndResetLoglinesIfNeeded(logger.GetSource(), err, "Failed to forward log lines to syslog endpoint")
 							}
@@ -478,9 +478,22 @@ func (a *Agent) RunLoggerForever(config resourced_config.Config) {
 
 							addr := strings.Replace(target.Endpoint, "syslog+udp://", "", 1)
 
-							err = logger.SendLogToSyslog("udp", addr, syslog.LOG_INFO, "ResourceD", loglines, logger.GetSource())
+							err = logger.SendToSyslog("udp", addr, syslog.LOG_INFO, "ResourceD", loglines, logger.GetSource())
 							if err != nil {
 								logger.LogErrorAndResetLoglinesIfNeeded(logger.GetSource(), err, "Failed to forward log lines to syslog endpoint")
+							}
+						}(loglines)
+
+					} else if strings.HasPrefix(target.Endpoint, "tcp://") {
+						// Target is a generic TCP endpoint
+						go func(loglines []string) {
+							loglines = logger.ProcessOutgoingLoglines(loglines, target.AllowList, target.DenyList)
+
+							addr := strings.Replace(target.Endpoint, "tcp://", "", 1)
+
+							err = logger.SendToGenericTCP(addr, 3, loglines, logger.GetSource())
+							if err != nil {
+								logger.LogErrorAndResetLoglinesIfNeeded(logger.GetSource(), err, "Failed to forward log lines to a generic TCP endpoint")
 							}
 						}(loglines)
 
