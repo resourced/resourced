@@ -22,9 +22,7 @@ func createAgentForTest(t *testing.T) *Agent {
 }
 
 func createAgentWithAccessTokensForTest(t *testing.T) *Agent {
-	os.Setenv("RESOURCED_CONFIG_DIR", os.ExpandEnv("$GOPATH/src/github.com/resourced/resourced/tests/resourced-configs"))
-
-	agent, err := New()
+	agent, err := New(os.ExpandEnv("$GOPATH/src/github.com/resourced/resourced/tests/resourced-configs"))
 	if err != nil {
 		t.Fatalf("Initializing agent should work. Error: %v", err)
 	}

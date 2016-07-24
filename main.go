@@ -33,11 +33,13 @@ func init() {
 func main() {
 	configDir := os.Getenv("RESOURCED_CONFIG_DIR")
 	if configDir == "" {
-		err := errors.New("RESOURCED_CONFIG_DIR is required")
-		logrus.Fatal(err)
+		err := errors.New("RESOURCED_CONFIG_DIR is required. Setting it to .")
+		logrus.Error(err)
+
+		configDir = "."
 	}
 
-	a, err := agent.New()
+	a, err := agent.New(configDir)
 	if err != nil {
 		logrus.Fatal(err)
 	}

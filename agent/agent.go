@@ -22,12 +22,12 @@ import (
 )
 
 // New is the constructor for Agent struct.
-func New() (*Agent, error) {
+func New(configDir string) (*Agent, error) {
 	agent := &Agent{}
 
 	agent.ID = uuid.NewV4().String()
 
-	err := agent.setConfigs()
+	err := agent.setConfigs(configDir)
 	if err != nil {
 		return nil, err
 	}
