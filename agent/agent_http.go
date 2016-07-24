@@ -355,21 +355,22 @@ func (a *Agent) GetByPathHandler(dataType string) http.Handler {
 }
 
 // GetLogsTCPHandler renders logs data in JSON.
-func (a *Agent) GetLogsTCPHandler() http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "application/json")
+// This does not make sense anymore because we are receiving data from channel now.
+// func (a *Agent) GetLogsTCPHandler() http.Handler {
+// 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+// 		w.Header().Set("Content-Type", "application/json")
 
-		data := a.LogPayload(a.TCPLogDB, "")
-		dataInBytes, err := json.Marshal(data)
-		if err != nil {
-			w.WriteHeader(500)
-			w.Write([]byte(fmt.Sprintf(`{"Error": "%v"}`, err.Error())))
-		} else {
-			w.WriteHeader(200)
-			w.Write(dataInBytes)
-		}
-	})
-}
+// 		data := a.LogPayloadForMaster(a.LiveLogDB.Get("Loglines"), "")
+// 		dataInBytes, err := json.Marshal(data)
+// 		if err != nil {
+// 			w.WriteHeader(500)
+// 			w.Write([]byte(fmt.Sprintf(`{"Error": "%v"}`, err.Error())))
+// 		} else {
+// 			w.WriteHeader(200)
+// 			w.Write(dataInBytes)
+// 		}
+// 	})
+// }
 
 // HttpRouter returns HTTP router.
 func (a *Agent) HttpRouter() *mux.Router {
@@ -388,7 +389,7 @@ func (a *Agent) HttpRouter() *mux.Router {
 
 	router.Handle("/logs", a.AuthorizeMiddleware(a.GetLogsHandler())).Methods("GET")
 	router.Handle("/logs/paths", a.AuthorizeMiddleware(a.GetLogPathsHandler())).Methods("GET")
-	router.Handle("/logs/tcp", a.AuthorizeMiddleware(a.GetLogsTCPHandler())).Methods("GET")
+	// router.Handle("/logs/tcp", a.AuthorizeMiddleware(a.GetLogsTCPHandler())).Methods("GET")
 
 	router.Handle("/{dataType}/paths", a.AuthorizeMiddleware(a.GetDataTypePathsHandler())).Methods("GET")
 

@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/BurntSushi/toml"
+	"github.com/Sirupsen/logrus"
 
 	"github.com/resourced/resourced/host"
 	"github.com/resourced/resourced/libstring"
@@ -36,7 +37,14 @@ func NewConfigs(configDir string) (*Configs, error) {
 				fullpath := path.Join(configDir, configKindPlural, f.Name())
 
 				conf, err := NewConfig(fullpath, configKind)
-				if err == nil {
+				if err != nil {
+					logrus.WithFields(logrus.Fields{
+						"Error": err.Error(),
+						"Path":  fullpath,
+						"Kind":  configKind,
+					}).Error("Failed to create config struct")
+
+				} else {
 					if configKind == "reader" {
 						configs.Readers = append(configs.Readers, conf)
 					}
@@ -81,6 +89,12 @@ func NewConfig(fullpath, kind string) (Config, error) {
 	return config, err
 }
 
+type LogTargetConfig struct {
+	Endpoint  string
+	AllowList []string
+	DenyList  []string
+}
+
 // Config is a unit of execution for a reader/writer.
 // Reader config defines how to fetch a particular information and its JSON data path.
 // Writer config defines how to export the JSON data to a particular destination. E.g. Facts/graphing database.
@@ -104,6 +118,11 @@ type Config struct {
 	Conditions                 string
 	ResourcedMasterURL         string
 	ResourcedMasterAccessToken string
+
+	// Logger specific fields
+	Source     string
+	BufferSize int64
+	Targets    []LogTargetConfig
 }
 
 // CommonJsonData returns common information for every reader/writer/executor JSON interpretation.
@@ -213,12 +232,7 @@ type MetricReceiverConfig struct {
 
 type LogReceiverConfig struct {
 	TCPConfig
-	WriteToMasterInterval string
-	AutoPruneLength       int64
-}
-
-func (l LogReceiverConfig) GetAutoPruneLength() int64 {
-	return l.AutoPruneLength
+	ChannelCapacity int64
 }
 
 // GeneralConfig stores all other configuration data.

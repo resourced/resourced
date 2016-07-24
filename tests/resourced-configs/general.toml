@@ -39,12 +39,10 @@ Blacklist = [
 ]
 
 [LogReceiver]
-# Send your logs over TCP or UDP here.
-# TLS files are only used for TCP connection.
+# Send your logs over TCP here. UDP is not supported because a log line tends to be large.
 Addr = ":55557"
 CertFile = ""
 KeyFile = ""
-WriteToMasterInterval = "60s"
 
-# To prevent memory leak, clean all logs when storage capacity reached N.
-AutoPruneLength = 10000
+# ChannelCapacity defines the incoming channel capacity until if flushes.
+ChannelCapacity = 1

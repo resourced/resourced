@@ -215,17 +215,11 @@ func (b *Base) NewHttpRequest(dataJson []byte) (*http.Request, error) {
 }
 
 // Send executor data to master
-func (b *Base) SendToMaster(loglines []string) error {
-	if loglines == nil {
-		return nil
-	}
-
-	data := make(map[string]interface{})
-	data["Loglines"] = loglines
-
-	toSend := make(map[string]interface{})
-	toSend["Host"] = b.Host
-	toSend["Data"] = data
+func (b *Base) SendToMaster(logline AgentLoglinePayload) error {
+	toSend := AgentLogPayload{}
+	toSend.Host.Name = b.Host.Name
+	toSend.Host.Tags = b.Host.Tags
+	toSend.Data.Loglines = []AgentLoglinePayload{logline}
 
 	dataJson, err := json.Marshal(toSend)
 	if err != nil {

@@ -4,6 +4,7 @@ package agent
 import (
 	"encoding/json"
 	"fmt"
+	"log/syslog"
 	"strings"
 	"time"
 
@@ -12,10 +13,13 @@ import (
 	"github.com/rcrowley/go-metrics"
 	"github.com/satori/go.uuid"
 
+	"github.com/cskr/pubsub"
 	resourced_config "github.com/resourced/resourced/config"
 	"github.com/resourced/resourced/executors"
 	"github.com/resourced/resourced/host"
 	"github.com/resourced/resourced/libmap"
+	"github.com/resourced/resourced/libstring"
+	"github.com/resourced/resourced/libtime"
 	"github.com/resourced/resourced/loggers"
 	"github.com/resourced/resourced/readers"
 	"github.com/resourced/resourced/writers"
@@ -44,9 +48,9 @@ func New(configDir string) (*Agent, error) {
 
 	agent.ResultDB = gocache.New(time.Duration(agent.GeneralConfig.TTL)*time.Second, 10*time.Second)
 	agent.ExecutorCounterDB = libmap.NewTSafeMapCounter(nil)
-	agent.TCPLogDB = libmap.NewTSafeMapStrings(map[string][]string{
-		"Loglines": make([]string, 0),
-	})
+
+	agent.LiveLogPubSub = pubsub.New(int(agent.GeneralConfig.LogReceiver.ChannelCapacity))
+	agent.LiveLogSubscribers = make(map[string]chan interface{})
 
 	agent.StatsDMetrics = metrics.NewRegistry()
 
@@ -56,16 +60,17 @@ func New(configDir string) (*Agent, error) {
 // Agent struct carries most of the functionality of ResourceD.
 // It collects information through readers and serve them up as HTTP+JSON.
 type Agent struct {
-	ID                string
-	Tags              map[string]string
-	AccessTokens      []string
-	Configs           *resourced_config.Configs
-	GeneralConfig     resourced_config.GeneralConfig
-	DbPath            string
-	StatsDMetrics     metrics.Registry
-	ResultDB          *gocache.Cache
-	ExecutorCounterDB *libmap.TSafeMapCounter
-	TCPLogDB          *libmap.TSafeMapStrings
+	ID                 string
+	Tags               map[string]string
+	AccessTokens       []string
+	Configs            *resourced_config.Configs
+	GeneralConfig      resourced_config.GeneralConfig
+	DbPath             string
+	StatsDMetrics      metrics.Registry
+	ResultDB           *gocache.Cache
+	ExecutorCounterDB  *libmap.TSafeMapCounter
+	LiveLogPubSub      *pubsub.PubSub
+	LiveLogSubscribers map[string]chan interface{}
 }
 
 // Run executes a reader/writer/executor/log config.
@@ -349,6 +354,169 @@ func (a *Agent) RunForever(config resourced_config.Config) {
 	}(config)
 }
 
+func (a *Agent) RunLoggerForever(config resourced_config.Config) {
+	logger, err := loggers.NewGoStructByConfig(config)
+	if err != nil {
+		logrus.WithFields(logrus.Fields{
+			"Error":           err.Error(),
+			"config.GoStruct": config.GoStruct,
+			"config.Path":     config.Path,
+			"config.Interval": config.Interval,
+			"config.Kind":     config.Kind,
+		}).Error("Failed to instantiate logger struct")
+	}
+
+	// Collect log lines from various sources:
+	//   * live:// is the TCP listener.
+	//   * regular file
+	if strings.HasPrefix(logger.GetSource(), "live://") {
+		// Subscribe every target to consume log line from LiveLogPubSub
+		for _, target := range logger.GetTargets() {
+			subscriberKey := logger.(loggers.ILoggerChannel).PubSubKey(target.Endpoint)
+			subscriberChannel := a.LiveLogPubSub.Sub(subscriberKey)
+
+			a.LiveLogSubscribers[subscriberKey] = subscriberChannel
+
+			// Collect log lines by subscribing to pubsub channel
+			go func(subscriberKey string, subscriberChannel chan interface{}) {
+				defer close(subscriberChannel)
+				logger.(loggers.ILoggerChannel).RunBlockingChannel(subscriberKey, subscriberChannel)
+			}(subscriberKey, subscriberChannel)
+		}
+
+	} else {
+		// Collect log lines by watching the file via inotify
+		go func() {
+			logger.(loggers.ILoggerFile).RunBlockingFile(logger.GetSource())
+		}()
+	}
+
+	go func(config resourced_config.Config) {
+		// flushTime: Interval in between flushing to multiple targets.
+		flushTime := libtime.ParseDurationWithDefault(config.Interval, "60s")
+		for range time.Tick(flushTime) {
+			var loglines []string
+
+			// Fetch log lines from logger's buffer if source is file
+			if logger.GetSource() != "live://" {
+				loglines = logger.GetAndResetLoglines(logger.GetSource())
+			}
+
+			// Send log lines to various targets.
+			for _, target := range logger.GetTargets() {
+				go func(logger loggers.ILogger, target resourced_config.LogTargetConfig) {
+
+					// Fetch log lines from logger's buffer if source is live://
+					// This block is here because the PubSub key is a composite of logger.Source and target.Endpoint.
+					if logger.GetSource() == "live://" {
+						loglines = logger.GetAndResetLoglines(logger.(loggers.ILoggerChannel).PubSubKey(target.Endpoint))
+					}
+
+					go func(loglines []string) {
+						outputJSON, err := json.Marshal(loglines)
+						if err != nil {
+							logrus.WithFields(logrus.Fields{"Error": err.Error()}).Error("Failed to marshal log lines to JSON for /logs/* HTTP endpoint")
+
+							// Check if we have to prune in-memory log lines.
+							if int64(logger.GetLoglinesLength(logger.GetSource())) > logger.GetBufferSize() {
+								logger.ResetLoglines(logger.GetSource())
+							}
+						}
+
+						a.saveRun(config, outputJSON, err)
+					}(loglines)
+
+					if strings.HasPrefix(target.Endpoint, "http://RESOURCED_MASTER_URL") {
+						// Target is ResourceD Master
+						go func(loglines []string) {
+							loglines = logger.ProcessOutgoingLoglines(loglines, target.AllowList, target.DenyList)
+
+							masterURLPath := strings.Replace(target.Endpoint, "http://RESOURCED_MASTER_URL", "", 1)
+
+							hostData, err := a.hostData()
+							if err != nil {
+								logger.LogErrorAndResetLoglinesIfNeeded(logger.GetSource(), err, "Failed to get host data for sending log lines to ResourceD Master")
+								return
+							}
+
+							err = logger.SendToMaster(a.GeneralConfig.ResourcedMaster.AccessToken, a.GeneralConfig.ResourcedMaster.URL, masterURLPath, hostData, loglines, logger.GetSource())
+							if err != nil {
+								logger.LogErrorAndResetLoglinesIfNeeded(logger.GetSource(), err, "Failed to send log lines to ResourceD Master")
+							}
+						}(loglines)
+
+					} else if strings.HasPrefix(target.Endpoint, "resourced+tcp://") {
+						// Target is another ResourceD Agent
+						go func(loglines []string) {
+							loglines = logger.ProcessOutgoingLoglines(loglines, target.AllowList, target.DenyList)
+
+							anotherAgentEndpoint := strings.Replace(target.Endpoint, "resourced+tcp://", "", 1)
+
+							err = logger.SendToAgent(anotherAgentEndpoint, 3, loglines, logger.GetSource())
+							if err != nil {
+								logger.LogErrorAndResetLoglinesIfNeeded(logger.GetSource(), err, "Failed to forward log lines to another agent")
+							}
+						}(loglines)
+
+					} else if strings.HasPrefix(target.Endpoint, "syslog+tcp://") {
+						// Target is a syslog TCP endpoint
+						go func(loglines []string) {
+							loglines = logger.ProcessOutgoingLoglines(loglines, target.AllowList, target.DenyList)
+
+							addr := strings.Replace(target.Endpoint, "syslog+tcp://", "", 1)
+
+							err = logger.SendToSyslog("tcp", addr, syslog.LOG_INFO, "ResourceD", loglines, logger.GetSource())
+							if err != nil {
+								logger.LogErrorAndResetLoglinesIfNeeded(logger.GetSource(), err, "Failed to forward log lines to syslog endpoint")
+							}
+						}(loglines)
+
+					} else if strings.HasPrefix(target.Endpoint, "syslog+udp://") {
+						// Target is a syslog UDP endpoint
+						go func(loglines []string) {
+							loglines = logger.ProcessOutgoingLoglines(loglines, target.AllowList, target.DenyList)
+
+							addr := strings.Replace(target.Endpoint, "syslog+udp://", "", 1)
+
+							err = logger.SendToSyslog("udp", addr, syslog.LOG_INFO, "ResourceD", loglines, logger.GetSource())
+							if err != nil {
+								logger.LogErrorAndResetLoglinesIfNeeded(logger.GetSource(), err, "Failed to forward log lines to syslog endpoint")
+							}
+						}(loglines)
+
+					} else if strings.HasPrefix(target.Endpoint, "tcp://") {
+						// Target is a generic TCP endpoint
+						go func(loglines []string) {
+							loglines = logger.ProcessOutgoingLoglines(loglines, target.AllowList, target.DenyList)
+
+							addr := strings.Replace(target.Endpoint, "tcp://", "", 1)
+
+							err = logger.SendToGenericTCP(addr, 3, loglines, logger.GetSource())
+							if err != nil {
+								logger.LogErrorAndResetLoglinesIfNeeded(logger.GetSource(), err, "Failed to forward log lines to a generic TCP endpoint")
+							}
+						}(loglines)
+
+					} else if strings.HasPrefix(target.Endpoint, "file://") {
+						// Target is local file
+						go func(loglines []string) {
+							targetFile := libstring.ExpandTildeAndEnv(strings.Replace(target.Endpoint, "file://", "", 1))
+
+							loglines = logger.ProcessOutgoingLoglines(loglines, target.AllowList, target.DenyList)
+
+							err = logger.WriteToFile(targetFile, loglines)
+							if err != nil {
+								logger.LogErrorAndResetLoglinesIfNeeded(logger.GetSource(), err, "Failed to write log lines to file")
+							}
+						}(loglines)
+
+					}
+				}(logger.(loggers.ILogger), target)
+			}
+		}
+	}(config)
+}
+
 // RunAllForever runs everything in an infinite loop.
 func (a *Agent) RunAllForever() {
 	for _, config := range a.Configs.Readers {
@@ -361,36 +529,6 @@ func (a *Agent) RunAllForever() {
 		a.RunForever(config)
 	}
 	for _, config := range a.Configs.Loggers {
-		logger, err := loggers.NewGoStructByConfig(config)
-		if err != nil {
-			continue
-		}
-
-		go func() {
-			logger.RunBlocking()
-		}()
-
-		go func(config resourced_config.Config, logger loggers.ILogger) {
-			waitTime, err := time.ParseDuration(config.Interval)
-			if err != nil {
-				waitTime, _ = time.ParseDuration("60s")
-			}
-
-			for range time.Tick(waitTime) {
-				loglines, err := a.SendLog(logger.GetData(), logger.GetFile())
-				if err != nil {
-					continue
-				}
-
-				outputJson, err := json.Marshal(loglines)
-				if err != nil {
-					continue
-				}
-
-				a.saveRun(config, outputJson, err)
-				a.PruneLogs(logger, logger.GetData())
-			}
-		}(config, logger)
+		a.RunLoggerForever(config)
 	}
-	a.SendTCPLogForever(a.GeneralConfig.LogReceiver)
 }

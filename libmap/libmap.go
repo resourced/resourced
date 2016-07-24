@@ -166,6 +166,15 @@ func (mp *TSafeMapStrings) Append(key string, value string) {
 	mp.data[key] = append(mp.data[key], value)
 }
 
+// Exists check existance of a key
+func (mp *TSafeMapStrings) Exists(key string) bool {
+	mp.RLock()
+	defer mp.RUnlock()
+
+	_, ok := mp.data[key]
+	return ok
+}
+
 // Get a slice of value.
 func (mp *TSafeMapStrings) Get(key string) []string {
 	mp.Lock()

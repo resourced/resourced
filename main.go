@@ -142,29 +142,6 @@ func main() {
 		}(logReceiverTCPListener)
 	}
 
-	// LogReceiver UDP Settings
-	logReceiverUDPListener, err := a.NewUDPServer(a.GeneralConfig.LogReceiver, "Log Receiver UDP")
-	if err != nil {
-		logrus.Fatal(err)
-	}
-	if logReceiverUDPListener != nil {
-		defer logReceiverUDPListener.Close()
-
-		go func(logReceiverUDPListener *net.UDPConn) {
-			bufferReader := make([]byte, 1024)
-
-			for {
-				n, _, err := logReceiverUDPListener.ReadFromUDP(bufferReader)
-				if err != nil {
-					libtime.SleepString("1s")
-					continue
-				}
-
-				go a.HandleLog(bufferReader[0:n])
-			}
-		}(logReceiverUDPListener)
-	}
-
 	// Create TCP connection to publish metrics to localhost
 	addr, err := net.ResolveTCPAddr("tcp", a.GeneralConfig.MetricReceiver.GetAddr())
 	if err != nil {

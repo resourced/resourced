@@ -11,6 +11,8 @@ import (
 	"github.com/narqo/go-dogstatsd-parser"
 	"github.com/rcrowley/go-metrics"
 
+	"github.com/resourced/resourced/logline"
+
 	resourced_config "github.com/resourced/resourced/config"
 )
 
@@ -178,5 +180,16 @@ func (a *Agent) HandleStatsD(dataInBytes []byte) {
 }
 
 func (a *Agent) HandleLog(dataInBytes []byte) {
-	a.TCPLogDB.Append("Loglines", string(dataInBytes))
+	subscriberKeys := make([]string, 0)
+
+	for subscriberKey, _ := range a.LiveLogSubscribers {
+		subscriberKeys = append(subscriberKeys, subscriberKey)
+	}
+
+	incomingLogline := string(dataInBytes)
+	if strings.HasPrefix(incomingLogline, "type:base64") {
+		incomingLogline = logline.ParseSingle(incomingLogline).EncodePlain()
+	}
+
+	a.LiveLogPubSub.Pub(incomingLogline, subscriberKeys...)
 }
