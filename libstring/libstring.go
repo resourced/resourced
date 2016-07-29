@@ -12,7 +12,7 @@ import (
 
 // ExpandTilde is a convenience function that expands ~ to full path.
 func ExpandTilde(path string) string {
-	if path == "" {
+	if path == "" || len(path) == 1 {
 		return path
 	}
 
