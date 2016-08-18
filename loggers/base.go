@@ -19,12 +19,12 @@ import (
 	"github.com/hpcloud/tail"
 	"github.com/sethgrid/pester"
 
+	resourced_wire "github.com/resourced/resourced-wire"
 	resourced_config "github.com/resourced/resourced/config"
 	"github.com/resourced/resourced/host"
 	"github.com/resourced/resourced/libmap"
 	"github.com/resourced/resourced/libstring"
 	"github.com/resourced/resourced/libtcp"
-	"github.com/resourced/resourced/logline"
 )
 
 var loggerConstructors = make(map[string]func() ILogger)
@@ -155,6 +155,7 @@ func (b *Base) RunBlockingFile(file string) {
 	t, err := tail.TailFile(file, tail.Config{
 		Follow:   true,
 		Location: &tail.SeekInfo{Offset: 0, Whence: os.SEEK_END},
+		Logger:   logrus.New(),
 	})
 	if err == nil {
 		if !b.Data.Exists(file) {
@@ -299,20 +300,21 @@ func (b *Base) logPayloadForMaster(hostData *host.Host, loglines []string, sourc
 	for _, lg := range loglines {
 		linePayload := AgentLoglinePayload{}
 
+		wirePayload := resourced_wire.ParseSingle(lg)
+
 		// Check if loglines contain ResourceD base64 wire protocol.
 		// If so, convert to plain text.
-		if strings.HasPrefix(lg, "type:base64") {
-			lg = logline.ParseSingle(lg).EncodePlain()
+		if wirePayload.Type == "base64" {
+			lg = resourced_wire.ParseSingle(lg).EncodePlain()
 		}
 
-		// Check if each logline is NOT encoded in ResourceD log wire protocol
-		if !strings.HasPrefix(lg, "type:base64") && !strings.HasPrefix(lg, "type:plain") {
+		// Check if each logline is NOT ResourceD log wire protocol
+		if wirePayload.Type == "" {
 			linePayload.Created = time.Now().UTC().Unix()
-			linePayload.Content = lg
+			linePayload.Content = wirePayload.EncodePlain()
 		} else {
-			liveLogline := logline.ParseSingle(lg)
-			linePayload.Created = liveLogline.Created
-			linePayload.Content = liveLogline.Content
+			linePayload.Created = wirePayload.Created
+			linePayload.Content = wirePayload.Content
 		}
 
 		if linePayload.Content != "" {
@@ -398,9 +400,13 @@ func (b *Base) SendToAgent(anotherAgentAddr string, maxRetries int, loglines []s
 		w := bufio.NewWriter(conn)
 
 		for i, lg := range loglines {
-			// Check if each logline is NOT encoded in ResourceD log wire protocol
-			if !strings.HasPrefix(lg, "type:base64") && !strings.HasPrefix(lg, "type:plain") {
-				loglines[i] = logline.LiveLogline{Created: time.Now().UTC().Unix(), Content: lg}.EncodeBase64()
+			// Check if each logline is NOT encoded in ResourceD wire protocol
+			wire := resourced_wire.ParseSingle(lg)
+			if wire.Type == "" {
+				wire.Created = time.Now().UTC().Unix()
+				wire.Content = lg
+
+				loglines[i] = wire.EncodeBase64()
 				lg = loglines[i]
 			}
 
@@ -425,7 +431,7 @@ func (b *Base) SendToSyslog(protocol string, addr string, priority syslog.Priori
 	defer logHandler.Close()
 
 	for _, lg := range loglines {
-		logHandler.Write([]byte(logline.ParseSingle(lg).PlainContent()))
+		logHandler.Write([]byte(resourced_wire.ParseSingle(lg).PlainContent()))
 	}
 
 	return nil
@@ -461,8 +467,9 @@ func (b *Base) WriteToFile(targetFile string, loglines []string) error {
 	// Check if loglines contain ResourceD base64 wire protocol.
 	// If so, convert to plain text.
 	for i, lg := range loglines {
-		if strings.HasPrefix(lg, "type:base64") || strings.HasPrefix(lg, "type:plain") {
-			loglines[i] = logline.ParseSingle(lg).PlainContent()
+		wire := resourced_wire.ParseSingle(lg)
+		if wire.Type != "" {
+			loglines[i] = wire.PlainContent()
 		}
 	}
 

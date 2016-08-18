@@ -291,6 +291,12 @@
 			"revisionTime": "2016-02-26T05:29:04Z"
 		},
 		{
+			"checksumSHA1": "NKqwM3rtYOxlQ4p+zBGyAbZLLb0=",
+			"path": "github.com/resourced/resourced-wire",
+			"revision": "fdab405e67848aaad742327a556b0a14157e94df",
+			"revisionTime": "2016-08-18T05:31:27Z"
+		},
+		{
 			"checksumSHA1": "Lt5GDx00V/jJq1spmXQBX4UtA5Y=",
 			"path": "github.com/robertkrimen/otto",
 			"revision": "610cd3ae864b5f0977234663966e6108c63b0f8e",

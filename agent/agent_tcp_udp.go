@@ -11,8 +11,7 @@ import (
 	"github.com/narqo/go-dogstatsd-parser"
 	"github.com/rcrowley/go-metrics"
 
-	"github.com/resourced/resourced/logline"
-
+	resourced_wire "github.com/resourced/resourced-wire"
 	resourced_config "github.com/resourced/resourced/config"
 )
 
@@ -171,6 +170,7 @@ func (a *Agent) HandleStatsD(dataInBytes []byte) {
 		} else if statsdMetric.Type == dogstatsd.Timer {
 			t := a.StatsDMetrics.GetOrRegister(statsdMetric.Name, metrics.NewTimer())
 			if t != nil {
+				// TODO: Not sure what to do here.
 				// t.Time(func() {})
 				t.(metrics.Timer).Update(statsdMetric.Value.(time.Duration))
 				logrus.WithFields(logFields).Info("Update StatsD timer")
@@ -187,8 +187,9 @@ func (a *Agent) HandleLog(dataInBytes []byte) {
 	}
 
 	incomingLogline := string(dataInBytes)
-	if strings.HasPrefix(incomingLogline, "type:base64") {
-		incomingLogline = logline.ParseSingle(incomingLogline).EncodePlain()
+	wire := resourced_wire.ParseSingle(incomingLogline)
+	if wire.Type == "base64" {
+		incomingLogline = wire.EncodePlain()
 	}
 
 	a.LiveLogPubSub.Pub(incomingLogline, subscriberKeys...)
