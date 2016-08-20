@@ -302,18 +302,15 @@ func (b *Base) logPayloadForMaster(hostData *host.Host, loglines []string, sourc
 
 		wirePayload := resourced_wire.ParseSingle(lg)
 
-		// Check if loglines contain ResourceD base64 wire protocol.
-		// If so, convert to plain text.
-		if wirePayload.Type == "base64" {
-			lg = resourced_wire.ParseSingle(lg).EncodePlain()
+		if wirePayload.Created > 0 {
+			linePayload.Created = wirePayload.Created
+		} else {
+			linePayload.Created = time.Now().UTC().Unix()
 		}
 
-		// Check if each logline is NOT ResourceD log wire protocol
 		if wirePayload.Type == "" {
-			linePayload.Created = time.Now().UTC().Unix()
-			linePayload.Content = wirePayload.EncodePlain()
+			linePayload.Content = lg
 		} else {
-			linePayload.Created = wirePayload.Created
 			linePayload.Content = wirePayload.Content
 		}
 
