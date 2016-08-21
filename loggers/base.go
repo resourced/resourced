@@ -16,7 +16,6 @@ import (
 	"time"
 
 	"github.com/Sirupsen/logrus"
-	"github.com/hpcloud/tail"
 	"github.com/sethgrid/pester"
 
 	resourced_wire "github.com/resourced/resourced-wire"
@@ -25,6 +24,7 @@ import (
 	"github.com/resourced/resourced/libmap"
 	"github.com/resourced/resourced/libstring"
 	"github.com/resourced/resourced/libtcp"
+	"github.com/resourced/tail"
 )
 
 var loggerConstructors = make(map[string]func() ILogger)

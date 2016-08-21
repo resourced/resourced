@@ -201,36 +201,6 @@
 			"revisionTime": "2016-04-07T17:41:26Z"
 		},
 		{
-			"checksumSHA1": "arojRtqOmOlvVF+Bo4mv05dF/wc=",
-			"path": "github.com/hpcloud/tail",
-			"revision": "a30252cb686a21eb2d0b98132633053ec2f7f1e5",
-			"revisionTime": "2016-04-28T00:30:50Z"
-		},
-		{
-			"checksumSHA1": "JQP5xDlFbFT+PZT8Yk70J5tchUE=",
-			"path": "github.com/hpcloud/tail/ratelimiter",
-			"revision": "a30252cb686a21eb2d0b98132633053ec2f7f1e5",
-			"revisionTime": "2016-04-28T00:30:50Z"
-		},
-		{
-			"checksumSHA1": "0xM336Lb25URO/1W1/CtGoRygVU=",
-			"path": "github.com/hpcloud/tail/util",
-			"revision": "a30252cb686a21eb2d0b98132633053ec2f7f1e5",
-			"revisionTime": "2016-04-28T00:30:50Z"
-		},
-		{
-			"checksumSHA1": "mPYzD3FBUUDZEtVGJpOv1+Uf5ss=",
-			"path": "github.com/hpcloud/tail/watch",
-			"revision": "a30252cb686a21eb2d0b98132633053ec2f7f1e5",
-			"revisionTime": "2016-04-28T00:30:50Z"
-		},
-		{
-			"checksumSHA1": "j65V4wnJboT4pfppNC/gjr2Gl+c=",
-			"path": "github.com/hpcloud/tail/winfile",
-			"revision": "a30252cb686a21eb2d0b98132633053ec2f7f1e5",
-			"revisionTime": "2016-04-28T00:30:50Z"
-		},
-		{
 			"checksumSHA1": "KzCaS8oOddwsaFfAg8A/siy97Fo=",
 			"path": "github.com/jeromer/syslogparser",
 			"revision": "812866d0389ae7e1f5a0110d47dea20224fc776f",
@@ -295,6 +265,36 @@
 			"path": "github.com/resourced/resourced-wire",
 			"revision": "fdab405e67848aaad742327a556b0a14157e94df",
 			"revisionTime": "2016-08-18T05:31:27Z"
+		},
+		{
+			"checksumSHA1": "ocRTdNXYOEO327WZl0SjMdeQVSU=",
+			"path": "github.com/resourced/tail",
+			"revision": "5c9f0ff76696a1e9150ebca440a69341258d2fb2",
+			"revisionTime": "2016-08-21T00:07:09Z"
+		},
+		{
+			"checksumSHA1": "Id05GjQdn8/GenIcabt+MMoLVIU=",
+			"path": "github.com/resourced/tail/ratelimiter",
+			"revision": "5c9f0ff76696a1e9150ebca440a69341258d2fb2",
+			"revisionTime": "2016-08-21T00:07:09Z"
+		},
+		{
+			"checksumSHA1": "zhVRh3Y34IPMS8x0UfA/da/PWmU=",
+			"path": "github.com/resourced/tail/util",
+			"revision": "5c9f0ff76696a1e9150ebca440a69341258d2fb2",
+			"revisionTime": "2016-08-21T00:07:09Z"
+		},
+		{
+			"checksumSHA1": "5FYV3wtpNlPFFE9JLqIYLJjyj8g=",
+			"path": "github.com/resourced/tail/watch",
+			"revision": "5c9f0ff76696a1e9150ebca440a69341258d2fb2",
+			"revisionTime": "2016-08-21T00:07:09Z"
+		},
+		{
+			"checksumSHA1": "GDnGK93t3nsifZA2ujp4MpRZ6gI=",
+			"path": "github.com/resourced/tail/winfile",
+			"revision": "5c9f0ff76696a1e9150ebca440a69341258d2fb2",
+			"revisionTime": "2016-08-21T00:07:09Z"
 		},
 		{
 			"checksumSHA1": "Lt5GDx00V/jJq1spmXQBX4UtA5Y=",
