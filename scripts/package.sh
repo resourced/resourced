@@ -14,6 +14,9 @@ set -e
 CURRENT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 ROOT_DIR=$(dirname $CURRENT_DIR)
 
+cd $ROOT_DIR
+git checkout tests/resourced-configs/*.toml
+
 echo
 echo "Creating directories"
 mkdir -p $ROOT_DIR/resourced-darwin-$VERSION
@@ -37,9 +40,6 @@ echo
 echo "Copying default general.toml"
 cp -r $ROOT_DIR/tests/resourced-configs/general.toml $ROOT_DIR/resourced-darwin-$VERSION/
 cp -r $ROOT_DIR/tests/resourced-configs/general.toml $ROOT_DIR/resourced-linux-$VERSION/
-
-
-cd $ROOT_DIR
 
 echo
 echo "Compiling Darwin binary"
