@@ -154,6 +154,7 @@ func (b *Base) RunBlockingChannel(name string, ch <-chan interface{}) {
 func (b *Base) RunBlockingFile(file string) {
 	t, err := tail.TailFile(file, tail.Config{
 		Follow:   true,
+		ReOpen:   true,
 		Location: &tail.SeekInfo{Offset: 0, Whence: os.SEEK_END},
 		Logger:   logrus.New(),
 	})
