@@ -9,11 +9,11 @@ import (
 	"time"
 
 	"github.com/Sirupsen/logrus"
+	"github.com/cskr/pubsub"
 	gocache "github.com/patrickmn/go-cache"
 	"github.com/rcrowley/go-metrics"
 	"github.com/satori/go.uuid"
 
-	"github.com/cskr/pubsub"
 	resourced_config "github.com/resourced/resourced/config"
 	"github.com/resourced/resourced/executors"
 	"github.com/resourced/resourced/host"
@@ -94,7 +94,9 @@ func (a *Agent) Run(config resourced_config.Config) (output []byte, err error) {
 		}).Error("Failed to execute runGoStructReader/runGoStructWriter/runGoStructExecutor")
 	}
 
-	err = a.saveRun(config, output, err)
+	if string(output) != "{}" && string(output) != "[]" {
+		err = a.saveRun(config, output, err)
+	}
 
 	return output, err
 }
@@ -347,9 +349,52 @@ func (a *Agent) RunForever(config resourced_config.Config) {
 		for range time.Tick(waitTime) {
 			a.Run(config)
 		}
+	}(config)
+}
 
-		for {
-			a.Run(config)
+// RunExecutorForever in an infinite loop with a sleep of config.Interval.
+func (a *Agent) RunExecutorForever(config resourced_config.Config) {
+	go func(config resourced_config.Config) {
+		waitTime, err := time.ParseDuration(config.Interval)
+		if err != nil {
+			waitTime, _ = time.ParseDuration("60s")
+		}
+
+		for range time.Tick(waitTime) {
+			outputJSONBytes, err := a.Run(config)
+			outputJSONString := string(outputJSONBytes)
+
+			// Send executor log to local live:// endpoint
+			if err == nil && outputJSONString != "{}" && outputJSONString != "[]" {
+				go func() {
+					tcpClient, err := a.NewTCPClient(a.GeneralConfig.LogReceiver.GetAddr())
+					if err == nil {
+						// Process JSON output further
+						outputJSONString = strings.Replace(
+							outputJSONString,
+							"{",
+							fmt.Sprintf(
+								`{"Name":"ResourceD Executor Log","Path": "%v","Interval": "%v",`,
+								config.PathWithKindPrefix("x", config.Path),
+								config.Interval,
+							),
+							1,
+						)
+
+						outputJSONString = strings.Replace(outputJSONString, "\\u003c", "<", -1)
+						outputJSONString = strings.Replace(outputJSONString, "\\u003e", ">", -1)
+						outputJSONString = strings.Replace(outputJSONString, "\\u0026", "&", -1)
+
+						tcpClient.Write([]byte(fmt.Sprintf(`type:json|created:%v|content:%v`, time.Now().UTC().Unix(), outputJSONString)))
+						tcpClient.Close()
+
+					} else {
+						logrus.WithFields(logrus.Fields{
+							"Error": err.Error(),
+						}).Error("Failed to initialize TCP client for sending executor log")
+					}
+				}()
+			}
 		}
 	}(config)
 }
@@ -526,7 +571,7 @@ func (a *Agent) RunAllForever() {
 		a.RunForever(config)
 	}
 	for _, config := range a.Configs.Executors {
-		a.RunForever(config)
+		a.RunExecutorForever(config)
 	}
 	for _, config := range a.Configs.Loggers {
 		a.RunLoggerForever(config)

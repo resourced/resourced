@@ -3,9 +3,7 @@ package executors
 import (
 	"encoding/json"
 	"fmt"
-	"time"
 
-	"github.com/Sirupsen/logrus"
 	"github.com/tbruyelle/hipchat-go/hipchat"
 )
 
@@ -54,13 +52,6 @@ func (hc *HipChat) Run() error {
 				}
 			}
 		}
-
-		go func() {
-			err := hc.SendToMaster(AgentLoglinePayload{Created: time.Now().UTC().Unix(), Content: message})
-			if err != nil {
-				logrus.Error(err)
-			}
-		}()
 
 		if err != nil {
 			return err

@@ -2,10 +2,6 @@ package executors
 
 import (
 	"encoding/json"
-	"fmt"
-	"time"
-
-	"github.com/Sirupsen/logrus"
 
 	"github.com/resourced/resourced/libprocess"
 )
@@ -40,16 +36,6 @@ func (s *Shell) Run() error {
 		} else {
 			s.Data["ExitStatus"] = 0
 		}
-
-		go func() {
-			created := time.Now().UTC().Unix()
-			content := fmt.Sprintf("Conditions: %v. Output: %v.", s.Conditions, string(output))
-
-			err := s.SendToMaster(AgentLoglinePayload{Created: created, Content: content})
-			if err != nil {
-				logrus.Error(err)
-			}
-		}()
 	}
 
 	return nil
@@ -62,11 +48,11 @@ func (s *Shell) ToJson() ([]byte, error) {
 	errorString, errorFound := s.Data["Error"]
 
 	if !outputFound && !errorFound {
-		return nil, nil
+		return []byte("{}"), nil
 	}
 
 	if output.(string) == "" && errorString.(string) == "" {
-		return nil, nil
+		return []byte("{}"), nil
 	}
 
 	return json.Marshal(s.Data)

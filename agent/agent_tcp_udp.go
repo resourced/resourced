@@ -15,6 +15,17 @@ import (
 	resourced_config "github.com/resourced/resourced/config"
 )
 
+// NewTCPClient creates a TCP connection.
+func (a *Agent) NewTCPClient(addr string) (*net.TCPConn, error) {
+	tcpAddr, err := net.ResolveTCPAddr("tcp", addr)
+	if err != nil {
+		return nil, err
+	}
+
+	return net.DialTCP("tcp", nil, tcpAddr)
+}
+
+// NewTCPServer creates a TCP server.
 func (a *Agent) NewTCPServer(config resourced_config.ITCPServer, name string) (net.Listener, error) {
 	if config.GetAddr() != "" {
 		logFields := logrus.Fields{
@@ -48,6 +59,7 @@ func (a *Agent) NewTCPServer(config resourced_config.ITCPServer, name string) (n
 	return nil, nil
 }
 
+// NewUDPServer creates a UDP server.
 func (a *Agent) NewUDPServer(config resourced_config.ITCPServer, name string) (*net.UDPConn, error) {
 	if config.GetAddr() != "" {
 		logFields := logrus.Fields{

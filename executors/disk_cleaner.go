@@ -2,13 +2,8 @@ package executors
 
 import (
 	"encoding/json"
-	"fmt"
 	"os"
 	"path/filepath"
-	"strings"
-	"time"
-
-	"github.com/Sirupsen/logrus"
 
 	"github.com/resourced/resourced/libstring"
 )
@@ -66,17 +61,9 @@ func (dc *DiskCleaner) Run() error {
 			dc.Data["ExitStatus"] = 0
 		}
 
-		dc.Data["Success"] = successOutput
-		dc.Data["Failure"] = failOutput
-
 		if len(successOutput) > 0 || len(failOutput) > 0 {
-			go func() {
-				logline := dc.formatBeforeSendingToMaster(dc.Data)
-				err := dc.SendToMaster(logline)
-				if err != nil {
-					logrus.Error(err)
-				}
-			}()
+			dc.Data["Success"] = successOutput
+			dc.Data["Failure"] = failOutput
 		}
 	}
 
@@ -90,34 +77,15 @@ func (dc *DiskCleaner) ToJson() ([]byte, error) {
 	failureOutputInterface, failureFound := dc.Data["Failure"]
 
 	if !successFound && !failureFound {
-		return nil, nil
+		return []byte("{}"), nil
 	}
 
 	successOutput := successOutputInterface.([]string)
 	failureOutput := failureOutputInterface.([]string)
 
 	if len(successOutput) == 0 && len(failureOutput) == 0 {
-		return nil, nil
+		return []byte("{}"), nil
 	}
 
 	return json.Marshal(dc.Data)
-}
-
-func (dc *DiskCleaner) formatBeforeSendingToMaster(data map[string]interface{}) AgentLoglinePayload {
-	logline := fmt.Sprintf("Conditions: %v. ", dc.Conditions)
-
-	if exitStatus, ok := data["ExitStatus"]; ok {
-		logline = logline + fmt.Sprintf("ExitStatus: %v. ", exitStatus)
-	}
-	if successOutput, ok := data["Success"]; ok && len(successOutput.([]string)) > 0 {
-		logline = logline + fmt.Sprintf("Removed: %v. ", strings.Join(successOutput.([]string), ", "))
-	}
-	if failOutput, ok := data["Failure"]; ok && len(failOutput.([]string)) > 0 {
-		logline = logline + fmt.Sprintf("Failed to remove: %v. ", strings.Join(failOutput.([]string), ", "))
-	}
-
-	return AgentLoglinePayload{
-		Created: time.Now().UTC().Unix(),
-		Content: logline,
-	}
 }

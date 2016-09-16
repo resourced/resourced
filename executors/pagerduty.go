@@ -2,10 +2,7 @@ package executors
 
 import (
 	"encoding/json"
-	"fmt"
-	"time"
 
-	"github.com/Sirupsen/logrus"
 	"github.com/dselans/pagerduty"
 )
 
@@ -47,14 +44,6 @@ func (pd *PagerDuty) Run() error {
 			pd.Data["StatusCode"] = statusCode
 			pd.Data["Message"] = response.Message
 			pd.Data["Errors"] = response.Errors
-
-			go func() {
-				logline := pd.formatBeforeSendingToMaster(pd.Data)
-				err := pd.SendToMaster(logline)
-				if err != nil {
-					logrus.Error(err)
-				}
-			}()
 		}
 
 		if err != nil {
@@ -68,23 +57,4 @@ func (pd *PagerDuty) Run() error {
 // ToJson serialize Data field to JSON.
 func (pd *PagerDuty) ToJson() ([]byte, error) {
 	return json.Marshal(pd.Data)
-}
-
-func (pd *PagerDuty) formatBeforeSendingToMaster(data map[string]interface{}) AgentLoglinePayload {
-	logline := fmt.Sprintf("Conditions: %v. IncidentKey: %v. ", pd.Conditions, pd.IncidentKey)
-
-	if status, ok := data["Status"]; ok {
-		logline = logline + fmt.Sprintf("Status: %v. ", status)
-	}
-	if statusCode, ok := data["StatusCode"]; ok {
-		logline = logline + fmt.Sprintf("StatusCode: %v. ", statusCode)
-	}
-	if message, ok := data["Message"]; ok {
-		logline = logline + fmt.Sprintf("Message: %v. ", message)
-	}
-	if errors, ok := data["Errors"]; ok && len(errors.([]string)) > 0 {
-		logline = logline + fmt.Sprintf("Errors: %v. ", errors)
-	}
-
-	return AgentLoglinePayload{Created: time.Now().UTC().Unix(), Content: logline}
 }

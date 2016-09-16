@@ -3,12 +3,9 @@ package executors
 
 import (
 	"bytes"
-	"encoding/json"
 	"errors"
 	"net/http"
 	"reflect"
-
-	"github.com/Sirupsen/logrus"
 
 	resourced_config "github.com/resourced/resourced/config"
 	"github.com/resourced/resourced/host"
@@ -212,41 +209,4 @@ func (b *Base) NewHttpRequest(dataJson []byte) (*http.Request, error) {
 	req.SetBasicAuth(b.ResourcedMasterAccessToken, "")
 
 	return req, err
-}
-
-// Send executor data to master
-func (b *Base) SendToMaster(logline AgentLoglinePayload) error {
-	toSend := AgentLogPayload{}
-	toSend.Host.Name = b.Host.Name
-	toSend.Host.Tags = b.Host.Tags
-	toSend.Data.Loglines = []AgentLoglinePayload{logline}
-
-	dataJson, err := json.Marshal(toSend)
-	if err != nil {
-		return err
-	}
-
-	req, err := b.NewHttpRequest(dataJson)
-	if err != nil {
-		return err
-	}
-
-	client := &http.Client{}
-	resp, err := client.Do(req)
-
-	if resp != nil && resp.Body != nil {
-		defer resp.Body.Close()
-	}
-
-	if err != nil {
-		logrus.WithFields(logrus.Fields{
-			"Error":      err.Error(),
-			"req.URL":    req.URL.String(),
-			"req.Method": req.Method,
-		}).Error("Failed to send executor data to ResourceD Master")
-
-		return err
-	}
-
-	return nil
 }

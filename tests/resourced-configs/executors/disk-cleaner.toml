@@ -1,6 +1,6 @@
 GoStruct = "DiskCleaner"
 Path = "/disk-cleaner/home"
-Interval = "60s"
+Interval = "1h"
 
 [GoStructFields]
 # LowThreshold: minimum count of valid conditions to trigger.
