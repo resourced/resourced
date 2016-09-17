@@ -1,6 +1,6 @@
 GoStruct = "HipChat"
 Path = "/hipchat"
-Interval = "60s"
+Interval = "5m"
 
 [GoStructFields]
 Conditions = "false"

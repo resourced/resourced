@@ -1,6 +1,6 @@
 GoStruct = "PagerDuty"
 Path = "/pagerduty"
-Interval = "3s"
+Interval = "5m"
 
 [GoStructFields]
 Conditions = "false"

@@ -1,6 +1,6 @@
 GoStruct = "Shell"
 Path = "/uptime"
-Interval = "3s"
+Interval = "5m"
 
 [GoStructFields]
 Command = "uptime"
