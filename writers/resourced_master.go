@@ -19,25 +19,35 @@ func NewResourcedMasterHost() IWriter {
 	return &ResourcedMasterHost{}
 }
 
+type AgentResourcePayload struct {
+	Data map[string]interface{}
+	Host map[string]interface{}
+}
+
 // ResourcedMasterHost is a writer that serialize readers data to ResourcedMasterHost.
 type ResourcedMasterHost struct {
 	Http
 }
 
-func (rmh *ResourcedMasterHost) preProcessData() (map[string]interface{}, error) {
-	newData := make(map[string]interface{})
+func (rmh *ResourcedMasterHost) preProcessData() (AgentResourcePayload, error) {
+	newData := AgentResourcePayload{}
+	newData.Data = make(map[string]interface{})
+
+	host := make(map[string]interface{})
 
 	for readerPath, dataAndHostInterface := range rmh.Data.(map[string]interface{}) {
 		dataAndHost := dataAndHostInterface.(map[string]interface{})
+		host = dataAndHost["Host"].(map[string]interface{})
 
 		flatten, err := libmap.Flatten(dataAndHost["Data"].(map[string]interface{}), ".")
 		if err != nil {
-			return nil, err
+			return newData, err
 		}
 
-		dataAndHost["Data"] = flatten
-		newData[readerPath] = dataAndHost
+		newData.Data[readerPath] = flatten
 	}
+
+	newData.Host = host
 
 	return newData, nil
 }
