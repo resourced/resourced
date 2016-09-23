@@ -1,6 +1,6 @@
 GoStruct = "MysqlProcesslist"
 Path = "/mysql/processlist"
-Interval = "3s"
+Interval = "60s"
 
 [GoStructFields]
 HostAndPort = "localhost:3306"

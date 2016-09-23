@@ -1,6 +1,6 @@
 GoStruct = "NagiosPlugin"
 Path = "/nagios/check-disk"
-Interval = "3s"
+Interval = "60s"
 
 [GoStructFields]
 Command = "$GOPATH/src/github.com/resourced/resourced/tests/script-reader/nagios-plugin-check-disk.py"

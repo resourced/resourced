@@ -1,3 +1,3 @@
 GoStruct = "ProcMounts"
 Path = "/proc/mounts"
-Interval = "3s"
+Interval = "60s"

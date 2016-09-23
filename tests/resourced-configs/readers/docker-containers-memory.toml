@@ -1,6 +1,6 @@
 GoStruct = "DockerContainersMemory"
 Path = "/docker/containers/memory"
-Interval = "3s"
+Interval = "60s"
 
 # If you use container via systemd.slice,
 # set CgroupBasePath = "/sys/fs/cgroup/memory/system.slice"

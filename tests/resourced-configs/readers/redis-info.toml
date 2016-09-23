@@ -1,6 +1,6 @@
 GoStruct = "RedisInfo"
 Path = "/redis/info"
-Interval = "3s"
+Interval = "60s"
 
 [GoStructFields]
 HostAndPort = ":6379"

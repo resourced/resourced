@@ -1,6 +1,6 @@
 GoStruct = "DockerContainersCpu"
 Path = "/docker/containers/cpu"
-Interval = "3s"
+Interval = "60s"
 
 # If you use container via systemd.slice,
 # set CgroupBasePath = "/sys/fs/cgroup/cpuacct/system.slice"

@@ -1,6 +1,6 @@
 GoStruct = "Ps"
 Path = "/ps"
-Interval = "3s"
+Interval = "60s"
 
 [GoStructFields]
 # NameFilter is a slice of string names.
