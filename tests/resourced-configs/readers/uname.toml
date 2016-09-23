@@ -1,0 +1,3 @@
+GoStruct = "Uname"
+Path = "/uname"
+Interval = "60s"
