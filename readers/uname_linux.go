@@ -4,6 +4,7 @@ package readers
 import (
 	"encoding/json"
 	"os/exec"
+	"strings"
 	"syscall"
 )
 
@@ -55,7 +56,7 @@ func (u *Uname) Run() error {
 	if err != nil {
 		return err
 	}
-	u.Data["Shell"] = string(cliBytes)
+	u.Data["Shell"] = strings.TrimSpace(string(cliBytes))
 
 	return nil
 }
