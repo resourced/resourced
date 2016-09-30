@@ -148,16 +148,16 @@ func main() {
 		logrus.Fatal(err)
 	}
 
-	statsInterval, err := time.ParseDuration(a.GeneralConfig.MetricReceiver.StatsInterval)
-	if err != nil {
-		logrus.Fatal(err)
-	}
-
 	// Publish self metrics to localhost
-	go metrics_graphite.Graphite(a.NewMetricsRegistryForSelf(), statsInterval, "ResourcedAgent", addr)
+	if a.GeneralConfig.MetricReceiver.StatsInterval != "" {
+		statsInterval, err := time.ParseDuration(a.GeneralConfig.MetricReceiver.StatsInterval)
+		if err != nil {
+			logrus.Fatal(err)
+		}
 
-	// Flush aggregated StatsD metrics to in-memory storage
-	go a.FlushStatsDMetricsToResultDB(statsInterval)
+		go metrics_graphite.Graphite(a.NewMetricsRegistryForSelf(), statsInterval, "ResourcedAgent", addr)
+		go a.FlushStatsDMetricsToResultDB(statsInterval)
+	}
 
 	// HTTP Settings
 	logFields := a.DefaultLogrusFieldsForHTTP()
