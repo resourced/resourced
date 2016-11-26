@@ -3,6 +3,8 @@ package writers
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
+	"os"
 
 	"github.com/Sirupsen/logrus"
 	"github.com/sethgrid/pester"
@@ -44,10 +46,23 @@ func (rmh *ResourcedMasterHost) preProcessData() (AgentResourcePayload, error) {
 			return newData, err
 		}
 
-		newData.Data[readerPath] = flatten
+		for flattenKey, value := range flatten {
+			switch value := value.(type) {
+			case int, int64, float32, float64:
+				newData.Data[readerPath+"."+flattenKey] = fmt.Sprintf("%.6f", value)
+			case string:
+				newData.Data[readerPath+"."+flattenKey] = value
+			}
+		}
 	}
 
 	newData.Host = host
+
+	// Odd bug where hostname does not exists on first boot.
+	if newData.Host["Name"] == nil || newData.Host["Name"].(string) == "" {
+		hostname, _ := os.Hostname()
+		newData.Host["Name"] = hostname
+	}
 
 	return newData, nil
 }
