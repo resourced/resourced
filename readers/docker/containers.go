@@ -30,8 +30,8 @@ func (dc *DockerContainers) Run() error {
 	}
 
 	for _, container := range containers {
-		if container.ID != "" && container.NiceImageName != "" {
-			dc.Data[container.NiceImageName+"-"+container.ID] = container
+		if container.ID != "" && container.Name != "" {
+			dc.Data[container.Name] = container
 		}
 	}
 
